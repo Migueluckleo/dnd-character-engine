@@ -706,6 +706,93 @@
     color: var(--accent2);
     font-size: 1rem;
   }
+  /* ── Carry / Coins card ─────────────────────────────────────── */
+  .inventory-carry-card {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 0;
+    background: #5C3A1E;
+    border-radius: 12px;
+    padding: 14px 16px;
+    min-height: 72px;
+  }
+  .inventory-carry-load {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    flex: 0 0 auto;
+    min-width: 120px;
+  }
+  .inventory-carry-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .inventory-carry-icon {
+    color: var(--accent2, #E8D5B0);
+    flex-shrink: 0;
+  }
+  .inventory-carry-title strong {
+    font-family: "Pragati Narrow", Arial, sans-serif;
+    font-size: 1.15rem;
+    color: var(--accent2, #E8D5B0);
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+  .inventory-carry-bar {
+    height: 6px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .inventory-carry-bar span {
+    display: block;
+    height: 100%;
+    background: #C9921A;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+  }
+  .inventory-carry-value {
+    font-size: 0.78rem;
+    color: var(--muted, #A08060);
+    font-family: "Pragati Narrow", Arial, sans-serif;
+  }
+  .inventory-carry-divider {
+    width: 1px;
+    background: rgba(255,255,255,0.15);
+    margin: 0 16px;
+    flex-shrink: 0;
+  }
+  .inventory-carry-coins {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: space-around;
+    gap: 4px;
+  }
+  .inventory-carry-coin {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+  .inventory-carry-coin-label {
+    font-size: 0.78rem;
+    color: var(--muted, #A08060);
+    font-family: "Pragati Narrow", Arial, sans-serif;
+    letter-spacing: 0.04em;
+  }
+  .inventory-carry-coin-value {
+    font-family: "Pragati Narrow", Arial, sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent2, #E8D5B0);
+    letter-spacing: 0.01em;
+  }
+  /* ── /Carry ──────────────────────────────────────────────────── */
+
   .inventory-add-object-btn {
     min-height: 34px;
     border: 1px solid var(--border);

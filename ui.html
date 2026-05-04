@@ -4265,6 +4265,8 @@ function switchInventorySection(mode) {
 }
 
 function renderInventoryBackpackView(items) {
+  const load = inventoryLoadSummary(items);
+  const coins = inventoryCoinSummary(characterData || {});
   return `
     <div class="inventory-section-head">
       <div>
@@ -4273,10 +4275,67 @@ function renderInventoryBackpackView(items) {
       </div>
       <button class="inventory-add-object-btn" onclick="openInventoryAddObject()">Agregar objeto</button>
     </div>
+    ${renderInventoryCarryCard(load, coins)}
     ${items.length ? `
       <div class="inventory-rich-list">
         ${items.map(renderInventoryItemCard).join('')}
       </div>` : '<div class="detail-empty">Sin objetos registrados.</div>'}`;
+}
+
+function inventoryLoadSummary(items) {
+  const carried = items.reduce((sum, inv) => {
+    const item = inv.item || itemByRef(inv.item_id) || {};
+    const qty = inventoryDisplayQuantity(inv, item);
+    return sum + Number(item.weight || 0) * Number(qty || 0);
+  }, 0);
+  const strScore = Number(characterData?.ability_scores?.str ?? characterData?.computed?.ability_scores?.str ?? 10);
+  const capacity = Math.max(1, strScore * 15);
+  return {
+    carried: Math.round(carried * 10) / 10,
+    capacity,
+    percent: Math.max(0, Math.min(100, (carried / capacity) * 100)),
+  };
+}
+
+function inventoryCoinSummary(source) {
+  const pick = (...keys) => keys.map(k => source?.[k] ?? source?.coins?.[k]).find(v => v !== undefined && v !== null) ?? 0;
+  return {
+    gp: Number(pick('gp', 'gold', 'po')) || 0,
+    sp: Number(pick('sp', 'silver', 'pp')) || 0,
+    cp: Number(pick('cp', 'copper', 'pc')) || 0,
+  };
+}
+
+function renderInventoryCarryCard(load, coins) {
+  const COIN_ICONS = {
+    PO: `<svg viewBox="0 0 20 20" width="22" height="22" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#C9921A" stroke="#A07010" stroke-width="1.2"/><text x="10" y="14" text-anchor="middle" font-size="10" font-weight="bold" fill="#FFF8DC" font-family="Arial">$</text></svg>`,
+    PP: `<svg viewBox="0 0 20 20" width="22" height="22" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#A0A8B8" stroke="#707888" stroke-width="1.2"/><text x="10" y="14" text-anchor="middle" font-size="10" font-weight="bold" fill="#F0F4FF" font-family="Arial">$</text></svg>`,
+    PC: `<svg viewBox="0 0 20 20" width="22" height="22" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#B87333" stroke="#8B5A20" stroke-width="1.2"/><text x="10" y="14" text-anchor="middle" font-size="10" font-weight="bold" fill="#FFF0E0" font-family="Arial">$</text></svg>`,
+  };
+  const money = [
+    ['PO', coins.gp],
+    ['PP', coins.sp],
+    ['PC', coins.cp],
+  ];
+  return `<section class="inventory-carry-card">
+    <div class="inventory-carry-load">
+      <div class="inventory-carry-title">
+        <svg class="inventory-carry-icon" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><use href="#icon-bag"></use></svg>
+        <strong>Carga</strong>
+      </div>
+      <div class="inventory-carry-bar"><span style="width:${load.percent}%"></span></div>
+      <div class="inventory-carry-value">${load.carried}/${load.capacity} lbs</div>
+    </div>
+    <div class="inventory-carry-divider"></div>
+    <div class="inventory-carry-coins">
+      ${money.map(([label, value]) => `
+        <div class="inventory-carry-coin">
+          ${COIN_ICONS[label]}
+          <span class="inventory-carry-coin-label">${label}</span>
+          <strong class="inventory-carry-coin-value">${Number(value).toLocaleString()}</strong>
+        </div>`).join('')}
+    </div>
+  </section>`;
 }
 
 function renderInventoryStashView(items) {
