@@ -1,0 +1,1065 @@
+# CHANGELOG
+
+Registro retroactivo del proyecto. El código actual es la fuente principal de verdad; las fechas previas se basan en marcas de archivo y documentación disponible, por lo que algunas entradas se indican como estimadas.
+
+## [2026-05-04] - Competencias de equipo y uso robusto de pociones
+
+### Cambios
+- La pestaña `Habilidades` ahora agrega una tercera subvista `Competencias` para mostrar armas, armaduras, escudos, herramientas y objetos competentes.
+- Las competencias de equipo se derivan de clase, multiclase, raza/traits, trasfondo y registros `CharacterTool` cuando existen.
+- Se corrigió el flujo de uso de consumibles para que el inventario cargado en la pestaña se conserve en memoria y el botón `Usar` pueda resolver correctamente el objeto.
+- El modal de dados de consumibles ya no se cierra si la aplicación del efecto falla, permitiendo reintentar.
+- El backend acepta `effect_total` como número coercible para evitar rechazos por formato al usar pociones desde la UI.
+- Si una poción se aplica pero falla el refresco posterior del inventario, la UI conserva el resultado de PG y muestra una advertencia no bloqueante.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `src/api/controllers/inventory.controller.ts`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-118: Character Image Upload and Figma-Matched Detail Subflows
+- US-124: Consumable Use and Virtual Dice Modal
+- US-131: Weapon Attack Proficiency and Skill Proficiency Visibility
+
+### Fuente / certeza
+- Basado en reporte directo del usuario
+- Confirmado por código actual
+- Pendiente de validación visual en navegador
+
+## [2026-05-01] - Ficha abierta alineada con Figma
+
+### Cambios
+- Se verificó el nodo Figma `personaje abierto` (`2001:486`) y se ajustó la ficha para mostrar la fila de métricas del prototipo.
+- La fila de resumen ahora muestra `CA`, `Velocidad`, `Nivel` y `B. Comp.` con el bonificador de competencia visible.
+- Se retiró `Iniciativa` de esa fila porque no aparece en el bloque Figma de personaje abierto.
+- Se ajustó el CTA de experiencia a `Agregar experiencia`, el label mágico a `Car. Mágica` y los atributos a nombres completos en mayúsculas.
+- La grilla de tabs del personaje abierto se reforzó para respetar el layout Figma: `Ficha` ocupa dos columnas y las demás tabs se distribuyen en tres columnas.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-117: Figma-Matched Character Detail Microflow and Bottom Navigation
+- US-118: Character Image Upload and Figma-Matched Detail Subflows
+
+### Fuente / certeza
+- Confirmado por Figma (`2001:486`)
+- Confirmado por código actual
+- Basado en solicitud directa del usuario
+- Pendiente de validación visual en navegador
+
+## [2026-05-01] - Competencia en ataques con arma y habilidades visibles
+
+### Cambios
+- El flujo `Tirar Dado` → `Ataque` ahora calcula y muestra el total real del ataque: d20 + modificador relevante + competencia solo si el personaje es competente con el arma.
+- La UI determina el modificador de ataque según reglas DnD: Fuerza para cuerpo a cuerpo/arrojadizas, Destreza para armas a distancia y el mejor entre Fuerza/Destreza para armas con Sutileza.
+- Las cards de armas equipadas muestran `Ataque +X` y si el personaje es `Competente` o `Sin competencia`.
+- La pantalla de comprobación muestra la fórmula y el razonamiento de por qué se suma o no la competencia.
+- La pestaña `Habilidades` ahora muestra resumen de competencias y badges por fila: `Competente`, `Experto` o `Sin competencia`, separado de tiradas de salvación.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-77: Skill Proficiency System
+- US-128: Figma-Matched Attack Dice Flow
+- US-131: Weapon Attack Proficiency and Skill Proficiency Visibility
+
+### Fuente / certeza
+- Confirmado por código actual
+- Confirmado por documentación (`docs/plan.md`, `docs/requirements.md`)
+- Basado en solicitud directa del usuario
+- Pendiente de validación visual en navegador
+
+## [2026-05-01] - Corrección de descuento visual de munición en ataques
+
+### Cambios
+- Se corrigió la visualización de munición restante para que flechas/virotes muestren la cantidad real después de un ataque, por ejemplo `x20` → `x19`.
+- Se eliminó el clamp visual que forzaba munición a mostrarse como mínimo en el tamaño del paquete del catálogo.
+- Se agregó una normalización de seguridad al primer disparo para inventarios heredados que aún tenían munición guardada como cantidad de paquete (`x1`/`x2`) en vez de unidades reales.
+
+### Archivos modificados
+- `ui.html`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-123: Equipment State and Hand-Occupancy Rules
+- US-128: Figma-Matched Attack Dice Flow
+
+### Fuente / certeza
+- Basado en reporte directo del usuario
+- Confirmado por código actual
+- Pendiente de validación visual en navegador
+
+## [2026-05-01] - Animación de dados virtuales
+
+### Cambios
+- Se agregó una simulación de tirada con movimiento para los dados virtuales: el número cambia rápidamente mientras el dado gira/rebota y luego se fija en el resultado real.
+- La animación se aplica en ataque d20, cálculo de daño de arma, lanzamiento de conjuros/trucos, tiradas personalizadas y consumibles con dados.
+- Los botones de tirada quedan deshabilitados durante la animación para evitar dobles lanzamientos.
+- Se agregó fallback CSS para `prefers-reduced-motion`.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-124: Consumable Use and Virtual Dice Modal
+- US-128: Figma-Matched Attack Dice Flow
+- US-129: Figma-Matched Spell Dice Flow
+- US-130: Animated Virtual Dice Feedback
+
+### Fuente / certeza
+- Basado en solicitud directa del usuario
+- Confirmado por código actual
+- Pendiente de validación visual en navegador
+
+## [2026-05-01] - Flujos Figma de lanzamiento de dados
+
+### Cambios
+- Se reemplazó el comportamiento simple de `Tirar Dado` por una pantalla full-screen `Lanzar Dado` basada en Figma.
+- Se agregó el flujo de ataque: selección de arma equipada, comprobación con d20, descuento de munición compatible al atacar, estados de 20 natural / 1 natural, confirmación manual de éxito o fallo, y cálculo de daño con crítico.
+- Se agregó el flujo de lanzamiento de conjuro: tabs `Truco` / `Conjuro`, resumen de espacios disponibles, cards de conjuros con atributos, selector de dado derivado del catálogo, consumo de espacio para conjuros de nivel 1+ y resultado con instrucción de salvación contra CD.
+- Se mantuvo una tirada genérica para `Resolución de historia`, `Tirada de salvación` y tiradas personalizadas.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-117: Figma-Matched Character Detail Microflow and Bottom Navigation
+- US-123: Equipment State and Hand-Occupancy Rules
+- US-127: Rules-Rich Item and Spell Descriptions
+- US-128: Figma-Matched Attack Dice Flow
+- US-129: Figma-Matched Spell Dice Flow
+
+### Fuente / certeza
+- Confirmado por Figma (`Lanzar Dado`, `Lanzar Dado Flujo de ataque`, `Lanzamiento de conjuro`)
+- Confirmado por código actual
+- Basado en solicitud directa del usuario
+- Pendiente de validación visual en navegador
+
+## [2026-05-01] - Corrección de equipamiento y curación por consumibles
+
+### Cambios
+- Se corrigió la carga del catálogo del wizard para incluir `items` desde el arranque y volver a asegurarlo antes de finalizar la creación del personaje.
+- Se agregó una validación antes de crear personaje para evitar crear sin equipamiento cuando las selecciones no pudieron resolverse contra el catálogo.
+- Se hizo idempotente el guardado de equipamiento retroactivo en la pestaña Inventario: ahora expande paquetes a sus artículos finales y solo agrega objetos faltantes, evitando incrementar cantidades si el selector reaparece.
+- Se endureció el uso de consumibles de curación con dados: el backend exige el total tirado y aplica `PG actuales + total tirado`, respetando el máximo de PG.
+
+### Archivos modificados
+- `ui.html`
+- `src/api/controllers/inventory.controller.ts`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-122: Figma-Matched Creation Equipment and Inventory Detail
+- US-124: Consumable Use and Virtual Dice Modal
+
+### Fuente / certeza
+- Confirmado por revisión de código reportada por Claude
+- Confirmado por código actual
+- Pendiente de validación visual en navegador
+
+## [2026-05-01] - Limpieza de código duplicado en ui.html
+
+### Cambios
+- Se eliminaron 425 líneas de código muerto: las definiciones no-activas de `wizardOpen` (×2), `wizardClose` (×2), `wizUpdateDots` (×2), `wizRenderStep` (×2), `wizValidateStep` (×2), `wizardNext` (×2), `wizardPrev` (×2), `wizStep1HTML` (×1), `wizStep4HTML` (×1), `wizSelectRace` (×1), `wizSelectBg` (×1), `wizSelectClass` (×2).
+- Cada función del wizard ahora tiene exactamente **una** definición. Sin cambios en comportamiento — JavaScript ya usaba la última definición, ahora el archivo es inequívoco y menos frágil.
+- Typecheck del backend: 0 errores.
+
+### Archivos modificados
+- `ui.html`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Fuente / certeza
+- Confirmado por grep (0 duplicados restantes)
+- Confirmado por TypeScript (`npm run typecheck` → 0 errores)
+
+## [2026-05-01] - Corrección bug ASI: selección de atributo no se persistía
+
+### Cambios
+- Se reescribió `wizPdfAsiHTML` para usar atributo `selected` explícito en las opciones del select (en lugar de depender del orden del primer option), y para **siempre renderizar el div `#wiz-asi-summary-wrap`** en el DOM (antes era condicional y no existía en el primer render, impidiendo la actualización del badge de confirmación).
+- Se reescribió `wizAsiType` para **NO llamar `wizRenderStep`** al cambiar el tipo (+2 / +1+1). En su lugar aplica toggle `display:none` en los divs `#asi-one-{i}` y `#asi-two-{i}` directamente, evitando el re-render que podía limpiar la selección de otros cards.
+- Se extrajo la lógica compartida de actualizar el resumen a `wizAsiUpdateSummary()`.
+- Se eliminó el reseteo erróneo de `wiz.data.spell_selections = []` que ocurría en `wizAsiStat` sin relación con la mejora de atributo.
+
+### Archivos modificados
+- `ui.html`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-121: Creación de personajes de nivel alto (ASI)
+
+### Fuente / certeza
+- Confirmado por análisis de código (causa raíz: #wiz-asi-summary no existía en DOM al primer render; wizAsiType causaba re-render que podía limpiar estado)
+- Pendiente de validación visual en navegador
+
+## [2026-05-01] - Compatibilidad de munición y descripciones robustas
+
+### Cambios
+- Se reforzó la regla de equipamiento para que la munición equipada coincida con el arma a distancia activa: arco con flechas, ballesta con virotes, honda con balas y cerbatana con agujas.
+- Al equipar un arma a distancia se limpia la munición incompatible y se auto-equipa munición compatible cuando existe.
+- Al intentar equipar manualmente munición incompatible con el arma a distancia equipada, el backend rechaza la acción con un mensaje en español.
+- La UI normaliza estados heredados para no mostrar como equipada una munición incompatible que ya estuviera guardada antes de esta regla.
+- Se enriquecieron las tarjetas de inventario y equipamiento con descripciones derivadas de reglas: tipo de arma, entrenamiento simple/marcial, alcance, daño, propiedades, tipo de armadura, CA, requisitos, peso, valor, consumibles, focos y kits.
+- Se enriquecieron tarjetas de trucos y conjuros con escuela, componentes, alcance, tiempo, duración, concentración y efectos mecánicos cuando el catálogo los expone.
+- Se limpiaron los tags de atributos para no usar emojis decorativos.
+
+### Archivos modificados
+- `ui.html`
+- `src/api/controllers/inventory.controller.ts`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-122: Figma-Matched Creation Equipment and Inventory Detail
+- US-123: Equipment State and Hand-Occupancy Rules
+- US-127: Rules-Rich Item and Spell Descriptions
+
+### Fuente / certeza
+- Confirmado por solicitud del usuario
+- Confirmado por código actual
+- Pendiente de validación visual en navegador
+
+## [2026-05-01] - Normalización de municiones en inventario
+
+### Cambios
+- Se corrigió la visualización de municiones con nombre de paquete, por ejemplo `Arrows (20)`, para mostrarlas como `Flechas` y cantidad efectiva `x20`.
+- Se agregó normalización de cantidad para municiones al crear personajes, agregar inventario o desglosar paquetes, evitando que el nombre contenga el conteo y la cantidad muestre otro conteo separado.
+- La UI ahora mantiene compatibilidad con inventarios existentes mostrando al menos el tamaño del paquete cuando la fila antigua contiene una cantidad menor.
+
+### Archivos modificados
+- `ui.html`
+- `src/api/controllers/character.controller.ts`
+- `src/api/controllers/inventory.controller.ts`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-122: Figma-Matched Creation Equipment and Inventory Detail
+- US-123: Equipment State and Hand-Occupancy Rules
+
+### Fuente / certeza
+- Confirmado por reporte visual del usuario
+- Confirmado por código actual
+- Pendiente de validación visual en navegador
+
+## [2026-05-01] - Loader global para solicitudes
+
+### Cambios
+- Se agregó un loader global accesible para mostrar feedback mientras la UI carga información o guarda cambios.
+- El loader se conectó al helper central `api()` para cubrir llamadas de roster, ficha, wizard, inventario, combate, conjuros y guardados sin duplicar lógica por botón.
+- Se agregó conteo de solicitudes concurrentes para mantener el loader visible hasta que termine la última llamada activa.
+- Se agregó estilo visual de plataforma: overlay marrón, card, spinner crema, título y texto contextual.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-89: Character Roster
+- US-90: Multi-Step Creation Wizard
+- US-117: Figma-Matched Character Detail Microflow and Bottom Navigation
+- US-122: Figma-Matched Creation Equipment and Inventory Detail
+- US-126: Global Request Loader
+
+### Fuente / certeza
+- Confirmado por código actual
+- Basado en solicitud del usuario
+- Pendiente de validación visual en navegador
+
+## [2026-05-01] - Puntos de golpe en personaje abierto y modales de ajuste
+
+### Cambios
+- Se agregó a la ficha de personaje abierto la sección Figma de `Puntos de Golpe` y `Puntos de Golpe temporales` antes de los datos de combate.
+- Se agregó el botón `Ajustar puntos de golpe` con un modal de plataforma para aplicar daño, curar, establecer PG exactos, establecer PG temporales y limpiar PG temporales.
+- Se actualizó el modal para igualar las dos pantallas Figma `Puntos de golpe Modal` (`2052:305` / `2052:472`): pantalla completa, header con flecha atrás, cards de estado, steppers de menos/mas, texto explicativo y CTA `Guardar cambios`.
+- El guardado del modal ahora persiste valores exactos de PG actuales y PG temporales desde los steppers.
+- Se agregó endpoint `POST /characters/:id/current-hp` para establecer PG actuales respetando el máximo calculado.
+- Se corrigió la curación de combate para usar el máximo de PG calculado desde clase, nivel, raza y Constitución, en lugar de una estimación temporal.
+- Se alineó el cálculo de PG máximo hidratado para aplicar mínimo de 1 PG por nivel adicional.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `src/api/controllers/combat.controller.ts`
+- `src/api/controllers/character.controller.ts`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-02: Health and Stamina Setup
+- US-70: Death and Dying
+- US-106: Dynamic HP Recalculation
+- US-117: Figma-Matched Character Detail Microflow and Bottom Navigation
+- US-125: Figma-Matched Hit Point Summary and Adjustment Modals
+
+### Fuente / certeza
+- Confirmado por Figma, nodo `2001:486` y subframe `2052:259`
+- Confirmado por Figma, pantallas `2052:305` y `2052:472`
+- Confirmado por código actual
+- Pendiente de validación visual en navegador
+
+## [2026-05-01] - Diagnóstico de creación de personaje demo
+
+### Cambios
+- Se mejoró `scripts/create-demo-via-api.js` para probar `localhost` y `127.0.0.1`, reportar la URL exacta que falla y sugerir el creador directo por Prisma cuando la API no sea alcanzable.
+
+### Archivos modificados
+- `scripts/create-demo-via-api.js`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-122: Figma-Matched Creation Equipment and Inventory Detail
+- US-124: Consumable Use and Virtual Dice Modal
+
+### Fuente / certeza
+- Confirmado por reporte de usuario
+- Confirmado por código actual
+
+## [2026-04-30] - Consumibles, apertura de kits y dados virtuales
+
+### Cambios
+- Se agregó endpoint de uso de inventario para abrir packs/kits existentes y convertirlos en artículos individuales con cantidades.
+- Se agregó acción `Abrir kit` en inventario para packs heredados o agregados como objeto.
+- Se agregó acción `Usar` para consumibles como pociones, raciones, antitoxina, aceite, fuego de alquimista, ácido, agua bendita y objetos similares.
+- Los consumibles con dados abren un modal visual de dados virtuales con el estilo de la plataforma.
+- Las pociones de curación aplican el resultado al `current_hp` del personaje sin superar el máximo calculado.
+- Los consumibles con daño o efecto externo muestran el resultado y descuentan una unidad para resolución en mesa.
+
+### Archivos modificados
+- `src/api/controllers/inventory.controller.ts`
+- `ui.html`
+- `style.css`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-62: Inventory System
+- US-63: Item Quantities
+- US-69: Equipment Packs
+- US-122: Figma-Matched Creation Equipment and Inventory Detail
+- US-124: Consumable Use and Virtual Dice Modal
+
+### Fuente / certeza
+- Confirmado por código actual
+- Confirmado por reporte de usuario
+- Confirmado por `node --check` del script de `ui.html`
+- Confirmado por `npm run typecheck`
+- Confirmado por `npm run test`
+
+## [2026-04-30] - Reglas de equipamiento en inventario
+
+### Cambios
+- Se agregaron acciones `Equipar` / `Desequipar` en tarjetas de inventario para armas, armaduras, escudos y munición.
+- Los objetos equipados ahora se identifican visualmente en la pestaña Inventario.
+- El backend aplica reglas de ocupación de manos: armadura corporal única, escudo compatible con una sola arma de una mano, arma a dos manos/arco/ballesta excluye escudo y otras armas, doble arma limitado a armas ligeras o clases marciales configuradas.
+- Al equipar arcos se equipan flechas automáticamente si existen; al equipar ballestas se equipan virotes automáticamente si existen.
+- Las descripciones de paquetes/kits ahora listan los artículos incluidos y cantidades cuando el catálogo contiene `pack_contents`.
+
+### Archivos modificados
+- `src/api/controllers/inventory.controller.ts`
+- `ui.html`
+- `style.css`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-62: Inventory System
+- US-63: Item Quantities
+- US-64: Weapons Catalog
+- US-65: Armor Catalog
+- US-69: Equipment Packs
+- US-122: Figma-Matched Creation Equipment and Inventory Detail
+- US-123: Equipment State and Hand-Occupancy Rules
+
+### Fuente / certeza
+- Confirmado por código actual
+- Confirmado por reporte de usuario
+- Confirmado por `node --check` del script de `ui.html`
+- Confirmado por `npm run typecheck`
+- Confirmado por `npm run test`
+
+## [2026-04-30] - Corrección de guardado de equipamiento retroactivo
+
+### Cambios
+- Se corrigió el guardado de equipamiento desde la pestaña Inventario para personajes creados antes del flujo `Equipamiento`.
+- La UI ya no depende de recargar toda la ficha hidratada después de guardar equipamiento; ahora refresca directamente el inventario para evitar mostrar errores secundarios aunque el guardado haya sido exitoso.
+- Se agregó una validación para evitar marcar el equipamiento como guardado cuando el catálogo local no logra resolver objetos válidos.
+
+### Archivos modificados
+- `ui.html`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-62: Inventory System
+- US-69: Equipment Packs
+- US-122: Figma-Matched Creation Equipment and Inventory Detail
+
+### Fuente / certeza
+- Confirmado por código actual
+- Confirmado por reporte de usuario
+- Confirmado por `node --check` del script de `ui.html`
+- Confirmado por `npm run typecheck`
+- Confirmado por `npm run test`
+
+## [2026-04-30] - Flujo de Equipamiento e inventario detallado
+
+### Cambios
+- Se agregó el paso `Equipamiento` al wizard de creación, después de habilidades/conjuros y antes de puntos de golpe.
+- Se añadieron opciones de equipamiento inicial por clase con grupos de selección, estado visual seleccionado, contador `0/1`, chips de atributos y presentación alineada al Figma.
+- Se envían las elecciones de equipamiento al backend al crear personaje.
+- El backend ahora agrega equipamiento seleccionado al inventario y desglosa paquetes en objetos usando tanto `item_id`/`quantity` como el formato sembrado `item`/`qty`.
+- La pestaña Inventario ahora muestra tarjetas con cantidad, tipo de objeto, atributos principales y descripción breve.
+- Personajes ya creados sin equipamiento de clase detectable pueden escoger su equipamiento desde la pestaña Inventario.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `src/api/controllers/character.controller.ts`
+- `src/api/controllers/inventory.controller.ts`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-62: Inventory System
+- US-63: Item Quantities
+- US-64: Weapons Catalog
+- US-65: Armor Catalog
+- US-69: Equipment Packs
+- US-90: Multi-Step Creation Wizard
+- US-122: Figma-Matched Creation Equipment and Inventory Detail
+
+### Fuente / certeza
+- Confirmado por código actual
+- Confirmado por Figma, nodo `2047:6676` (`Equipamiento`)
+- Confirmado por documentación
+- Pendiente de validación E2E final con base de datos
+
+## [2026-04-30] - Corrección de guardrails para creación de nivel alto
+
+### Cambios
+- Se corrigió la persistencia de subclases desbloqueadas en nivel 2/3+; el backend ahora exige y guarda subclase cuando `subclass_level <= initial_level`.
+- Se agregó validación backend para ASI: hitos por clase, llaves válidas, total exacto de puntos y límite final de atributo 20.
+- Se corrigió el conteo de conjuros para clases preparadoras: Clérigo, Druida, Paladín y Mago ahora generan selecciones visibles en la pestaña de conjuros.
+- Se agregó validación para que conjuros/trucos enviados pertenezcan a la lista de la clase y al nivel de conjuro disponible.
+- Se movió ASI antes de habilidades/conjuros en el wizard para que los modificadores afecten conteos, habilidades, conjuros y PG.
+- Se ajustó la UI para que ASI sea obligatoria cuando corresponde y para que HP use Constitución final con raza + ASI.
+- Se restauró el contrato `pointsUsed` de `validatePointBuy` para que la integración de ciclo de personaje vuelva a pasar.
+
+### Archivos modificados
+- `src/api/controllers/character.controller.ts`
+- `src/services/ability-score.service.ts`
+- `src/types/index.ts`
+- `ui.html`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-85: Point Buy Validation
+- US-90: Multi-Step Creation Wizard
+- US-104: Ability Score Improvement (ASI)
+- US-106: Dynamic HP Recalculation
+- US-116: Auto-Advance Selection Reviews and Rolled Creation HP
+- US-118: Character Image Upload and Figma-Matched Detail Subflows
+- US-121: High-Level Character Creation Guardrails
+
+### Fuente / certeza
+- Confirmado por código actual
+- Confirmado por documentación
+- Confirmado por `npm run typecheck`
+- Confirmado por `npm run test`
+
+## [2026-04-30] - Creación de personajes de nivel alto (US-121)
+
+### Cambios
+- **Backend**: Se añadieron `getSpellsKnownAtLevel` y `getCantripsAtLevel` como funciones helper en `character.controller.ts`. La validación de conjuros y trucos en `POST /characters` ahora escala con `initial_level` en lugar de usar siempre los valores de nivel 1.
+- **Backend**: Se añadió `asi_adjustments` al schema de creación (`z.record`). Los bonos ASI se aplican directamente sobre `base_*` antes de persistirlos y se incluyen en el cálculo de HP, modificadores de recursos y pools.
+- **Frontend**: `wizNeedsSubclass()` ahora compara `subclass_level` contra `initial_level` en lugar de hardcodear nivel 1. Clases que desbloquean subclase en nivel 3 (Guerrero, Pícaro, Mago, etc.) muestran la selección de subclase al crear personajes de nivel 3+.
+- **Frontend**: `wizPdfSubclassHTML()` filtra subclases por `initial_level` e incluye nota explicativa del nivel de desbloqueo.
+- **Frontend**: `wizFlow()` incluye automáticamente un paso `asi` cuando `wizAsiCount() > 0` (personaje de nivel 4+).
+- **Frontend**: `wizPdfAsiHTML()` renderiza una tarjeta por cada ASI alcanzada. El usuario elige +2 a un atributo o +1+1 a dos diferentes. Milestones por clase: Fighter [4,6,8,12,14,16,19], Rogue [4,8,10,12,16,19], resto [4,8,12,16,19].
+- **Frontend**: `wizPdfCantripsHTML()` ahora obtiene todos los conjuros de la clase (`/catalog/spells?class=X`) y filtra en el cliente hasta `wizMaxSpellLevel()`. Los conjuros se agrupan por nivel (Nivel 1, Nivel 2…) cuando hay más de un nivel disponible.
+- **Frontend**: `spellChoiceBlock()` acepta `maxSpellLevel` y renderiza grupos de nivel cuando es relevante.
+- **Frontend**: Se añadieron tablas de progresión de trucos y conjuros conocidos para Bard, Cleric, Druid, Sorcerer, Warlock, Wizard, Ranger. Clases preparadas (Wizard, Cleric, Druid, Paladin) siguen usando el conteo de nivel 1 para la selección inicial.
+- **Frontend**: `wizSetLevel()` resetea `asi_choices`, `cantrip_selections`, `spell_selections` y fuerza re-fetch de conjuros al cambiar nivel.
+- **Frontend**: `wizardFinish()` calcula `asi_adjustments` desde `wiz.data.asi_choices` y lo envía al backend.
+- **Frontend/style.css**: Se añadieron `.wiz-spell-level-group` y `.wiz-spell-level-label` para agrupar conjuros por nivel.
+
+### Archivos modificados
+- `src/api/controllers/character.controller.ts`
+- `ui.html`
+- `style.css`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+---
+
+## [2026-04-27] - Inicialización del motor DnD 5e SRD (fecha estimada)
+
+### Cambios
+- Se creó el proyecto Node.js/TypeScript con Express, Prisma, Jest, scripts de desarrollo, pruebas y validación TypeScript.
+- Se definió la arquitectura base de motor de reglas separado por controladores, servicios, repositorio y tipos.
+- Se documentó la guía de setup para instalar dependencias, configurar PostgreSQL, ejecutar migraciones, sembrar catálogos y levantar el servidor.
+
+### Archivos modificados
+- `package.json`
+- `package-lock.json`
+- `tsconfig.json`
+- `jest.config.ts`
+- `SETUP.md`
+- `src/index.ts`
+- `src/types/index.ts`
+
+### Historias de usuario relacionadas
+- US-01: Base Ability Scores Management
+- US-04: Proficiency Bonus Tracking
+- US-89: Character Roster (List & Load)
+- US-90: Multi-Step Creation Wizard
+
+### Fuente / certeza
+- Confirmado por código actual
+- Confirmado por documentación
+- Inferido por marcas de archivo
+
+## [2026-04-28] - Modelo de datos, migraciones y catálogos SRD (fecha estimada)
+
+### Cambios
+- Se definió el esquema Prisma con catálogos estáticos para razas, clases, subclases, trasfondos, rasgos, objetos, conjuros, dotes, idiomas y progresión de espacios de conjuro.
+- Se definieron datos transaccionales para personajes, clases de personaje, habilidades, herramientas, rasgos, dotes, idiomas, inventario, conjuros conocidos, espacios de conjuro, dados de golpe, recursos y estado activo.
+- Se agregaron migraciones iniciales y migraciones para descripciones de conjuros de clase y campos del wizard de creación.
+- Se crearon seeders para poblar catálogos SRD y progresiones.
+
+### Archivos modificados
+- `prisma/schema.prisma`
+- `prisma/migrations/20260428140504_first_schema/migration.sql`
+- `prisma/migrations/20260428143654_add_class_spell_description/migration.sql`
+- `prisma/migrations/20260429025823_add_creation_wizard_fields/migration.sql`
+- `prisma/seed.ts`
+- `prisma/seeds/*.ts`
+
+### Historias de usuario relacionadas
+- US-07 a US-21: razas y subrazas
+- US-22 a US-47: clases, progresión y subclases
+- US-48 a US-61: trasfondos
+- US-62 a US-69: equipo, armas, armaduras e inventario
+- US-78: Concentration Mechanic
+- US-79: Spell Slot Progression Tables
+- US-83: Feats Data Structure
+- US-84: Languages Catalog
+
+### Fuente / certeza
+- Confirmado por código actual
+- Confirmado por documentación
+- Inferido por marcas de archivo
+- Pendiente de validación: completitud exacta de cada seed contra SRD/manual
+
+## [2026-04-28] - Servicios del motor de reglas y endpoints API (fecha estimada)
+
+### Cambios
+- Se implementaron servicios puros para matemáticas, Point Buy, HP, AC, combate, estados, concentración, condiciones, descansos, habilidades, pasivas, inventario, multiclase, iniciativa, espacios de conjuro y XP.
+- Se implementó la hidratación de personaje para calcular valores derivados en tiempo real.
+- Se agregaron controladores Express para personajes, catálogos, combate, condiciones, descansos, conjuros e inventario.
+- Se agregaron guards para Point Buy, selección de habilidades y estado de muerte.
+- Se agregaron pruebas unitarias e integración para reglas críticas.
+
+### Archivos modificados
+- `src/services/*.ts`
+- `src/engine/hydrate.ts`
+- `src/repositories/character.repository.ts`
+- `src/api/controllers/*.ts`
+- `src/api/middleware/*.ts`
+- `tests/unit/*.ts`
+- `tests/integration/*.ts`
+
+### Historias de usuario relacionadas
+- US-01 a US-06: reglas base
+- US-62 a US-88: inventario, combate, descanso, condiciones, multiclase, dotes, idiomas, iniciativa y XP
+- US-89 a US-107: endpoints de personaje, creación, edición, hidratación y progreso
+
+### Fuente / certeza
+- Confirmado por código actual
+- Confirmado por documentación
+- Inferido por marcas de archivo
+- Pendiente de validación: pruebas completas con base de datos real
+
+## [2026-04-29] - Primer flujo visual mobile-first de creación basado en PDF (fecha estimada)
+
+### Cambios
+- Se agregó una UI standalone en `ui.html` para consumir la API desde archivo local.
+- Se incorporó un roster de personajes, tarjetas móviles, vista de hoja de personaje, pestañas y controles de edición.
+- Se formalizó el contrato del wizard mobile-first basado en `docs/Create Character.pdf`, con separación entre selección y pantallas de revisión.
+- Se documentó el contrato de atributos: Point Buy conserva valores base, mientras la UI muestra preview final con bono racial.
+
+### Archivos modificados
+- `ui.html`
+- `docs/Create Character.pdf`
+- `docs/requirements.md`
+- `docs/plan.md`
+- `docs/tasks.md`
+- `.claude.md`
+
+### Historias de usuario relacionadas
+- US-89: Character Roster (List & Load)
+- US-90: Multi-Step Creation Wizard
+- US-108: Respuesta inmediata de checkboxes en el wizard
+- US-109: Descripción contextual de habilidades
+- US-110: Editar personaje existente
+- US-111: Selección de nivel inicial
+- US-112: PDF-Matched Character Creation Flow & Ability Score Preview
+
+### Fuente / certeza
+- Confirmado por código actual
+- Confirmado por documentación
+- Basado en contexto del chat
+- Inferido por marcas de archivo
+
+## [2026-04-30] - Ajuste visual del wizard a PDF/Figma
+
+### Cambios
+- Se ajustó el flujo de creación para seguir la arquitectura de información del PDF: datos generales, raza, revisión de raza, atributos, trasfondo, revisión de trasfondo, rasgos de personalidad, clase, revisión de clase, subclase cuando aplica, habilidades, trucos/conjuros y cálculo de puntos de golpe.
+- Se actualizó la pantalla de atributos para mostrar el valor final como número principal y el razonamiento explícito `Base X + Y raza = Z`.
+- Se aplicó la paleta y lenguaje visual del PDF/Figma: fondo café, cards café, texto crema/tan, CTA rojo, títulos serif y progreso con barras horizontales.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `docs/requirements.md`
+- `docs/plan.md`
+- `docs/tasks.md`
+- `.claude.md`
+
+### Historias de usuario relacionadas
+- US-112: PDF-Matched Character Creation Flow & Ability Score Preview
+- US-113: PDF Visual Language for Mobile Character Creation
+
+### Fuente / certeza
+- Confirmado por código actual
+- Confirmado por documentación
+- Basado en contexto del chat
+- Pendiente de validación: comparación 1:1 final contra PDF/Figma
+
+## [2026-04-30] - Navegación del wizard, estado disabled y separación CSS
+
+### Cambios
+- Se agregó comportamiento de back/cancel en el encabezado del wizard.
+- Se actualizó el botón principal para permanecer deshabilitado hasta que la pantalla actual tenga los datos mínimos válidos.
+- Se movieron estilos desde `ui.html` hacia `style.css` y se enlazó la hoja de estilos externa.
+- Se validó el flujo básico en navegador: botón disabled inicial, habilitación al completar datos, cancelación desde header y selección de raza.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+
+### Historias de usuario relacionadas
+- US-113: PDF Visual Language for Mobile Character Creation
+- US-115: Wizard Navigation State and External Styling
+
+### Fuente / certeza
+- Confirmado por código actual
+- Basado en contexto del chat
+
+## [2026-04-30] - Documentación de continuidad entre IAs
+
+### Cambios
+- Se agregó documentación retroactiva para que Claude o Codex continúen el proyecto sin depender del chat anterior.
+- Se agregaron historias faltantes para continuidad entre IAs y estado/navegación del wizard.
+- Se creó un handoff con estado actual, decisiones técnicas, archivos clave, riesgos, pendientes y comandos útiles.
+- Se actualizó `.claude.md` con reglas persistentes de lectura previa y registro obligatorio de cambios.
+- Se registró una inconsistencia de validación: `npm run test:unit` falla por una expectativa errónea de DC de concentración en `tests/unit/combat-state.service.test.ts`.
+- Corregido posteriormente en la entrada de autoavance/PG por tirada: la expectativa ahora coincide con `max(10, floor(damage/2))`.
+
+### Archivos modificados
+- `CHANGELOG.md`
+- `HANDOFF.md`
+- `docs/requirements.md`
+- `.claude.md`
+- `tests/unit/combat-state.service.test.ts` (referenciado como pendiente, no modificado)
+
+### Historias de usuario relacionadas
+- US-114: AI Continuity Documentation
+- US-115: Wizard Navigation State and External Styling
+- US-78: Concentration Mechanic
+
+### Fuente / certeza
+- Confirmado por código actual
+- Confirmado por documentación
+
+## [2026-04-30] - Autoavance de selecciones y PG por tirada
+
+### Cambios
+- Raza, trasfondo, clase y subclase avanzan automáticamente a su pantalla `Tu selección` después de elegir una opción.
+- Se agregó pantalla `Tu selección` para subclase cuando la clase requiere subclase a nivel 1.
+- Las pantallas de selección vuelven a mostrarse dentro de cards visibles con borde, fondo y contenido.
+- El paso de puntos de golpe ahora exige lanzar el dado antes de crear el personaje.
+- El resultado del dado se envía como `hp_roll_base`, se persiste en `Character.level_1_hp_roll`, y el cálculo de PG usa `roll + modificador de Constitución` para nivel 1.
+- Se agregó una migración Prisma y se regeneró el cliente Prisma.
+- Se corrigió la expectativa unitaria de DC de concentración para que `damage = 18` espere `10`.
+- La migración quedó creada, pero no aplicada desde esta sesión porque Prisma no pudo alcanzar la base remota configurada (`P1001`).
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `src/api/controllers/character.controller.ts`
+- `prisma/schema.prisma`
+- `prisma/migrations/20260430161500_add_level_1_hp_roll/migration.sql`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+- `tests/unit/combat-state.service.test.ts`
+
+### Historias de usuario relacionadas
+- US-106: Dynamic HP Recalculation
+- US-112: PDF-Matched Character Creation Flow & Ability Score Preview
+- US-113: PDF Visual Language for Mobile Character Creation
+- US-115: Wizard Navigation State and External Styling
+- US-116: Auto-Advance Selection Reviews and Rolled Creation HP
+- US-78: Concentration Mechanic
+
+### Fuente / certeza
+- Confirmado por código actual
+- Confirmado por documentación
+- Basado en solicitud directa del usuario
+
+## [2026-04-30] - Ajuste Figma de cards Tu selección
+
+### Cambios
+- Se verificó en Figma el frame `2005:1847` y el nodo `2005:2000` de `Tu selección`.
+- Se ajustó el markup para que el título `Tu selección` viva fuera de la card, como en Figma.
+- Se ajustó la card de revisión a fondo `#64422b`, borde `#bbbbbb`, radio 8px, padding 16px, gap 10px, badges `#462f20`, título Roboto 16 bold `#ffd7ad` y descripción blanca 10px.
+- Se aplicó el mismo patrón a reviews de raza, trasfondo, clase y subclase.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-113: PDF Visual Language for Mobile Character Creation
+- US-116: Auto-Advance Selection Reviews and Rolled Creation HP
+
+### Fuente / certeza
+- Confirmado por Figma
+- Confirmado por código actual
+
+## [2026-04-30] - Microflujo Figma de detalle de personaje y navegación inferior
+
+### Cambios
+- Se reemplazó la navegación inferior móvil por los cuatro destinos del Figma: `Glosario y reglas`, `Personajes`, `Objetos y tienda`, y `Razas y clases`.
+- Se agregaron pantallas placeholder para las secciones todavía no implementadas, conservando la arquitectura de información del producto.
+- Se creó el microflujo de apertura de personaje con encabezado `Atrás`, nombre centrado y acción `Tirar Dado`.
+- La vista de detalle oculta la navegación inferior y ofrece pestañas internas `Ficha`, `Habilidades`, `Conjuros`, `Diario` e `Inventario`.
+- La pestaña `Ficha` muestra biografía, resumen de combate, progreso de XP, atributos y estadísticas mágicas con tokens visuales de Figma.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-89: Character Roster (List & Load)
+- US-113: PDF Visual Language for Mobile Character Creation
+- US-117: Figma-Matched Character Detail Microflow and Bottom Navigation
+
+### Fuente / certeza
+- Confirmado por Figma
+- Confirmado por código actual
+- Basado en solicitud directa del usuario
+- Pendiente de validación: comparación visual 1:1 en navegador contra Figma
+
+## [2026-04-30] - Imagen de personaje y subtabs Figma de habilidades/conjuros
+
+### Cambios
+- Se agregó subida de imagen desde la ventana de personaje abierto.
+- La imagen se adapta al área hero fija del diseño con recorte `cover`, sin deformarse.
+- La imagen se guarda localmente por personaje en el navegador mediante `localStorage`.
+- El tab `Habilidades` ahora separa `Habilidades` y `Tiradas de salvación` como subtabs, siguiendo Figma.
+- Las filas de habilidades y salvaciones muestran indicador de competencia, nombre y bono calculado por separado.
+- El tab `Conjuros` ahora separa `Trucos` y `Conjuros` como subtabs.
+- Los trucos/conjuros se renderizan como cards tipo Figma con escuela, chips de metadatos, descripción y `Ver más información`.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-78: Concentration Mechanic
+- US-89: Character Roster (List & Load)
+- US-107: Spell Slot & Spell Known Progression on Level-Up
+- US-117: Figma-Matched Character Detail Microflow and Bottom Navigation
+- US-118: Character Image Upload and Figma-Matched Detail Subflows
+
+### Fuente / certeza
+- Confirmado por Figma
+- Confirmado por código actual
+- Basado en solicitud directa del usuario
+- Pendiente de validación: persistencia backend para imagen de personaje
+
+## [2026-04-30] - Card Figma de personaje creado en roster
+
+### Cambios
+- Se verificó en Figma el componente `beast-card-B` dentro de la pantalla `Personajes`.
+- Se ajustó la tarjeta de personaje creado para usar fondo decorativo, radio 2px, padding 16px y proporción compacta de 358x159.
+- Se cambió la jerarquía de contenido a raza/clase, nombre, acciones, quick info y biografía.
+- Se colocaron `Eliminar` y `Editar` como botones rojos compactos dentro de la tarjeta, sin romper el click principal para abrir detalle.
+- La fila rápida ahora muestra CA, velocidad, PG actuales y nivel siguiendo el componente de Figma.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-89: Character Roster (List & Load)
+- US-117: Figma-Matched Character Detail Microflow and Bottom Navigation
+- US-119: Figma-Matched Created Character Card
+
+### Fuente / certeza
+- Confirmado por Figma
+- Confirmado por código actual
+- Basado en solicitud directa del usuario
+- Pendiente de validación: comparación visual 1:1 en navegador contra Figma
+
+## [2026-04-30] - CTA Figma para agregar personaje
+
+### Cambios
+- Se verificó en Figma el botón `Agregar nuevo personaje` de la pantalla `Personajes`.
+- Se movió el CTA debajo de la lista de personajes creados para respetar la posición del prototipo.
+- Se reemplazó el botón circular por un botón ancho de 44px de alto, fondo rojo `#720000`, borde `#92752b`, radio 4px, icono plus y texto `Agregar nuevo personaje`.
+- Se mantuvo el botón de creación del estado vacío para cuando no existen personajes.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-90: Multi-Step Creation Wizard
+- US-119: Figma-Matched Created Character Card
+- US-120: Figma-Matched Add Character CTA
+
+### Fuente / certeza
+- Confirmado por Figma
+- Confirmado por código actual
+- Basado en solicitud directa del usuario
+- Pendiente de validación: comparación visual 1:1 en navegador contra Figma
+
+## [2026-04-30] - Corrección de visibilidad de conjuros en detalle
+
+### Cambios
+- Se corrigió un error de render en las cards de conjuros del detalle de personaje causado por variables `safeName` y `safeDesc` no definidas.
+- Se agregó un helper tolerante para leer el nivel del conjuro desde la forma real del endpoint `known-spells`.
+- El filtro de subtabs ahora separa `Trucos` y `Conjuros` usando el nivel normalizado del conjuro.
+- La vista heredada de conjuros también muestra `Truco` o `Nv.X` usando el mismo helper.
+
+### Archivos modificados
+- `ui.html`
+- `CHANGELOG.md`
+
+### Historias de usuario relacionadas
+- US-107: Spell Slot & Spell Known Progression on Level-Up
+- US-118: Character Image Upload and Figma-Matched Detail Subflows
+
+### Fuente / certeza
+- Confirmado por código actual
+- Basado en solicitud directa del usuario
+
+## [2026-04-30] - Catálogo completo de items SRD 5.1
+
+### Cambios
+- Se reescribió `prisma/seeds/item.ts` con 287 items en 11 categorías: `armor` (13), `weapon` (37), `ammunition` (7), `gear` (83), `clothing` (6), `tool` (31), `instrument` (11), `pack` (8), `potion` (22), `focus` (13), `magic_item` (56).
+- Armas: se añadieron Dart, Sling y Blowgun que faltaban. Munición: Arrows (20), Crossbow Bolts (20), Sling Bullets (20), Blowgun Needles (50), Quiver, Crossbow Bolt Case, Silver Arrow.
+- Equipo de aventurero: todos los items referenciados en `background_data.ts` cubiertos con nombres exactos (23/23 verificados). Añadidos consumibles de combate (Holy Water, Acid, Alchemist's Fire, Antitoxin, Basic Poison), herramientas de exploración, spellbook, component pouch.
+- Packs: todos con `pack_contents` mapeados a items del catálogo. Se añadieron Diplomat's Pack, Entertainer's Pack y Monster Hunter's Pack.
+- Ropa: Common Clothes, Fine Clothes, Traveler's Clothes, Costume, Vestments, Robe como categoría propia.
+- Herramientas: todas las artesanales del SRD, más kits (Disguise, Forgery, Herbalism, Healer's, Poisoner's, Navigator's, Thieves') y juegos de mesa completos.
+- Instrumentos musicales: Bagpipes, Drum, Dulcimer, Flute, Horn, Lute, Lyre, Pan Flute, Shawm, Viol + alias genérico.
+- Pociones: todas las del SRD (Healing x4, Giant Strength x5, Invisibility, Flying, Speed, Heroism, Resistance, Climbing, Water Breathing, etc.).
+- Focos de conjuración: Arcane Focus (5 tipos), Holy Symbol (3 tipos + alias genérico), Druidic Focus (4 tipos), Component Pouch.
+- Objetos mágicos SRD: +1/+2/+3 armas y armaduras, Bag of Holding, Cloak/Ring of Protection, Wand of Magic Missiles, Rope of Climbing, Pearl of Power, y ~50 items adicionales con rareza, descripción y flag de attunement.
+
+### Archivos modificados
+- `prisma/seeds/item.ts`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-62: Weapon Catalog
+- US-63: Armor Catalog
+- US-64: Adventuring Gear Catalog
+- US-65: Tools Catalog
+- US-66: Magic Items Catalog
+- US-67: Equipment Packs
+- US-68: Starting Equipment by Background
+- US-69: Pack Contents Resolution
+
+### Fuente / certeza
+- Confirmado por SRD 5.1
+- Verificado automáticamente: 23/23 items de trasfondos cubiertos
+- Sintaxis TypeScript validada sin errores (tsc --noEmit)
+- Basado en solicitud directa del usuario
+
+## [2026-04-30] - Fix migración level_1_hp_roll (tabla "Character" vs "character")
+
+### Cambios
+- Se corrigió el SQL de la migración `20260430161500_add_level_1_hp_roll`.
+- Error original: `ALTER TABLE "character"` → PostgreSQL case-sensitive rechazaba la tabla (42P01).
+- Corrección: `ALTER TABLE "Character"` para coincidir con el nombre real creado en `20260428140504_first_schema`.
+- Para aplicar: `npx prisma migrate resolve --rolled-back 20260430161500_add_level_1_hp_roll` seguido de `npx prisma migrate deploy`.
+
+### Archivos modificados
+- `prisma/migrations/20260430161500_add_level_1_hp_roll/migration.sql`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-106: Dynamic HP Recalculation (bloqueo resuelto)
+- US-116: Auto-Advance Selection Reviews and Rolled Creation HP
+
+### Fuente / certeza
+- Confirmado por error P3018 / código 42P01 de Postgres
+- Confirmado por revisión de migration.sql primera migración (`20260428140504_first_schema`)
+
+## [2026-05-04] - Perfiles de jugador y roster por propietario
+
+### Cambios
+- Se agregó autenticación gratuita propia con registro, login, sesión por token firmado y cierre de sesión.
+- Se agregó modelo `User` en Prisma y una migración para relacionar perfiles con personajes mediante `Character.user_id`.
+- La creación de personajes ahora guarda el `user_id` del perfil activo cuando la solicitud incluye sesión.
+- El roster `GET /characters` devuelve solo los personajes del perfil activo cuando el usuario está loggeado.
+- Se agregó guardia de acceso para rutas `/characters/:id` y subrutas, rechazando acciones sobre personajes de otro perfil.
+- La UI ahora muestra pantalla de login/registro antes del roster, guarda el token en `localStorage`, envía `Authorization: Bearer`, muestra el perfil activo y permite cerrar sesión.
+- Se conserva compatibilidad local con personajes legados sin `user_id`; no se eliminan ni reasignan automáticamente.
+
+### Archivos modificados
+- `src/api/controllers/auth.controller.ts`
+- `src/api/middleware/auth.ts`
+- `src/api/controllers/character.controller.ts`
+- `src/index.ts`
+- `prisma/schema.prisma`
+- `prisma/migrations/20260504120000_add_user_profiles/migration.sql`
+- `ui.html`
+- `style.css`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-89: Character Roster
+- US-90: Full Wizard Character Creation
+- US-132: Player Profiles and Owned Character Roster
+
+### Fuente / certeza
+- Confirmado por código actual
+- Confirmado por documentación
+- Basado en solicitud directa del usuario
+- Validado con `npm run typecheck`
+- Validado con `npx prisma validate`
+- Pendiente de validación: migración contra Supabase remoto y prueba E2E en navegador
+
+## [2026-05-04] - Compresión local de imagen de personaje
+
+### Cambios
+- La subida de imagen del personaje ahora redimensiona y comprime el archivo en navegador antes de guardarlo localmente.
+- Se reemplazó el guardado directo del archivo completo en base64 por procesamiento con canvas, límite aproximado de 900×620 px y salida WebP/JPEG.
+- Se conserva el comportamiento visual `cover` del hero y la persistencia local por personaje.
+
+### Archivos modificados
+- `ui.html`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-118: Character Image Upload and Figma-Matched Detail Subflows
+
+### Fuente / certeza
+- Confirmado por código actual
+- Basado en solicitud directa del usuario
+- Pendiente de validación visual en navegador con imagen pesada real
+
+## [2026-05-04] - Preparación segura para GitHub y GitHub Pages
+
+### Cambios
+- Se endureció `.gitignore` para evitar subir `.env`, `.env.*`, `node_modules`, builds, coverage, logs y archivos temporales.
+- Se actualizó `.env.example` con placeholders seguros e inclusión de `AUTH_SECRET` sin valores reales.
+- Se agregó `config.public.js` para configuración pública de navegador; no debe contener secretos.
+- Se agregó `index.html` y `.nojekyll` para entrada compatible con GitHub Pages.
+- Se agregó workflow `.github/workflows/pages.yml` que publica únicamente archivos estáticos permitidos: `index.html`, `ui.html`, `style.css`, `config.public.js` y `.nojekyll`.
+- Se eliminaron dependencias runtime a URLs privadas/remotas de Figma MCP y Google Fonts desde UI/CSS.
+- Se agregó `README.md` y `SECURITY.md` con instrucciones de publicación segura y advertencia de que GitHub Pages no ejecuta backend.
+- Se agregó `scripts/security-check.js`, `npm run security:check` y `npm run prepublish:check`.
+- Se redactó del handoff el host privado de Supabase, remitiendo al `.env` local.
+
+### Archivos modificados
+- `.gitignore`
+- `.env.example`
+- `.github/workflows/pages.yml`
+- `.nojekyll`
+- `README.md`
+- `SECURITY.md`
+- `config.public.js`
+- `index.html`
+- `package.json`
+- `scripts/security-check.js`
+- `ui.html`
+- `style.css`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-133: Safe GitHub Repository and GitHub Pages Publication
+
+### Fuente / certeza
+- Confirmado por código actual
+- Basado en solicitud directa del usuario
+- Validado con `npm run prepublish:check`
+- Pendiente de validación: activar GitHub Pages en el repositorio real

@@ -1,0 +1,1332 @@
+# Phase 1: Specify - `requirements.md`
+
+## 1. Project Overview
+
+This system is a character management logical engine based on the core rules of the Player's Handbook (SRD 5.1). Its objective is to automate the calculation of vital statistics and core mechanics, ensuring universal business rules are applied consistently without manual errors, while strictly separating data logic from the user interface.
+
+## 2. Core Business Rules (Universal Logic)
+
+- **Language Standard:**   Code (variables, logic, database) in **English**. User Interface and values in **Spanish**.
+- **Mathematical Rounding:** All divisions or fractions MUST **round down** (floor) to the nearest whole integer, even if the decimal is .5 or higher.
+- **Rule Precedence:** Specific traits always override general mechanics.
+- **Modifier Formula:** `modifier = floor((ability_score - 10) / 2)`.
+- **Proficiency Ceiling:** Proficiency bonus is added, multiplied, or halved only once per roll, regardless of multiple sources.
+- **Advantage / Disadvantage:** Roll 2d20. Take the highest for Advantage, the lowest for Disadvantage. If both apply, they cancel out entirely, rolling only 1d20. Multiple instances of Advantage or Disadvantage do not stack.
+
+## 3. Functional Requirements (FR)
+
+**FR-01: Ability Modifier Calculation**
+Derive modifiers from the 6 base ability scores (Strength, Dexterity, Constitution, Intelligence, Wisdom, Charisma) using the standard formula.
+
+**FR-02: Base Armor Class (AC)**
+In the absence of armor/shield, calculate base AC as `10 + dexterity_modifier`.
+
+**FR-03: Hit Points (HP) Generation**
+Level 1 Max HP = `max_hit_die_value + constitution_modifier`. Minimum resulting value: 1.
+
+**FR-04: Higher Level HP Scaling**
+Upon leveling up, the system uses the fixed average value `(die_size / 2) + 1 + constitution_modifier` (equivalent to the PHB fixed value, which rounds the average up). Minimum HP gained per level: 1. The system must NOT store this value statically; it must be recalculated if the `constitution_modifier` changes retroactively.
+
+**FR-05: Proficiency Bonus Scaling**
+Scales by total character level: Levels 1-4 (+2), 5-8 (+3), 9-12 (+4), 13-16 (+5), 17-20 (+6).
+
+**FR-06: Attribute Constraints**
+Base scores cannot exceed 20 through standard level progression. Minimum base score is 1.
+
+**FR-07: Carrying Capacity**
+Calculate max carrying weight (in pounds) as `strength_score * 15`. Push/drag/lift limit is `strength_score * 30`; speed drops to 5 ft when exceeding carrying capacity.
+
+**FR-08: Critical Hit Mechanics**
+On a natural 20 attack roll, double the number of damage dice rolled before adding any flat ability modifiers. All extra damage dice from other sources (e.g., Sneak Attack, Savage Attacks) are also doubled.
+
+**FR-09: Experience to Level Mapping**
+The system must calculate `total_level` based on `experience_points` strictly following the standard progression: Lv 1 (0 XP), Lv 2 (300 XP), Lv 3 (900), Lv 4 (2,700), Lv 5 (6,500), Lv 6 (14,000), Lv 7 (23,000), Lv 8 (34,000), Lv 9 (48,000), Lv 10 (64,000), Lv 11 (85,000), Lv 12 (100,000), Lv 13 (120,000), Lv 14 (140,000), Lv 15 (165,000), Lv 16 (195,000), Lv 17 (225,000), Lv 18 (265,000), Lv 19 (305,000), Lv 20 (355,000).
+
+**FR-10: Short Rest**
+A short rest is a period of downtime lasting at least 1 hour, during which a character does nothing more strenuous than eating, drinking, reading, or tending to wounds. During a short rest, a character may spend one or more Hit Dice to recover HP (see US-71). A character can benefit from any number of short rests in a day.
+
+**FR-11: Long Rest**
+A long rest is a period of extended downtime lasting at least 8 hours, during which a character sleeps for at least 6 hours and performs no more than 2 hours of light activity. At the end of a long rest, a character: (a) recovers all lost HP; (b) recovers expended Hit Dice up to a number equal to half the character's total Hit Dice (minimum 1 die recovered). A character must have at least 1 HP at the start of the rest to gain its benefits. A character cannot benefit from more than one long rest in a 24-hour period.
+
+**FR-12: Passive Ability Checks**
+For checks that do not require a dice roll (used for detection and background awareness), the system calculates: `passive_score = 10 + total_ability_modifier`. If the character has Advantage on the check, add 5. If Disadvantage, subtract 5. The most commonly used passive check is Passive Perception: `10 + wisdom_modifier + (proficiency_bonus if proficient in Perception)`.
+
+**FR-13: Initiative**
+At the start of combat, each participant rolls a Dexterity check (`1d20 + dexterity_modifier`) to determine their place in the initiative order. The system must expose an `initiative_bonus` field calculated as `dexterity_modifier`. Ties are broken at the DM's discretion.
+
+
+## 4. User Stories & Acceptance Criteria
+
+### US-01: Base Ability Scores Management
+
+**As a** player, **I want** to input my ability scores **so that** the system calculates my modifiers automatically.
+
+- **AC 1.1:** The system must validate and store 6 integer values: `strength`, `dexterity`, `constitution`, `intelligence`, `wisdom`, `charisma`.
+- **AC 1.2:** The system must support the Standard Array values {15, 14, 13, 12, 10, 8} and the Point Buy system (spending 27 points, base scores ranging from 8 to 15 per the cost table defined in US-88).
+- **AC 1.3:** Modifiers must update dynamically if the base score changes.
+- **AC 1.4:** **Mathematical Validation:** A score of 15 must result in a +2 modifier. A score of 9 must result in -1.
+
+### US-02: Health and Stamina Setup
+
+**As a** player, **I want** my health to be calculated automatically based on my level and hit die **so that** I know my physical resilience.
+
+- **AC 2.1:** The system requires the definition of a `hit_die_type` (e.g., 6, 8, 10, 12).
+- **AC 2.2:** At Level 1, Max HP is exactly `hit_die_type + constitution_modifier`.
+- **AC 2.3:** **Guardrail:** If the `constitution_modifier` is negative and reduces the HP change to 0 or less, the minimum HP gained per level must be 1.
+
+### US-03: Unarmored Defense (Base AC)
+
+**As an** unarmored character, **I want** to view my base Armor Class **so that** I know my natural defense.
+
+- **AC 3.1:** The system must detect if the `is_armored` state is false.
+- **AC 3.2:** The projected formula must be `10 + dexterity_modifier`.
+- **AC 3.3:** This value must be calculated at runtime via a pure service, not stored as a static integer.
+
+### US-04: Proficiency Bonus Tracking
+
+**As a** progressing character, **I want** my proficiency bonus to increase with my level **so that** it reflects my overall training.
+
+- **AC 4.1:** The system must calculate the `total_level` by summing all class levels.
+- **AC 4.2:** The bonus must strictly follow the progression table: Level 1-4 (+2), Level 5-8 (+3), Level 9-12 (+4), Level 13-16 (+5), Level 17-20 (+6).
+
+### US-05: Carrying Capacity Tracking
+
+**As an** adventurer, **I want** the system to calculate my maximum carrying capacity **so that** I know how much equipment I can hold.
+
+- **AC 5.1:** The system must calculate carrying capacity as `strength * 15` in pounds.
+- **AC 5.2:** Push, drag, or lift limits must be calculated as `strength * 30` in pounds. Speed drops to 5 ft when pushing/dragging weight above carrying capacity.
+
+### US-06: Combat Dice Resolution (Criticals)
+
+**As a** combatant, **I want** the system to resolve critical hits correctly **so that** I deal the appropriate amount of damage.
+
+- **AC 6.1:** When an attack roll equals exactly 20 (on the die), the `is_critical` flag must be true.
+- **AC 6.2:** If `is_critical` is true, the engine must multiply the quantity of damage dice by 2, roll them, and _then_ add the standard flat modifiers.
+
+### US-07: Human Race Integration (Standard)
+
+**As a** player, **I want** to select the Human race **so that** my character automatically receives the correct racial benefits and statistics.
+
+- **AC 7.1:** When `race_id` is set to `human`, the system must automatically apply a `+1` modifier to all six base ability scores (`strength`, `dexterity`, `constitution`, `intelligence`, `wisdom`, `charisma`).
+- **AC 7.2:** The `size` attribute must be rigidly set to `medium`.
+- **AC 7.3:** The `base_speed` attribute must be set to `30`.
+- **AC 7.4:** The system must automatically assign `common` to the `languages` array and prompt the user to select exactly one additional valid `language_id`.
+
+### US-08: Variant Human Integration (Optional Rule)
+
+**As a** player using optional rules, **I want** to select the Variant Human **so that** I can customize my character with a feat and specific skill.
+
+- **AC 8.1:** When `race_id` is set to `human_variant`, the system must prompt the user to select exactly two _different_ ability scores to increase by `+1`. The system must reject any attempt to apply both points to the same ability score.
+- **AC 8.2:** The system must prompt the user to select exactly one additional skill proficiency to add to their character's `skill_proficiencies` array.
+- **AC 8.3:** The system must prompt the user to select exactly one valid `feat_id` to add to the character's abilities.
+- **AC 8.4:** `size` and `base_speed` inherit the same restrictions as the Standard Human (AC 7.2 and AC 7.3).
+
+### US-09: Dwarf Race Integration (Base Traits)
+
+**As a** player, **I want** to select the Dwarf race **so that** my character automatically receives the correct base dwarven modifiers and proficiencies.
+
+- **AC 9.1:** When `race_id` is set to any dwarf variant, the system must automatically apply a `+2` modifier to the base `constitution` score.
+- **AC 9.2:** The `size` attribute must be rigidly set to `medium`.
+- **AC 9.3:** The `base_speed` attribute must be set to `25`.
+- **AC 9.4 (Specific Override):** If the character has a dwarf `race_id`, their `base_speed` MUST NOT be reduced by wearing heavy armor, circumventing the standard Strength requirement rules for heavy armor.
+- **AC 9.5:** The system must automatically assign `common` and `dwarvish` to the `languages` array.
+- **AC 9.6:** The system must automatically assign `battleaxe`, `handaxe`, `throwing_hammer`, and `warhammer` to the `weapon_proficiencies` array.
+- **AC 9.7:** The system must prompt the user to select exactly one `tool_proficiency` from the following constrained list: `smiths_tools`, `brewers_supplies`, or `masons_tools`.
+- **AC 9.8:** The system must assign `poison` to the character's `damage_resistances` array and apply advantage on saving throws against poison.
+
+### US-10: Dwarf Subraces Integration
+
+**As a** player, **I want** to select a specific Dwarf subrace **so that** the unique mechanical benefits of my subrace are calculated correctly.
+
+- **AC 10.1 (Hill Dwarf):** If `race_id` is set to `dwarf_hill`, the system must apply an additional `+1` modifier to the base `wisdom` score.
+- **AC 10.2 (Hill Dwarf HP Override):** If `race_id` is `dwarf_hill`, the system must automatically add exactly `1` additional Hit Point to the character's Max HP for every level in `total_level` (modifying the base HP calculations in FR-03 and FR-04).
+- **AC 10.3 (Mountain Dwarf):** If `race_id` is set to `dwarf_mountain`, the system must apply an additional `+2` modifier to the base `strength` score.
+- **AC 10.4 (Mountain Dwarf Armor):** If `race_id` is `dwarf_mountain`, the system must automatically assign `light_armor` and `medium_armor` to the `armor_proficiencies` array.
+
+### US-11: Elf Race Integration (Base Traits)
+
+**As a** player, **I want** to select the Elf race **so that** my character automatically receives the correct base elven modifiers, proficiencies, and sensory traits.
+
+- **AC 11.1:** When `race_id` is set to any elf variant, the system must automatically apply a `+2` modifier to the base `dexterity` score.
+- **AC 11.2:** The `size` attribute must be rigidly set to `medium`.
+- **AC 11.3:** The default `base_speed` attribute must be set to `30`.
+- **AC 11.4:** The `darkvision_radius` must be set to `60` feet.
+- **AC 11.5:** The system must automatically assign `perception` to the `skill_proficiencies` array (Keen Senses).
+- **AC 11.6:** The system must automatically assign `common` and `elvish` to the `languages` array.
+- **AC 11.7:** The system must set boolean flags for `has_fey_ancestry` (advantage on saving throws against being charmed and immunity to magical sleep) and `has_trance` (long rest achieved in 4 hours).
+
+### US-12: Elf Subraces Integration
+
+**As a** player, **I want** to select a specific Elf subrace **so that** the unique mechanical benefits, weapons, and innate spells of my subrace are calculated correctly.
+
+- **AC 12.1 (High Elf):** If `race_id` is set to `elf_high`, the system must apply an additional `+1` modifier to the base `intelligence` score.
+- **AC 12.2 (High Elf Weapons):** If `race_id` is `elf_high`, the system must assign `longsword`, `shortsword`, `shortbow`, and `longbow` to the `weapon_proficiencies` array.
+- **AC 12.3 (High Elf Magic):** The system must prompt the user to select exactly one `spell_id` tagged as a Wizard cantrip. This spell must use `intelligence` as its spellcasting ability.
+- **AC 12.4 (High Elf Language):** The system must prompt the user to select exactly one additional valid `language_id`.
+
+- **AC 12.5 (Wood Elf):** If `race_id` is set to `elf_wood`, the system must apply an additional `+1` modifier to the base `wisdom` score.
+- **AC 12.6 (Wood Elf Weapons):** If `race_id` is `elf_wood`, the system must assign `longsword`, `shortsword`, `shortbow`, and `longbow` to the `weapon_proficiencies` array.
+- **AC 12.7 (Wood Elf Speed):** If `race_id` is `elf_wood`, the system must override the `base_speed` attribute to `35`.
+- **AC 12.8 (Wood Elf Stealth):** The system must set a boolean flag for `mask_of_the_wild` (ability to hide when lightly obscured by natural phenomena).
+
+- **AC 12.9 (Drow):** If `race_id` is set to `elf_drow`, the system must apply an additional `+1` modifier to the base `charisma` score.
+- **AC 12.10 (Drow Vision):** If `race_id` is `elf_drow`, the system must override the `darkvision_radius` to `120` feet and set a boolean flag for `sunlight_sensitivity` (disadvantage on attack rolls and sight-based Perception checks in direct sunlight).
+- **AC 12.11 (Drow Weapons):** If `race_id` is `elf_drow`, the system must assign `rapier`, `shortsword`, and `hand_crossbow` to the `weapon_proficiencies` array.
+- **AC 12.12 (Drow Magic):** The system must automatically add the `dancing_lights` cantrip. If `total_level` >= 3, add `faerie_fire` (1/day limit, requires Concentration). If `total_level` >= 5, add `darkness` (1/day limit, requires Concentration). All Drow magic must use `charisma` as the spellcasting ability.
+
+### US-13: Halfling Race Integration (Base Traits)
+
+**As a** player, **I want** to select the Halfling race **so that** my character automatically receives the correct base halfling modifiers, size, and racial traits.
+
+- **AC 13.1:** When `race_id` is set to any halfling variant, the system must automatically apply a `+2` modifier to the base `dexterity` score.
+- **AC 13.2:** The `size` attribute must be rigidly set to `small`.
+- **AC 13.3:** The default `base_speed` attribute must be set to `25`.
+- **AC 13.4:** The system must set a boolean flag for `lucky` (reroll a natural 1 on an attack roll, ability check, or saving throw, must use the new roll).
+- **AC 13.5:** The system must set a boolean flag for `brave` (advantage on saving throws against being frightened).
+- **AC 13.6:** The system must set a boolean flag for `halfling_nimbleness` (can move through the space of any creature that is of a size larger than yours).
+- **AC 13.7:** The system must automatically assign `common` and `halfling` to the `languages` array.
+
+### US-14: Halfling Subraces Integration
+
+**As a** player, **I want** to select a specific Halfling subrace **so that** the unique mechanical benefits of my subrace are calculated correctly.
+
+- **AC 14.1 (Lightfoot):** If `race_id` is set to `halfling_lightfoot`, the system must apply an additional `+1` modifier to the base `charisma` score.
+- **AC 14.2 (Lightfoot Stealth):** If `race_id` is `halfling_lightfoot`, the system must set a boolean flag for `naturally_stealthy` (can attempt to hide even when obscured only by a creature that is at least one size larger).
+- **AC 14.3 (Stout):** If `race_id` is set to `halfling_stout`, the system must apply an additional `+1` modifier to the base `constitution` score.
+- **AC 14.4 (Stout Resilience):** If `race_id` is `halfling_stout`, the system must assign `poison` to the character's `damage_resistances` array and apply advantage on saving throws against poison.
+
+### US-15: Dragonborn Race Integration (Base Traits)
+
+**As a** player, **I want** to select the Dragonborn race **so that** my character automatically receives the correct base modifiers, size, and languages.
+
+- **AC 15.1:** When `race_id` is set to `dragonborn`, the system must automatically apply a `+2` modifier to the base `strength` score and a `+1` modifier to the base `charisma` score.
+- **AC 15.2:** The `size` attribute must be rigidly set to `medium`.
+- **AC 15.3:** The default `base_speed` attribute must be set to `30`.
+- **AC 15.4:** The system must automatically assign `common` and `draconic` to the `languages` array.
+
+### US-16: Draconic Ancestry & Breath Weapon Integration
+
+**As a** Dragonborn character, **I want** to select my draconic ancestry **so that** the system correctly assigns my elemental resistance and Breath Weapon parameters.
+
+- **AC 16.1:** If `race_id` is `dragonborn`, the system must prompt the user to select exactly one `draconic_ancestry_id` from the following list: `black`, `blue`, `brass`, `bronze`, `copper`, `gold`, `green`, `red`, `silver`, `white`.
+- **AC 16.2 (Damage Resistance):** The system must automatically append the correct damage type to the `damage_resistances` array based on the ancestry (e.g., `acid` for Black/Copper, `lightning` for Blue/Bronze, `fire` for Brass/Gold/Red, `poison` for Green, `cold` for Silver/White).
+- **AC 16.3 (Breath Weapon DC):** The system must calculate and expose the Breath Weapon Saving Throw DC as `8 + constitution_modifier + proficiency_bonus`.
+- **AC 16.4 (Breath Weapon Damage Scaling):** The system must calculate the Breath Weapon damage dice based on `total_level`: `2d6` for levels 1-5, `3d6` for levels 6-10, `4d6` for levels 11-15, and `5d6` for levels 16-20.
+- **AC 16.5:** The system must track the Breath Weapon usage, limiting it to exactly `1` use, recoverable upon completing a short or long rest.
+
+
+### US-17: Gnome Race Integration (Base Traits)
+
+**As a** player, **I want** to select the Gnome race **so that** my character automatically receives the correct base modifiers, size, and gnome cunning traits.
+
+- **AC 17.1:** When `race_id` is set to any gnome variant, the system must automatically apply a `+2` modifier to the base `intelligence` score.
+- **AC 17.2:** The `size` attribute must be rigidly set to `small`.
+- **AC 17.3:** The default `base_speed` attribute must be set to `25`.
+- **AC 17.4:** The `darkvision_radius` must be set to `60` feet.
+- **AC 17.5:** The system must set a boolean flag for `gnome_cunning` (advantage on all Intelligence, Wisdom, and Charisma saving throws against magic).
+- **AC 17.6:** The system must automatically assign `common` and `gnomish` to the `languages` array.
+
+### US-18: Gnome Subraces Integration
+
+**As a** player, **I want** to select a specific Gnome subrace **so that** the unique mechanical benefits, proficiencies, and spells of my subrace are calculated correctly.
+
+- **AC 18.1 (Forest Gnome):** If `race_id` is set to `gnome_forest`, the system must apply an additional `+1` modifier to the base `dexterity` score.
+- **AC 18.2 (Forest Gnome Magic):** If `race_id` is `gnome_forest`, the system must automatically assign the `minor_illusion` cantrip to the character, strictly using `intelligence` as the spellcasting ability.
+- **AC 18.3 (Forest Gnome Trait):** If `race_id` is `gnome_forest`, the system must set a boolean flag for `speak_with_small_beasts`.
+- **AC 18.4 (Rock Gnome):** If `race_id` is set to `gnome_rock`, the system must apply an additional `+1` modifier to the base `constitution` score.
+- **AC 18.5 (Rock Gnome Lore):** If `race_id` is `gnome_rock`, the system must set a boolean flag for `artificers_lore` (allows doubling the proficiency bonus on Intelligence/History checks related to magic items, alchemical objects, or technological devices).
+- **AC 18.6 (Rock Gnome Tinker):** If `race_id` is `gnome_rock`, the system must automatically assign `tinkers_tools` to the `tool_proficiencies` array and set a boolean flag for the `tinker` crafting ability.
+
+### US-19: Half-Elf Race Integration
+
+**As a** player, **I want** to select the Half-Elf race **so that** my character receives the correct base modifiers, versatile skill choices, and sensory traits.
+
+- **AC 19.1:** When `race_id` is set to `half_elf`, the system must automatically apply a `+2` modifier to the base `charisma` score.
+- **AC 19.2 (Dynamic ASI):** The system must prompt the user to select exactly two _different_ ability scores (excluding `charisma`) to increase by `+1`. The system must reject any attempt to apply both points to the same ability score or to charisma.
+- **AC 19.3:** The `size` attribute must be rigidly set to `medium` and the `base_speed` attribute must be set to `30`.
+- **AC 19.4:** The `darkvision_radius` must be set to `60` feet.
+- **AC 19.5:** The system must set a boolean flag for `has_fey_ancestry` (advantage on saving throws against being charmed and immunity to magical sleep).
+- **AC 19.6 (Skill Versatility):** The system must prompt the user to select exactly two valid `skill_id`s to add to their `skill_proficiencies` array.
+- **AC 19.7:** The system must automatically assign `common` and `elvish` to the `languages` array, and prompt the user to select exactly one additional valid `language_id`.
+
+### US-20: Half-Orc Race Integration
+
+**As a** player, **I want** to select the Half-Orc race **so that** my character automatically receives the correct base modifiers, proficiencies, and combat survival traits.
+
+- **AC 20.1:** When `race_id` is set to `half_orc`, the system must automatically apply a `+2` modifier to the base `strength` score and a `+1` modifier to the base `constitution` score.
+- **AC 20.2:** The `size` attribute must be rigidly set to `medium` and the default `base_speed` attribute must be set to `30`.
+- **AC 20.3:** The `darkvision_radius` must be set to `60` feet.
+- **AC 20.4 (Menacing):** The system must automatically assign `intimidation` to the `skill_proficiencies` array.
+- **AC 20.5 (Relentless Endurance):** The system must set a boolean flag for `relentless_endurance`. If true, when the character's HP is reduced to 0 but not killed outright, the system must set HP to 1 instead. The system must track its usage, limiting it to exactly `1` use, recoverable upon completing a long rest.
+- **AC 20.6 (Savage Attacks):** The system must set a boolean flag for `savage_attacks`. When `is_critical` is true on a melee weapon attack, the engine must roll one additional damage die of the weapon's type and add it to the total critical damage.
+- **AC 20.7:** The system must automatically assign `common` and `orc` to the `languages` array.
+
+### US-21: Tiefling Race Integration
+
+**As a** player, **I want** to select the Tiefling race **so that** my character automatically receives the correct base modifiers, sensory traits, and innate infernal magic.
+
+- **AC 21.1:** When `race_id` is set to `tiefling`, the system must automatically apply a `+1` modifier to the base `intelligence` score and a `+2` modifier to the base `charisma` score.
+- **AC 21.2:** The `size` attribute must be rigidly set to `medium` and the default `base_speed` attribute must be set to `30`.
+- **AC 21.3:** The `darkvision_radius` must be set to `60` feet.
+- **AC 21.4 (Hellish Resistance):** The system must automatically assign `fire` to the `damage_resistances` array.
+- **AC 21.5 (Infernal Legacy):** The system must automatically assign the `thaumaturgy` cantrip. If `total_level` >= 3, the system must add the `hellish_rebuke` spell (cast as a 2nd-level spell, limited to exactly 1 use per long rest). If `total_level` >= 5, the system must add the `darkness` spell (limited to exactly 1 use per long rest, requires Concentration). All spells granted by this trait must strictly use `charisma` as the spellcasting ability.
+- **AC 21.6:** The system must automatically assign `common` and `infernal` to the `languages` array.
+
+### US-22: Core Class Assignment & Progression
+
+**As a** player, **I want** to assign a class to my character and increase its level **so that** the system automatically manages my Hit Dice, proficiencies, and level-based progression.
+
+- **AC 22.1 (Class Tracking):** The system must track classes using an array of objects (e.g., `[{class_id: "fighter", level: 1}]`) to allow for future multiclassing support.
+- **AC 22.2 (Total Level):** The engine must calculate the character's `total_level` as the sum of all individual class levels. The `total_level` must strictly be a value between `1` and `20`.
+- **AC 22.3 (Base HP Generation):** At exactly `total_level = 1`, the system must assign the maximum value of the primary class's Hit Die plus the `constitution_modifier` to the character's Max HP.
+- **AC 22.4 (Level Up HP Scaling):** For every class level gained after the 1st total level, the system must add `(hit_die_type / 2) + 1 + constitution_modifier` to the Max HP. Minimum HP gained per level must be 1.
+- **AC 22.5 (Hit Dice Pool):** The system must allocate and track a pool of Hit Dice matching the quantity and types of dice derived from the character's class levels (e.g., a Level 3 Fighter must have a pool of exactly three `d10` Hit Dice).
+- **AC 22.6 (Proficiency Aggregation):** The system must aggregate all weapon, armor, tool, saving throw, and skill proficiencies granted by the selected classes into their respective character arrays. The engine must ensure there are no duplicate entries in these arrays.
+
+### US-23: Barbarian Class Integration (Base Traits & Level 1)
+
+**As a** player, **I want** to select the Barbarian class **so that** my character automatically receives the correct Hit Dice, proficiencies, and level 1 class features.
+
+- **AC 23.1 (Hit Dice & Base HP):** When the primary `class_id` is set to `barbarian`, the system must set the `hit_die_type` to `12`. At level 1, the Max HP calculation must strictly be `12 + constitution_modifier`.
+- **AC 23.2 (Base Proficiencies):** The system must automatically assign `light_armor`, `medium_armor`, and `shields` to the `armor_proficiencies` array. It must assign `simple_weapons` and `martial_weapons` to the `weapon_proficiencies` array. It must assign `strength` and `constitution` to the `saving_throw_proficiencies` array.
+- **AC 23.3 (Skill Selection):** The system must prompt the user to select exactly two `skill_id`s from the following constrained list: `athletics`, `intimidation`, `nature`, `perception`, `survival`, or `animal_handling`.
+- **AC 23.4 (Unarmored Defense Override):** If the character has at least one level in `barbarian` and the `is_armored` state is false, the system must override the standard AC calculation (FR-02) and instead calculate base AC as `10 + dexterity_modifier + constitution_modifier`. This calculation remains valid if a shield is equipped.
+- **AC 23.5 (Rage State):** The system must support a temporary combat state flag `is_raging`. When `is_raging` is true AND the character is not wearing heavy armor, the engine must automatically:
+  - Apply advantage to all Strength ability checks and Strength saving throws.
+  - Grant resistance to `bludgeoning`, `piercing`, and `slashing` damage types.
+  - Add a flat `rage_damage` bonus (starting at `+2` for level 1) to damage rolls for melee weapon attacks that use Strength.
+
+### US-24: Universal Level Advancement & Feature Unlocks
+
+**As a** progressing character, **I want** the system to track my XP and automatically unlock class features and attribute increases **so that** my character scales accurately according to the rules.
+
+- **AC 24.1:** The system must automatically update `total_level` when `experience_points` reach the thresholds defined in FR-09.
+- **AC 24.2 (Class Progression Matrix):** The system must query a progression catalog for each assigned `class_id` to unlock specific features (e.g., Action Surge, Spellcasting) based on the character's `class_level`.
+- **AC 24.3 (Ability Score Improvement - ASI):** When a class progression grants an ASI (typically at class levels 4, 8, 12, 16, and 19), the system must prompt the user to either increase one ability score by `+2`, two ability scores by `+1`, or select a valid `feat_id` (if optional feat rules are enabled).
+- **AC 24.4:** The system must enforce the hard cap of `20` for any ability score increased via an ASI.
+
+### US-25: Barbarian Class Progression (Levels 1-5 Scaling)
+
+**As a** Barbarian, **I want** the system to unlock my specific class features as I level up **so that** my combat capabilities scale accurately.
+
+- **AC 25.1 (Rage Scaling):** The system must dynamically calculate Max Rage uses and Rage Damage based on the Barbarian `class_level`:
+  - Levels 1-2: 2 uses, +2 damage.
+  - Levels 3-5: 3 uses, +2 damage.
+- **AC 25.2 (Level 2 - Reckless Attack & Danger Sense):** If Barbarian `class_level` >= 2, the system must set boolean flags for `reckless_attack` (grants advantage on melee STR attacks, grants advantage to enemies attacking the character) and `danger_sense` (advantage on DEX saving throws against seen effects).
+- **AC 25.3 (Level 3 - Primal Path):** If Barbarian `class_level` >= 3, the system must prompt the user to select exactly one `barbarian_path_id` (e.g., `path_of_the_berserker`, `path_of_the_totem_warrior`) to unlock subclass features.
+- **AC 25.4 (Level 5 - Extra Attack & Fast Movement):** If Barbarian `class_level` >= 5, the system must set a boolean flag for `extra_attack` (allowing 2 attacks per Attack action) and automatically increase `base_speed` by `+10` feet (if not wearing heavy armor).
+
+### US-26: Bard Class Integration (Base Traits & Level 1)
+
+**As a** player, **I want** to select the Bard class **so that** my character automatically receives the correct Hit Dice, proficiencies, spellcasting abilities, and level 1 class features.
+
+- **AC 26.1 (Hit Dice & Base HP):** When the primary `class_id` is set to `bard`, the system must set the `hit_die_type` to `8`. At level 1, the Max HP calculation must strictly be `8 + constitution_modifier`.
+- **AC 26.2 (Base Proficiencies):** The system must automatically assign `light_armor` to the `armor_proficiencies` array. It must assign `simple_weapons`, `hand_crossbow`, `longsword`, `rapier`, and `shortsword` to the `weapon_proficiencies` array. It must assign `dexterity` and `charisma` to the `saving_throw_proficiencies` array.
+- **AC 26.3 (Selections):** The system must prompt the user to select exactly three valid `skill_id`s and exactly three `tool_proficiency` IDs (restricted to musical instruments).
+- **AC 26.4 (Spellcasting):** The system must set the `spellcasting_ability` to `charisma`. It must calculate Spell Save DC as `8 + proficiency_bonus + charisma_modifier` and Spell Attack Modifier as `proficiency_bonus + charisma_modifier`. The user must be prompted to select exactly two `spell_id`s (cantrips) and four `spell_id`s (1st-level) from the Bard spell list.
+- **AC 26.5 (Bardic Inspiration):** The system must initialize a `bardic_inspiration` pool with a maximum capacity equal to `charisma_modifier` (minimum of 1). At level 1, the die size must be `d6`, and the pool must recover all uses upon completing a long rest.
+
+### US-27: Bard Class Progression (Levels 1-5 Scaling)
+
+**As a** Bard, **I want** the system to unlock my specific class features as I level up **so that** my support and skill capabilities scale accurately.
+
+- **AC 27.1 (Level 2 - Jack of All Trades):** If Bard `class_level` >= 2, the system must set a boolean flag for `jack_of_all_trades`. When true, the engine must add `floor(proficiency_bonus / 2)` to any **ability check** that does not already include the full proficiency bonus. This bonus does NOT apply to attack rolls or saving throws.
+- **AC 27.2 (Level 2 - Song of Rest):** If Bard `class_level` >= 2, the system must set a boolean flag for `song_of_rest`. When true, any friendly creature (including the Bard) regaining HP at the end of a short rest must receive an additional `1d6` healing.
+- **AC 27.3 (Level 3 - Bard College):** If Bard `class_level` >= 3, the system must prompt the user to select exactly one `bard_college_id` (`college_of_lore` or `college_of_valor`) to unlock subclass features.
+- **AC 27.4 (Level 3 - Expertise):** If Bard `class_level` >= 3, the system must prompt the user to select exactly two `skill_id`s from their existing `skill_proficiencies` array. The engine must multiply the proficiency bonus by 2 for checks using these specific skills.
+- **AC 27.5 (Level 5 - Font of Inspiration):** If Bard `class_level` >= 5, the system must update the `bardic_inspiration` pool recovery condition to trigger on completing either a short rest or a long rest.
+- **AC 27.6 (Level 5 - Inspiration Die Scaling):** If Bard `class_level` >= 5, the system must update the `bardic_inspiration` die size to `d8`.
+
+### US-28: Warlock Class Integration (Base Traits & Level 1)
+
+**As a** player, **I want** to select the Warlock class **so that** my character automatically receives the correct Hit Dice, proficiencies, Pact Magic, and Otherworldly Patron at level 1.
+
+- **AC 28.1 (Hit Dice & Base HP):** When the primary `class_id` is set to `warlock`, the system must set the `hit_die_type` to `8`. At level 1, the Max HP calculation must strictly be `8 + constitution_modifier`.
+- **AC 28.2 (Base Proficiencies):** The system must automatically assign `light_armor` to the `armor_proficiencies` array. It must assign `simple_weapons` to the `weapon_proficiencies` array. It must assign `wisdom` and `charisma` to the `saving_throw_proficiencies` array.
+- **AC 28.3 (Skill Selection):** The system must prompt the user to select exactly two `skill_id`s from the following constrained list: `arcana`, `deception`, `history`, `intimidation`, `investigation`, `nature`, or `religion`.
+- **AC 28.4 (Otherworldly Patron):** If Warlock `class_level` >= 1, the system must prompt the user to select exactly one `warlock_patron_id` (e.g., `archfey`, `fiend`, `great_old_one`) to unlock subclass features immediately at level 1.
+- **AC 28.5 (Pact Magic - Base):** The system must set the `spellcasting_ability` to `charisma`. Spell Save DC is `8 + proficiency_bonus + charisma_modifier` and Spell Attack Modifier is `proficiency_bonus + charisma_modifier`. The user must be prompted to select exactly two `spell_id`s (cantrips) and two `spell_id`s (1st-level) from the Warlock spell list.
+- **AC 28.6 (Pact Magic - Recovery):** Unlike standard spellcasting, the system must recover all expended Warlock spell slots upon completing either a short rest or a long rest.
+
+### US-29: Warlock Class Progression (Levels 1-5 Scaling)
+
+**As a** Warlock, **I want** the system to unlock my specific class features as I level up **so that** my eldritch invocations and pact boons scale accurately.
+
+- **AC 29.1 (Pact Magic Scaling):** The system must dynamically scale the quantity and the level of the spell slots based on the Warlock `class_level` (e.g., Levels 2: 2 slots of 1st level; Levels 3-4: 2 slots of 2nd level; Level 5: 2 slots of 3rd level).
+- **AC 29.2 (Level 2 - Eldritch Invocations):** If Warlock `class_level` >= 2, the system must prompt the user to select exactly two `invocation_id`s from the Eldritch Invocations catalog. The system must enforce any prerequisites tied to these invocations (e.g., specific level or pact boon requirements).
+- **AC 29.3 (Level 3 - Pact Boon):** If Warlock `class_level` >= 3, the system must prompt the user to select exactly one `pact_boon_id` (`pact_of_the_chain`, `pact_of_the_blade`, or `pact_of_the_tome`) unlocking its specific mechanical benefits.
+
+### US-30: Cleric Class Integration (Base Traits & Level 1)
+
+**As a** player, **I want** to select the Cleric class **so that** my character automatically receives the correct Hit Dice, proficiencies, spellcasting abilities, and Divine Domain at level 1.
+
+- **AC 30.1 (Hit Dice & Base HP):** When the primary `class_id` is set to `cleric`, the system must set the `hit_die_type` to `8`. At level 1, the Max HP calculation must strictly be `8 + constitution_modifier`.
+- **AC 30.2 (Base Proficiencies):** The system must automatically assign `light_armor`, `medium_armor`, and `shields` to the `armor_proficiencies` array. It must assign `simple_weapons` to the `weapon_proficiencies` array. It must assign `wisdom` and `charisma` to the `saving_throw_proficiencies` array.
+- **AC 30.3 (Skill Selection):** The system must prompt the user to select exactly two `skill_id`s from the following constrained list: `history`, `insight`, `medicine`, `persuasion`, or `religion`.
+- **AC 30.4 (Spellcasting):** The system must set the `spellcasting_ability` to `wisdom`. It must calculate Spell Save DC as `8 + proficiency_bonus + wisdom_modifier` and Spell Attack Modifier as `proficiency_bonus + wisdom_modifier`. The user must be prompted to select exactly three `spell_id`s (cantrips) from the Cleric spell list.
+- **AC 30.5 (Divine Domain):** If Cleric `class_level` >= 1, the system must prompt the user to select exactly one `cleric_domain_id` (e.g., `domain_knowledge`, `domain_life`, `domain_war`) to unlock subclass features immediately.
+
+### US-31: Cleric Class Progression (Levels 1-5 Scaling)
+
+**As a** Cleric, **I want** the system to unlock my specific class features as I level up **so that** my Channel Divinity and spell preparation scale accurately.
+
+- **AC 31.1 (Spell Preparation):** The system must allow the user to prepare a number of spells equal to `cleric_class_level + wisdom_modifier` (minimum of 1). These spells must be of a level for which the character has spell slots.
+- **AC 31.2 (Domain Spells):** The system must automatically append the specific spells granted by the selected `cleric_domain_id` to the character's prepared spells list. These domain spells must NOT count against the total preparation limit defined in AC 31.1.
+- **AC 31.3 (Level 2 - Channel Divinity):** If Cleric `class_level` >= 2, the system must unlock the `channel_divinity` resource pool (1 use, recoverable on short or long rest). It must grant the `turn_undead` action and the specific Channel Divinity action associated with the chosen Divine Domain.
+- **AC 31.4 (Level 5 - Destroy Undead):** If Cleric `class_level` >= 5, the system must set a boolean flag for `destroy_undead_cr_half`. When true, any undead of Challenge Rating 1/2 or lower that fails its saving throw against `turn_undead` is instantly destroyed instead of turned.
+
+### US-32: Druid Class Integration (Base Traits & Level 1)
+
+**As a** player, **I want** to select the Druid class **so that** my character automatically receives the correct Hit Dice, proficiencies, and Druidic language at level 1.
+
+- **AC 32.1 (Hit Dice & Base HP):** When the primary `class_id` is set to `druid`, the system must set the `hit_die_type` to `8`. At level 1, the Max HP calculation must strictly be `8 + constitution_modifier`.
+- **AC 32.2 (Base Proficiencies):** The system must automatically assign `light_armor`, `medium_armor`, and `shields` to the `armor_proficiencies` array. **Guardrail:** The system must set a flag `disallows_metal_armor` to true; the API must reject any attempt to equip metal armor on a Druid. It must assign `clubs`, `daggers`, `darts`, `javelins`, `maces`, `quarterstaffs`, `scimitars`, `sickles`, `slings`, and `spears` to the `weapon_proficiencies` array. It must assign `herbalism_kit` to the `tool_proficiencies` array.
+- **AC 32.3 (Saving Throws & Skills):** The system must assign `intelligence` and `wisdom` to the `saving_throw_proficiencies` array. The user must be prompted to select exactly two `skill_id`s from: `arcana`, `animal_handling`, `insight`, `medicine`, `nature`, `perception`, `religion`, or `survival`.
+- **AC 32.4 (Druidic):** The system must automatically assign `druidic` to the `languages` array. This language does not count against the limit of languages granted by race or background.
+- **AC 32.5 (Spellcasting):** The system must set the `spellcasting_ability` to `wisdom`. It must calculate Spell Save DC as `8 + proficiency_bonus + wisdom_modifier` and Spell Attack Modifier as `proficiency_bonus + wisdom_modifier`. The user must be prompted to select exactly two `spell_id`s (cantrips) from the Druid spell list.
+
+### US-33: Druid Class Progression (Levels 1-5 Scaling)
+
+**As a** Druid, **I want** the system to manage my spell preparation and Wild Shape limitations accurately as I level up.
+
+- **AC 33.1 (Spell Preparation):** The system must allow the user to prepare a number of spells equal to `druid_class_level + wisdom_modifier` (minimum of 1).
+- **AC 33.2 (Level 2 - Wild Shape):** If Druid `class_level` >= 2, the system must initialize a `wild_shape_uses` pool with a maximum of `2`, recoverable upon completing a short or long rest.
+- **AC 33.3 (Wild Shape Constraints):** The system must enforce transformation limits based on level:
+  - **Level 2:** Max CR 1/4, no flying or swimming speed.
+  - **Level 4:** Max CR 1/2, no flying speed (swimming allowed).
+- **AC 33.4 (Level 2 - Druid Circle):** If Druid `class_level` >= 2, the system must prompt the user to select exactly one `druid_circle_id` (e.g., `circle_of_the_land`, `circle_of_the_moon`) to unlock subclass features.
+- **AC 33.5 (Level 2 - Circle of the Moon Override):** If `druid_circle_id` is `circle_of_the_moon`, the system must override AC 33.3 to allow Max CR 1 at level 2 (Combat Wild Shape).
+
+
+### US-34: Ranger Class Integration (Base Traits & Level 1)
+
+**As a** player, **I want** to select the Ranger class **so that** my character automatically receives the correct Hit Dice, proficiencies, and wilderness exploration traits at level 1.
+
+- **AC 34.1 (Hit Dice & Base HP):** When the primary `class_id` is set to `ranger`, the system must set the `hit_die_type` to `10`. At level 1, the Max HP calculation must strictly be `10 + constitution_modifier`.
+- **AC 34.2 (Base Proficiencies):** The system must automatically assign `light_armor`, `medium_armor`, and `shields` to the `armor_proficiencies` array. It must assign `simple_weapons` and `martial_weapons` to the `weapon_proficiencies` array. It must assign `strength` and `dexterity` to the `saving_throw_proficiencies` array.
+- **AC 34.3 (Skill Selection):** The system must prompt the user to select exactly three `skill_id`s from the following constrained list: `animal_handling`, `athletics`, `insight`, `investigation`, `nature`, `perception`, `stealth`, or `survival`.
+- **AC 34.4 (Favored Enemy):** The system must prompt the user to select exactly one `favored_enemy_id` (e.g., `beasts`, `fey`, `humanoids`). The system must also prompt the user to select exactly one additional valid `language_id` associated with that enemy. The engine must set a flag to apply advantage on Wisdom (Survival) checks to track these enemies and Intelligence checks to recall information about them.
+- **AC 34.5 (Natural Explorer):** The system must prompt the user to select exactly one `favored_terrain_id` (e.g., `forest`, `mountain`, `swamp`) to unlock specific exploration benefits.
+
+### US-35: Ranger Class Progression (Levels 1-5 Scaling)
+
+**As a** Ranger, **I want** the system to unlock my combat styles, spells, and archetype features as I level up.
+
+- **AC 35.1 (Level 2 - Fighting Style):** If Ranger `class_level` >= 2, the system must prompt the user to select exactly one `fighting_style_id` from a constrained list: `archery` (+2 to ranged weapon attack rolls), `defense` (+1 to AC when wearing armor), `dueling` (+2 to melee damage when wielding one weapon and no other weapons), or `two_weapon_fighting` (add ability modifier to the second attack's damage).
+- **AC 35.2 (Level 2 - Spellcasting):** If Ranger `class_level` >= 2, the system must enable spellcasting. The system must set the `spellcasting_ability` to `wisdom`. It must calculate Spell Save DC as `8 + proficiency_bonus + wisdom_modifier` and Spell Attack Modifier as `proficiency_bonus + wisdom_modifier`. The user must be prompted to select exactly two `spell_id`s (1st-level) from the Ranger spell list.
+- **AC 35.3 (Level 3 - Ranger Archetype):** If Ranger `class_level` >= 3, the system must prompt the user to select exactly one `ranger_archetype_id` (`hunter` or `beast_master`) to unlock subclass features.
+- **AC 35.4 (Level 3 - Primeval Awareness):** If Ranger `class_level` >= 3, the system must set a boolean flag `has_primeval_awareness`, allowing the expenditure of a spell slot to detect certain creature types within a 1-mile radius (or up to 6 miles in favored terrain).
+- **AC 35.5 (Level 5 - Extra Attack):** If Ranger `class_level` >= 5, the system must set a boolean flag for `extra_attack` allowing 2 attacks per Attack action.
+
+### US-36: Fighter Class Integration (Base Traits & Level 1)
+
+**As a** player, **I want** to select the Fighter class **so that** my character automatically receives the correct Hit Dice, proficiencies, combat styles, and healing traits at level 1.
+
+- **AC 36.1 (Hit Dice & Base HP):** When the primary `class_id` is set to `fighter`, the system must set the `hit_die_type` to `10`. At level 1, the Max HP calculation must strictly be `10 + constitution_modifier`.
+- **AC 36.2 (Base Proficiencies):** The system must automatically assign `light_armor`, `medium_armor`, `heavy_armor`, and `shields` to the `armor_proficiencies` array. It must assign `simple_weapons` and `martial_weapons` to the `weapon_proficiencies` array. It must assign `strength` and `constitution` to the `saving_throw_proficiencies` array.
+- **AC 36.3 (Skill Selection):** The system must prompt the user to select exactly two `skill_id`s from the following constrained list: `acrobatics`, `animal_handling`, `athletics`, `history`, `insight`, `intimidation`, `perception`, or `survival`.
+- **AC 36.4 (Fighting Style):** The system must prompt the user to select exactly one `fighting_style_id` from a constrained list: `archery` (+2 to ranged weapon attack rolls), `defense` (+1 to AC when wearing armor), `dueling` (+2 to melee damage when wielding one weapon and no other weapons), `great_weapon_fighting` (reroll 1s and 2s on damage dice with two-handed melee weapons), `protection` (use reaction to impose disadvantage on an attack against an ally within 5ft if wielding a shield), or `two_weapon_fighting` (add ability modifier to the second attack's damage).
+- **AC 36.5 (Second Wind):** The system must initialize a `second_wind_uses` pool with a maximum capacity of `1`, recoverable upon completing a short or long rest. The engine must calculate the healing output as `1d10 + fighter_class_level`.
+
+### US-37: Fighter Class Progression (Levels 1-5 Scaling)
+
+**As a** Fighter, **I want** the system to unlock my action surges, martial archetypes, and multiple attacks as I level up.
+
+- **AC 37.1 (Level 2 - Action Surge):** If Fighter `class_level` >= 2, the system must initialize an `action_surge_uses` pool with a maximum capacity of `1`, recoverable upon completing a short or long rest. This feature grants one additional action on the character's turn.
+- **AC 37.2 (Level 3 - Martial Archetype):** If Fighter `class_level` >= 3, the system must prompt the user to select exactly one `martial_archetype_id` (e.g., `champion`, `battle_master`, `eldritch_knight`) to unlock subclass features.
+- **AC 37.3 (Level 3 - Champion Improved Critical):** If `martial_archetype_id` is `champion`, the system must update the critical hit mechanic (FR-08) to trigger on a natural roll of `19` or `20` on the d20.
+- **AC 37.4 (Level 5 - Extra Attack):** If Fighter `class_level` >= 5, the system must set a boolean flag for `extra_attack` allowing exactly 2 attacks per Attack action.
+
+### US-38: Sorcerer Class Integration (Base Traits & Level 1)
+
+**As a** player, **I want** to select the Sorcerer class **so that** my character automatically receives the correct Hit Dice, proficiencies, spellcasting, and Sorcerous Origin at level 1.
+
+- **AC 38.1 (Hit Dice & Base HP):** When the primary `class_id` is set to `sorcerer`, the system must set the `hit_die_type` to `6`. At level 1, the Max HP calculation must strictly be `6 + constitution_modifier`.
+- **AC 38.2 (Base Proficiencies):** The system must assign an empty array to `armor_proficiencies` (no armor proficiencies). It must assign `daggers`, `darts`, `slings`, `quarterstaffs`, and `light_crossbows` to the `weapon_proficiencies` array. It must assign `constitution` and `charisma` to the `saving_throw_proficiencies` array.
+- **AC 38.3 (Skill Selection):** The system must prompt the user to select exactly two `skill_id`s from the following constrained list: `arcana`, `deception`, `insight`, `intimidation`, `persuasion`, or `religion`.
+- **AC 38.4 (Spellcasting):** The system must set the `spellcasting_ability` to `charisma`. It must calculate Spell Save DC as `8 + proficiency_bonus + charisma_modifier` and Spell Attack Modifier as `proficiency_bonus + charisma_modifier`. The user must be prompted to select exactly four `spell_id`s (cantrips) and two `spell_id`s (1st-level) from the Sorcerer spell list.
+- **AC 38.5 (Sorcerous Origin):** If Sorcerer `class_level` >= 1, the system must prompt the user to select exactly one `sorcerous_origin_id` (e.g., `draconic_bloodline`, `wild_magic`) to unlock subclass features immediately.
+- **AC 38.6 (Draconic Resilience Overrides):** If `sorcerous_origin_id` is `draconic_bloodline`, the system must automatically add exactly `1` additional Hit Point to the character's Max HP for every level in `total_level`. Additionally, if the `is_armored` state is false, the system must override the standard AC calculation (FR-02) and instead calculate base AC as `13 + dexterity_modifier`.
+
+### US-39: Sorcerer Class Progression (Levels 1-5 Scaling)
+
+**As a** Sorcerer, **I want** the system to manage my Sorcery Points and Metamagic options as I level up.
+
+- **AC 39.1 (Level 2 - Font of Magic):** If Sorcerer `class_level` >= 2, the system must initialize a `sorcery_points` pool with a maximum capacity exactly equal to the `sorcerer_class_level`. This pool must recover all uses strictly upon completing a long rest.
+- **AC 39.2 (Level 2 - Flexible Casting):** The system must allow the conversion logic between `sorcery_points` and spell slots based on the standard exchange rate table (e.g., a 1st-level slot costs 2 points, a 2nd-level slot costs 3 points).
+- **AC 39.3 (Level 3 - Metamagic Selection):** If Sorcerer `class_level` >= 3, the system must prompt the user to select exactly two `metamagic_id`s from the constrained catalog (e.g., `careful_spell`, `quickened_spell`, `twinned_spell`). The system must validate that the user has enough `sorcery_points` when attempting to apply a chosen Metamagic effect to a spell at runtime.
+
+### US-40: Wizard Class Integration (Base Traits & Level 1)
+
+**As a** player, **I want** to select the Wizard class **so that** my character automatically receives the correct Hit Dice, proficiencies, spellbook, and Arcane Recovery feature at level 1.
+
+- **AC 40.1 (Hit Dice & Base HP):** When the primary `class_id` is set to `wizard`, the system must set the `hit_die_type` to `6`. At level 1, the Max HP calculation must strictly be `6 + constitution_modifier`.
+- **AC 40.2 (Base Proficiencies):** The system must assign an empty array to `armor_proficiencies` (no armor proficiencies). It must assign `daggers`, `darts`, `slings`, `quarterstaffs`, and `light_crossbows` to the `weapon_proficiencies` array. It must assign `intelligence` and `wisdom` to the `saving_throw_proficiencies` array.
+- **AC 40.3 (Skill Selection):** The system must prompt the user to select exactly two `skill_id`s from the following constrained list: `arcana`, `history`, `insight`, `investigation`, `medicine`, or `religion`.
+- **AC 40.4 (Spellcasting Base):** The system must set the `spellcasting_ability` to `intelligence`. It must calculate Spell Save DC as `8 + proficiency_bonus + intelligence_modifier` and Spell Attack Modifier as `proficiency_bonus + intelligence_modifier`. The user must be prompted to select exactly three `spell_id`s (cantrips) from the Wizard spell list.
+- **AC 40.5 (Spellbook Initialization):** The system must initialize a `known_spells` array representing the character's spellbook. At level 1, the system must prompt the user to select exactly six `spell_id`s (1st-level) from the Wizard spell list to populate this array.
+- **AC 40.6 (Arcane Recovery):** The system must track the Arcane Recovery feature. Once per day after completing a short rest, the user can recover expended spell slots with a combined level equal to or less than `ceil(wizard_class_level / 2)`.
+
+### US-41: Wizard Class Progression (Levels 1-5 Scaling)
+
+**As a** Wizard, **I want** the system to manage my spell preparation, spellbook expansion, and Arcane Traditions as I level up.
+
+- **AC 41.1 (Spell Preparation):** The system must allow the user to prepare a number of spells equal to `wizard_class_level + intelligence_modifier` (minimum of 1). The user may ONLY select spells that are currently in their `known_spells` (spellbook) array.
+- **AC 41.2 (Spellbook Expansion):** Upon gaining any Wizard `class_level` beyond level 1, the system must prompt the user to select exactly two new `spell_id`s from the Wizard spell list to add to their `known_spells` array. The selected spells must be of a level for which the character has spell slots.
+- **AC 41.3 (Level 2 - Arcane Tradition):** If Wizard `class_level` >= 2, the system must prompt the user to select exactly one `arcane_tradition_id` (e.g., `school_of_evocation`, `school_of_abjuration`) to unlock subclass features.
+- **AC 41.4 (Level 2 - Subclass Savant Overrides):** The system must reduce the gold and time costs required to copy spells of the chosen school into the spellbook by half, if crafting/copying mechanics are later implemented.
+
+### US-42: Monk Class Integration (Base Traits & Level 1)
+
+**As a** player, **I want** to select the Monk class **so that** my character automatically receives the correct Hit Dice, proficiencies, Unarmored Defense, and Martial Arts traits at level 1.
+
+- **AC 42.1 (Hit Dice & Base HP):** When the primary `class_id` is set to `monk`, the system must set the `hit_die_type` to `8`. At level 1, the Max HP calculation must strictly be `8 + constitution_modifier`.
+- **AC 42.2 (Base Proficiencies):** The system must assign an empty array to `armor_proficiencies` (no armor or shield proficiencies). It must assign `simple_weapons` and `shortsword` to the `weapon_proficiencies` array. It must assign `strength` and `dexterity` to the `saving_throw_proficiencies` array. The user must be prompted to select exactly one `tool_proficiency` from artisan's tools or musical instruments.
+- **AC 42.3 (Skill Selection):** The system must prompt the user to select exactly two `skill_id`s from the following constrained list: `acrobatics`, `athletics`, `history`, `insight`, `religion`, or `stealth`.
+- **AC 42.4 (Unarmored Defense Override):** If the character has at least one level in `monk` and is neither wearing armor nor wielding a shield, the system must override the standard AC calculation (FR-02) and instead calculate base AC as `10 + dexterity_modifier + wisdom_modifier`.
+- **AC 42.5 (Martial Arts):** The system must set a boolean flag for `martial_arts` valid only when unarmored and without a shield. When true, the engine must allow the use of `dexterity_modifier` instead of `strength_modifier` for attack and damage rolls of unarmed strikes and monk weapons. The system must set the base unarmed strike damage die to `1d4`.
+
+### US-43: Monk Class Progression (Levels 1-5 Scaling)
+
+**As a** Monk, **I want** the system to unlock my Ki, unarmored movement, and Monastic Tradition as I level up.
+
+- **AC 43.1 (Level 2 - Ki Pool):** If Monk `class_level` >= 2, the system must initialize a `ki_points` pool with a maximum capacity exactly equal to the `monk_class_level`. This pool must recover all uses upon completing a short or long rest. The system must calculate the Ki Save DC as `8 + proficiency_bonus + wisdom_modifier`.
+- **AC 43.2 (Level 2 - Unarmored Movement):** If Monk `class_level` >= 2, and the character is unarmored and not wielding a shield, the system must automatically increase the `base_speed` by `+10` feet.
+- **AC 43.3 (Level 3 - Monastic Tradition):** If Monk `class_level` >= 3, the system must prompt the user to select exactly one `monastic_tradition_id` (e.g., `way_of_the_open_hand`, `way_of_shadow`) to unlock subclass features.
+- **AC 43.4 (Level 3 - Deflect Missiles):** If Monk `class_level` >= 3, the system must set a flag for `deflect_missiles`, allowing the user to spend a reaction to reduce ranged weapon damage by `1d10 + dexterity_modifier + monk_class_level`.
+- **AC 43.5 (Level 5 - Extra Attack & Stunning Strike):** If Monk `class_level` >= 5, the system must set a boolean flag for `extra_attack` allowing exactly 2 attacks per Attack action. It must also unlock the `stunning_strike` feature (costing 1 Ki point upon a successful melee hit).
+- **AC 43.6 (Level 5 - Martial Arts Scaling):** If Monk `class_level` >= 5, the system must scale the Martial Arts unarmed damage die from `1d4` to `1d6`.
+
+### US-44: Paladin Class Integration (Base Traits & Level 1)
+
+**As a** player, **I want** to select the Paladin class **so that** my character automatically receives the correct Hit Dice, proficiencies, and divine abilities at level 1.
+
+- **AC 44.1 (Hit Dice & Base HP):** When the primary `class_id` is set to `paladin`, the system must set the `hit_die_type` to `10`. At level 1, the Max HP calculation must strictly be `10 + constitution_modifier`.
+- **AC 44.2 (Base Proficiencies):** The system must automatically assign `light_armor`, `medium_armor`, `heavy_armor`, and `shields` to the `armor_proficiencies` array. It must assign `simple_weapons` and `martial_weapons` to the `weapon_proficiencies` array. It must assign `wisdom` and `charisma` to the `saving_throw_proficiencies` array.
+- **AC 44.3 (Skill Selection):** The system must prompt the user to select exactly two `skill_id`s from the following constrained list: `athletics`, `insight`, `intimidation`, `medicine`, `persuasion`, or `religion`.
+- **AC 44.4 (Divine Sense):** The system must initialize a `divine_sense_uses` pool with a maximum capacity equal to `1 + charisma_modifier` (minimum of 1). This pool must recover all uses upon completing a long rest.
+- **AC 44.5 (Lay on Hands):** The system must initialize a `lay_on_hands_pool` calculated strictly as `paladin_class_level * 5`. The system must allow the user to subtract any integer up to the current pool value to heal a creature or cure a disease/poison (costing 5 points per condition). The pool recovers fully upon completing a long rest.
+
+### US-45: Paladin Class Progression (Levels 1-5 Scaling)
+
+**As a** Paladin, **I want** the system to unlock my fighting style, spellcasting, and Sacred Oath features as I level up.
+
+- **AC 45.1 (Level 2 - Fighting Style):** If Paladin `class_level` >= 2, the system must prompt the user to select exactly one `fighting_style_id` from a constrained list: `defense`, `dueling`, `great_weapon_fighting`, or `protection`.
+- **AC 45.2 (Level 2 - Spellcasting):** If Paladin `class_level` >= 2, the system must enable spellcasting. The `spellcasting_ability` must be `charisma`. It must calculate Spell Save DC as `8 + proficiency_bonus + charisma_modifier` and Spell Attack Modifier as `proficiency_bonus + charisma_modifier`. The system must allow the user to prepare a number of spells equal to `floor(paladin_class_level / 2) + charisma_modifier` (minimum of 1).
+- **AC 45.3 (Level 2 - Divine Smite):** If Paladin `class_level` >= 2, the system must allow the expenditure of a spell slot on a successful melee weapon hit. The engine must calculate the radiant damage added as `(slot_level + 1)d8`, capped at a maximum of `5d8`. If the target is strictly classified as an `undead` or `fiend`, the engine must add an additional `1d8` to the total.
+- **AC 45.4 (Level 3 - Sacred Oath):** If Paladin `class_level` >= 3, the system must prompt the user to select exactly one `sacred_oath_id` (e.g., `oath_of_devotion`, `oath_of_the_ancients`) to unlock subclass features, including specific Channel Divinity options and automatically prepared Oath spells.
+- **AC 45.5 (Level 3 - Divine Health):** If Paladin `class_level` >= 3, the system must set a boolean flag `immune_to_disease` to true.
+- **AC 45.6 (Level 5 - Extra Attack):** If Paladin `class_level` >= 5, the system must set a boolean flag for `extra_attack` allowing exactly 2 attacks per Attack action.
+
+### US-46: Rogue Class Integration (Base Traits & Level 1)
+
+**As a** player, **I want** to select the Rogue class **so that** my character automatically receives the correct Hit Dice, proficiencies, Expertise, and Sneak Attack trait at level 1.
+
+- **AC 46.1 (Hit Dice & Base HP):** When the primary `class_id` is set to `rogue`, the system must set the `hit_die_type` to `8`. At level 1, the Max HP calculation must strictly be `8 + constitution_modifier`.
+- **AC 46.2 (Base Proficiencies):** The system must automatically assign `light_armor` to the `armor_proficiencies` array. It must assign `simple_weapons`, `hand_crossbow`, `longsword`, `rapier`, and `shortsword` to the `weapon_proficiencies` array. It must assign `thieves_tools` to the `tool_proficiencies` array. It must assign `dexterity` and `intelligence` to the `saving_throw_proficiencies` array.
+- **AC 46.3 (Skill Selection):** The system must prompt the user to select exactly four `skill_id`s from the following constrained list: `acrobatics`, `athletics`, `deception`, `insight`, `intimidation`, `investigation`, `perception`, `performance`, `persuasion`, `sleight_of_hand`, or `stealth`.
+- **AC 46.4 (Expertise):** The system must prompt the user to select exactly two proficiencies from their currently acquired `skill_proficiencies` or `thieves_tools`. The engine must multiply the proficiency bonus by 2 for checks using these specific selections.
+- **AC 46.5 (Sneak Attack Base):** The system must enable a `sneak_attack` damage modifier. The engine must validate that the attack is made with a `finesse` or `ranged` weapon. If valid, and the attacker has advantage on the roll OR an active enemy of the target is within 5 feet (and the attacker lacks disadvantage), the engine must add exactly `1d6` to the damage calculation. This can trigger only once per turn.
+- **AC 46.6 (Thieves' Cant):** The system must automatically assign `thieves_cant` to the `languages` array.
+
+### US-47: Rogue Class Progression (Levels 1-5 Scaling)
+
+**As a** Rogue, **I want** the system to unlock my Cunning Action, Roguish Archetype, and scale my Sneak Attack damage as I level up.
+
+- **AC 47.1 (Sneak Attack Scaling):** The system must dynamically scale the Sneak Attack damage dice based on the Rogue `class_level`:
+  - Levels 1-2: `1d6`
+  - Levels 3-4: `2d6`
+  - Level 5: `3d6`
+- **AC 47.2 (Level 2 - Cunning Action):** If Rogue `class_level` >= 2, the system must set a boolean flag for `cunning_action`, allowing the character to take a Bonus Action on each of their turns in combat strictly to take the Dash, Disengage, or Hide actions.
+- **AC 47.3 (Level 3 - Roguish Archetype):** If Rogue `class_level` >= 3, the system must prompt the user to select exactly one `roguish_archetype_id` (e.g., `thief`, `assassin`, `arcane_trickster`) to unlock subclass features.
+- **AC 47.4 (Level 5 - Uncanny Dodge):** If Rogue `class_level` >= 5, the system must set a boolean flag for `uncanny_dodge`, allowing the character to use their reaction to halve the damage of an attack from an attacker they can see that hits them.
+
+
+### US-48: Core Background Integration & Conflict Resolution
+
+**As a** player, **I want** to select a background for my character **so that** the system automatically grants me the associated skills, tools, languages, and roleplaying characteristics.
+
+- **AC 48.1 (Background Assignment):** The system must prompt the user to select exactly one `background_id` from the backgrounds catalog.
+- **AC 48.2 (Duplicate Proficiency Guardrail):** The engine must check the character's existing `skill_proficiencies` and `tool_proficiencies` arrays before applying the background's proficiencies. If the background grants a proficiency the character already has, the system must prompt the user to select _any_ other valid proficiency of the same type (skill or tool) to replace it.
+- **AC 48.3 (Characteristics Validation):** The system must allow the user to store text strings for `personality_traits`, `ideals`, `bonds`, and `flaws`.
+- **AC 48.4 (Background Feature):** The system must assign a specific non-combat utility feature (string or boolean flag) based on the selected `background_id`.
+
+### US-49: Acolyte Background
+
+**As a** player, **I want** to select the Acolyte background **so that** my character receives religious training traits.
+
+- **AC 49.1:** When `background_id` is set to `acolyte`, the system must automatically assign `insight` and `religion` to the `skill_proficiencies` array (subject to AC 48.2).
+- **AC 49.2:** The system must prompt the user to select exactly two additional valid `language_id`s to add to the `languages` array.
+- **AC 49.3:** The system must set a boolean flag for the `shelter_of_the_faithful` feature.
+
+### US-50: Charlatan Background
+
+**As a** player, **I want** to select the Charlatan background **so that** my character receives deception and infiltration traits.
+
+- **AC 50.1:** When `background_id` is set to `charlatan`, the system must automatically assign `deception` and `sleight_of_hand` to the `skill_proficiencies` array (subject to AC 48.2).
+- **AC 50.2:** The system must automatically assign `disguise_kit` and `forgery_kit` to the `tool_proficiencies` array.
+- **AC 50.3:** The system must set a boolean flag for the `false_identity` feature.
+
+### US-51: Criminal Background & Spy Variant
+
+**As a** player, **I want** to select the Criminal background or its Spy variant **so that** my character receives underworld survival traits.
+
+- **AC 51.1:** When `background_id` is set to `criminal` or `spy`, the system must automatically assign `deception` and `stealth` to the `skill_proficiencies` array (subject to AC 48.2).
+- **AC 51.2:** The system must automatically assign `thieves_tools` to the `tool_proficiencies` array. The system must prompt the user to select exactly one additional `tool_proficiency` restricted to the `gaming_sets` category.
+- **AC 51.3 (Criminal):** If `background_id` is `criminal`, the system sets the `criminal_contact` feature.
+- **AC 51.4 (Spy):** If `background_id` is `spy`, the system sets the `spy_contact` feature (mechanically identical to criminal_contact).
+
+### US-52: Entertainer Background & Gladiator Variant
+
+**As a** player, **I want** to select the Entertainer background or its Gladiator variant **so that** my character receives performance and public appeal traits.
+
+- **AC 52.1:** When `background_id` is set to `entertainer` or `gladiator`, the system must automatically assign `acrobatics` and `performance` to the `skill_proficiencies` array (subject to AC 48.2).
+- **AC 52.2:** The system must automatically assign `disguise_kit` to the `tool_proficiencies` array and prompt the user to select exactly one `tool_proficiency` from the `musical_instruments` category.
+- **AC 52.3 (Gladiator):** If `background_id` is `gladiator`, the system must replace the `musical_instruments` prompt with a prompt to select exactly one `unusual_weapon` as a performance prop (e.g., net, trident).
+- **AC 52.4:** The system must set a boolean flag for the `by_popular_demand` feature.
+
+### US-53: Folk Hero Background
+
+**As a** player, **I want** to select the Folk Hero background **so that** my character receives commoner support traits.
+
+- **AC 53.1:** When `background_id` is set to `folk_hero`, the system must automatically assign `animal_handling` and `survival` to the `skill_proficiencies` array (subject to AC 48.2).
+- **AC 53.2:** The system must automatically assign `vehicles_land` to the `tool_proficiencies` array. The system must prompt the user to select exactly one additional `tool_proficiency` restricted to the `artisans_tools` category.
+- **AC 53.3:** The system must set a boolean flag for the `rustic_hospitality` feature.
+
+### US-54: Guild Artisan Background & Guild Merchant Variant
+
+**As a** player, **I want** to select the Guild Artisan background or its Guild Merchant variant **so that** my character receives trade-related traits.
+
+- **AC 54.1:** When `background_id` is set to `guild_artisan` or `guild_merchant`, the system must automatically assign `insight` and `persuasion` to the `skill_proficiencies` array (subject to AC 48.2).
+- **AC 54.2 (Guild Artisan):** If `background_id` is `guild_artisan`, the system must prompt the user to select exactly one `tool_proficiency` from the `artisans_tools` category.
+- **AC 54.3 (Guild Merchant):** If `background_id` is `guild_merchant`, the system must automatically assign `navigator_tools` or `vehicles_water` (user choice) instead of the artisan tools.
+- **AC 54.4:** The system must prompt the user to select exactly one additional valid `language_id`.
+- **AC 54.5:** The system must set a boolean flag for the `guild_membership` feature.
+
+### US-55: Hermit Background
+
+**As a** player, **I want** to select the Hermit background **so that** my character receives seclusion and hidden knowledge traits.
+
+- **AC 55.1:** When `background_id` is set to `hermit`, the system must automatically assign `medicine` and `religion` to the `skill_proficiencies` array (subject to AC 48.2).
+- **AC 55.2:** The system must automatically assign `herbalism_kit` to the `tool_proficiencies` array.
+- **AC 55.3:** The system must prompt the user to select exactly one additional valid `language_id`.
+- **AC 55.4:** The system must set a boolean flag for the `discovery` feature.
+
+### US-56: Noble Background & Knight Variant
+
+**As a** player, **I want** to select the Noble background or its Knight variant **so that** my character receives high-society traits.
+
+- **AC 56.1:** When `background_id` is set to `noble` or `knight`, the system must automatically assign `history` and `persuasion` to the `skill_proficiencies` array (subject to AC 48.2).
+- **AC 56.2:** The system must prompt the user to select exactly one `tool_proficiency` from the `gaming_sets` category and exactly one additional valid `language_id`.
+- **AC 56.3 (Noble):** If `background_id` is `noble`, the system sets the `position_of_privilege` feature.
+- **AC 56.4 (Knight):** If `background_id` is `knight`, the system sets the `retainers` feature.
+
+### US-57: Outlander Background
+
+**As a** player, **I want** to select the Outlander background **so that** my character receives wilderness survival and navigation traits.
+
+- **AC 57.1:** When `background_id` is set to `outlander`, the system must automatically assign `athletics` and `survival` to the `skill_proficiencies` array (subject to AC 48.2).
+- **AC 57.2:** The system must prompt the user to select exactly one `tool_proficiency` from the `musical_instruments` category and exactly one additional valid `language_id`.
+- **AC 57.3:** The system must set a boolean flag for the `wanderer` feature.
+
+### US-58: Sage Background
+
+**As a** player, **I want** to select the Sage background **so that** my character receives academic and research traits.
+
+- **AC 58.1:** When `background_id` is set to `sage`, the system must automatically assign `arcana` and `history` to the `skill_proficiencies` array (subject to AC 48.2).
+- **AC 58.2:** The system must prompt the user to select exactly two additional valid `language_id`s to add to the `languages` array.
+- **AC 58.3:** The system must set a boolean flag for the `researcher` feature.
+
+### US-59: Sailor Background & Pirate Variant
+
+**As a** player, **I want** to select the Sailor background or its Pirate variant **so that** my character receives seafaring traits.
+
+- **AC 59.1:** When `background_id` is set to `sailor` or `pirate`, the system must automatically assign `athletics` and `perception` to the `skill_proficiencies` array (subject to AC 48.2).
+- **AC 59.2:** The system must automatically assign `navigator_tools` and `vehicles_water` to the `tool_proficiencies` array.
+- **AC 59.3 (Sailor):** If `background_id` is `sailor`, the system sets the `ships_passage` feature.
+- **AC 59.4 (Pirate):** If `background_id` is `pirate`, the system sets the `bad_reputation` feature.
+
+### US-60: Soldier Background
+
+**As a** player, **I want** to select the Soldier background **so that** my character receives military training traits.
+
+- **AC 60.1:** When `background_id` is set to `soldier`, the system must automatically assign `athletics` and `intimidation` to the `skill_proficiencies` array (subject to AC 48.2).
+- **AC 60.2:** The system must automatically assign `vehicles_land` to the `tool_proficiencies` array. The system must prompt the user to select exactly one additional `tool_proficiency` restricted to the `gaming_sets` category.
+- **AC 60.3:** The system must set a boolean flag for the `military_rank` feature.
+
+### US-61: Urchin Background
+
+**As a** player, **I want** to select the Urchin background **so that** my character receives city survival and stealth traits.
+
+- **AC 61.1:** When `background_id` is set to `urchin`, the system must automatically assign `sleight_of_hand` and `stealth` to the `skill_proficiencies` array (subject to AC 48.2).
+- **AC 61.2:** The system must automatically assign `disguise_kit` and `thieves_tools` to the `tool_proficiencies` array.
+- **AC 61.3:** The system must set a boolean flag for the `city_secrets` feature.
+
+### US-62: Starting Equipment Selection Logic
+
+**As a** player creating a level 1 character, **I want** to choose between standard starting equipment or starting wealth **so that** my initial inventory is correctly initialized.
+
+- **AC 62.1 (The "Either/Or" Rule):** The system must force a choice: Either the character receives the combined equipment from Class (US-63) and Background (US-64), OR they receive Starting Wealth (US-65). They cannot have both.
+- **AC 62.2 (Inventory Initialization):** The system must initialize an `inventory` array to store item objects, including `item_id`, `quantity`, `weight_per_unit`, and `is_equipped`.
+- **AC 62.3 (Currency Tracking):** The system must track currency in five denominations: `cp` (copper), `sp` (silver), `ep` (electrum), `gp` (gold), and `pp` (platinum). 100 cp = 10 sp = 2 ep = 1 gp; 10 gp = 1 pp.
+
+### US-63: Class-Based Starting Equipment (Choice Management)
+
+**As a** player, **I want** the system to guide me through the equipment choices granted by my class **so that** I don't miss any required gear.
+
+- **AC 63.1 (Choice Resolution):** For classes that offer choices (e.g., Fighter: "_(a) chain mail or (b) leather armor, longbow, and 20 arrows_"), the system must prompt the user and only add the selected items to the `inventory`.
+- **AC 63.2 (Default Weapons):** The system must automatically mark weapons and armor obtained through this process as `is_equipped: true` if the character has the required proficiencies.
+- **AC 63.3 (Ammunition Link):** When adding a ranged weapon that requires ammunition (like a bow or crossbow), the system must automatically add the corresponding ammunition item with its correct quantity.
+
+### US-64: Background-Based Starting Equipment
+
+**As a** player, **I want** the system to automatically add the fixed items and gold from my background **so that** my inventory is complete.
+
+- **AC 64.1 (Fixed Items):** Upon selecting a `background_id`, the system must append all associated items to the `inventory` (e.g., Acolyte: _a holy symbol, a prayer book, 5 sticks of incense_).
+- **AC 64.2 (Starting Gold):** The system must add the flat gold amount defined by the background (e.g., Soldier: _10 gp_) to the character's `gp` balance.
+
+### US-65: Starting Wealth (Alternative Logic)
+
+**As a** player opting for starting wealth, **I want** the system to roll or assign the correct amount of gold based on my class **so that** I can buy my own gear.
+
+- **AC 65.1 (Class-Wealth Mapping):** If the user chooses Starting Wealth, the system must calculate the gold based on the class formula (e.g., Fighter: `5d4 * 10 gp`, Monk: `5d4 gp`).
+- **AC 65.2 (Empty Inventory):** Choosing this option must result in an empty `inventory` array (except for the calculated gold), effectively bypassing Class and Background equipment traits.
+
+### US-66: Real-time Weight & Encumbrance Integration
+
+**As an** adventurer, **I want** the system to calculate the total weight of my inventory **so that** I know if I am encumbered according to FR-07.
+
+- **AC 66.1 (Total Weight Calculation):** The system must calculate `total_carried_weight` as the sum of `(item.weight * item.quantity)` for all items in the inventory.
+- **AC 66.2 (Currency Weight):** By standard rule (optional but meticulous), every 50 coins of any type count as 1 pound. The system must include this in the `total_carried_weight`.
+- **AC 66.3 (State Update):** If `total_carried_weight` > `carrying_capacity` (FR-07), the system must set a boolean flag `is_encumbered` to true and apply the corresponding speed penalties.
+
+### US-67: Armor & Shield Catalog Logic
+
+**As a** player equipping armor, **I want** the system to read the armor's properties **so that** my AC, speed, and stealth are calculated correctly.
+
+- **AC 67.1 (Armor Categories):** The system must categorize armor items into `light`, `medium`, `heavy`, and `shield`.
+- **AC 67.2 (AC Calculation Override):** When armor `is_equipped` is true, the system must override FR-02:
+  - `light`: Base AC + full `dexterity_modifier`.
+  - `medium`: Base AC + `dexterity_modifier` (maximum +2).
+  - `heavy`: Base AC (ignores `dexterity_modifier` entirely).
+  - `shield`: Adds a flat +2 to the final AC calculation.
+- **AC 67.3 (Strength Requirements):** If the equipped armor has a `strength_requirement` property greater than the character's `strength` score, the system must reduce the character's `base_speed` by 10 feet (unless bypassed by US-09 Dwarf traits).
+- **AC 67.4 (Stealth Disadvantage):** If the equipped armor has the `stealth_disadvantage` property set to true, the system must flag all Stealth skill checks to roll with disadvantage.
+
+### US-68: Weapon Catalog & Properties Logic
+
+**As a** combatant equipping a weapon, **I want** the system to apply the weapon's specific properties **so that** my attack and damage rolls follow the rules.
+
+- **AC 68.1 (Weapon Categories):** The system must categorize weapon items as `simple_melee`, `simple_ranged`, `martial_melee`, or `martial_ranged`.
+- **AC 68.2 (Base Properties):** The system must map the item's `damage_dice` (e.g., 1d8) and `damage_type` (e.g., piercing, slashing, bludgeoning) to the character's combat output.
+- **AC 68.3 (Finesse):** If the weapon has the `finesse` property, the system must use the higher of `strength_modifier` or `dexterity_modifier` for both attack and damage rolls.
+- **AC 68.4 (Heavy & Two-Handed):** If the weapon has the `heavy` property and the character's `size` is `small`, the system must apply disadvantage to attack rolls. If it has the `two_handed` property, the engine must prevent the equipping of a `shield` or a second weapon.
+- **AC 68.5 (Light):** If the weapon has the `light` property, the system must flag it as eligible for two-weapon fighting rules.
+- **AC 68.6 (Thrown & Range):** If the weapon has the `thrown` or `range` property, the system must expose its `range_normal` and `range_long` values (e.g., 20/60).
+- **AC 68.7 (Versatile):** If the weapon has the `versatile` property (e.g., 1d10), the system must allow the user to toggle a two-handed grip state to use the higher damage die instead of the standard die (e.g., 1d8).
+
+### US-69: Adventuring Gear, Packs & Tools Catalog
+
+**As an** adventurer managing my pack, **I want** equipment bundles to expand automatically **so that** I don't have to manually input standard starting kits.
+
+- **AC 69.1 (Equipment Packs Unpacking):** When a generic item representing an equipment pack (e.g., `explorers_pack`, `dungeoneers_pack`) is added to the inventory, the system must immediately delete the pack item itself and add its constituent items and quantities to the `inventory` array (e.g., a backpack, a bedroll, a mess kit, a tinderbox, 10 torches, 10 days of rations, and a waterskin).
+- **AC 69.2 (Ammunition & Consumables):** Items tagged as `ammunition` or `consumable` must expose a decrement function to easily reduce `quantity` by 1 during gameplay.
+
+
+---
+
+## 5. New User Stories — Missing Mechanics (US-70 to US-88)
+
+### US-70: Death Saving Throws
+
+**As a** player whose character has reached 0 HP, **I want** the system to manage Death Saving Throws **so that** my character can stabilize or die following the official rules.
+
+- **AC 70.1 (Trigger):** When `current_hp` reaches 0, the character enters the `unconscious` state and the Death Save mode is activated.
+- **AC 70.2 (Roll):** On each of the character's turns while at 0 HP, the player rolls a d20 (no modifiers) to attempt a Death Saving Throw. The result is stored in `death_saves_success` (range 0–3) or `death_saves_fail` (range 0–3).
+- **AC 70.3 (Stability):** If `death_saves_success` reaches 3, the character is considered **stable** (remains at 0 HP but is no longer in active danger; does not regain consciousness without healing).
+- **AC 70.4 (Death):** If `death_saves_fail` reaches 3, the character **dies permanently** and their state is updated to `is_dead = true`.
+- **AC 70.5 (Natural 20):** If the d20 roll result is 20, the character **regains 1 HP**, exits the unconscious state, and both `death_saves_success` and `death_saves_fail` are reset to 0.
+- **AC 70.6 (Natural 1):** If the d20 roll result is 1, it counts as **2 failures** (incrementing `death_saves_fail` by 2).
+- **AC 70.7 (Reset on Healing):** If the character receives any healing (HP > 0), both counters reset to 0 and Death Save mode deactivates.
+- **AC 70.8 (Taking Damage at 0 HP):** If a character at 0 HP takes damage, it counts as 1 failed Death Saving Throw. If the damage is from a critical hit, it counts as 2 failures.
+
+---
+
+### US-71: Spending Hit Dice During Short Rest
+
+**As a** player taking a Short Rest, **I want** to spend Hit Dice to recover HP **so that** my character can recuperate between encounters.
+
+- **AC 71.1 (Short Rest Duration):** A Short Rest is a period of downtime lasting at least 1 hour. The system must expose a `triggerShortRest()` function.
+- **AC 71.2 (Spending Hit Dice):** During a Short Rest, a player may spend one or more Hit Dice. For each die spent, the player rolls the die (based on class `hit_die`, e.g., 1d10 for Fighter) and adds their `constitution_modifier`. The result is added to `current_hp` (capped at `max_hp`).
+- **AC 71.3 (Hit Dice Pool):** `HitDiceTracker.expended_dice` increments by 1 for each die spent. The system must enforce that `expended_dice` cannot exceed `max_dice`.
+- **AC 71.4 (Long Rest Recovery):** Upon completing a Long Rest, the character recovers `floor(total_character_level / 2)` Hit Dice (minimum 1), decrementing `expended_dice` accordingly.
+- **AC 71.5 (Class Bonuses During Short Rest):** Classes with features that activate on a Short Rest (e.g., Bard's Song of Rest, Warlock's Spell Slots) must trigger their effects when `triggerShortRest()` is called. Song of Rest adds bonus HP when spending Hit Dice (the die size scales with Bard level).
+
+---
+
+### US-72: Instant Death (Massive Damage)
+
+**As a** player taking massive damage, **I want** the system to apply the Instant Death rule **so that** especially large hits can kill my character outright.
+
+- **AC 72.1 (Trigger Condition):** When a single source of damage reduces the character to 0 HP and the **remaining damage** (damage beyond 0 HP) is **equal to or greater than the character's maximum HP**, the character dies instantly.
+- **AC 72.2 (Instant Death Outcome):** The system must set `is_dead = true` directly, bypassing Death Saving Throws entirely. The Death Save counters are not incremented.
+- **AC 72.3 (Formula):** `if (damage_taken >= current_hp + max_hp) → instant_death = true`.
+
+---
+
+### US-73: Temporary Hit Points
+
+**As a** player that received Temporary HP from a spell or ability, **I want** the system to track and apply Temporary HP correctly **so that** they are consumed before my regular HP.
+
+- **AC 73.1 (Damage Buffer):** When the character takes damage, the system must first subtract from `temp_hp`. Only damage exceeding the remaining `temp_hp` is applied to `current_hp`.
+- **AC 73.2 (No Stacking):** Temporary HP from multiple sources **do not stack**. If a new source would grant more temporary HP than the current value, the player may choose to replace `temp_hp` with the new value. The lower value is always discarded.
+- **AC 73.3 (Expiration):** Temporary HP do not recover on a Short or Long Rest unless the granting feature specifies otherwise.
+- **AC 73.4 (Zero HP & Temp HP):** If `current_hp` is 0 but `temp_hp` is greater than 0, the character is **not** unconscious. Death Save mode is not activated until `temp_hp` is also depleted.
+
+---
+
+### US-74: Opportunity Attacks
+
+**As a** combatant, **I want** the system to flag when an Opportunity Attack can be triggered **so that** I can react to enemies leaving my reach.
+
+- **AC 74.1 (Trigger Condition):** An Opportunity Attack is triggered when a hostile creature within the character's melee reach moves out of that reach without using the Disengage action.
+- **AC 74.2 (Reaction Cost):** An Opportunity Attack costs the character's **Reaction** for that turn. The system must track `reaction_available` (boolean, reset at the start of each turn) and set it to `false` when an Opportunity Attack is executed.
+- **AC 74.3 (Disengage Bypass):** If the moving creature used the Disengage action on their turn, no Opportunity Attack can be triggered against them.
+- **AC 74.4 (Attack Roll):** The Opportunity Attack uses the same attack bonus as a standard melee attack for that weapon (`proficiency_bonus + str_modifier` or `dex_modifier` if `finesse`).
+
+---
+
+### US-75: Unarmed Strike
+
+**As a** character without a weapon, **I want** the system to calculate my unarmed strike damage **so that** I can still deal damage in combat.
+
+- **AC 75.1 (Base Unarmed Strike):** An unarmed strike deals `1 + strength_modifier` bludgeoning damage (minimum 1). This applies to all characters by default.
+- **AC 75.2 (Proficiency):** All characters are considered proficient with unarmed strikes. The attack roll bonus is `proficiency_bonus + strength_modifier`.
+- **AC 75.3 (Monk Override):** For characters with the Monk class, the `MartialArts` trait overrides this formula. The Monk uses the `martial_arts_die` (d4 at levels 1-4, scaling upward) and may use `dexterity_modifier` instead of `strength_modifier` for both attack and damage rolls (see US-28 Martial Arts).
+- **AC 75.4 (Natural Weapons):** Racial traits that grant a natural weapon (e.g., Lizardfolk claws, Tabaxi claws) are treated as unarmed strikes with a modified damage die and type as specified by the trait.
+
+---
+
+### US-76: Passive Ability Checks
+
+**As a** Game Master using the system, **I want** the application to calculate and display each character's Passive scores **so that** I can make hidden checks without asking the player to roll.
+
+- **AC 76.1 (Passive Perception):** `passive_perception = 10 + perception_bonus`. If the character has Advantage on Perception checks, add +5. If Disadvantage, subtract -5.
+- **AC 76.2 (Passive Investigation):** `passive_investigation = 10 + investigation_bonus`.
+- **AC 76.3 (Passive Insight):** `passive_insight = 10 + insight_bonus`.
+- **AC 76.4 (Proficiency Inclusion):** The `_bonus` for each passive score must include the proficiency bonus if the character is proficient in that skill, and double the proficiency bonus if the character has Expertise in that skill.
+- **AC 76.5 (Jack of All Trades):** For Bards, if the character is NOT proficient in the relevant skill, the `half_proficiency_bonus` (floor) must still be included in the passive score calculation.
+
+---
+
+### US-77: Skills Catalog & Ability Associations
+
+**As a** player selecting skill proficiencies, **I want** the system to enforce the official 18-skill catalog with correct ability associations **so that** my skill bonuses are calculated accurately.
+
+- **AC 77.1 (Complete Catalog):** The system must contain exactly the following 18 skills mapped to their governing ability scores:
+
+| Skill | Ability |
+|---|---|
+| `acrobatics` | Dexterity |
+| `animal_handling` | Wisdom |
+| `arcana` | Intelligence |
+| `athletics` | Strength |
+| `deception` | Charisma |
+| `history` | Intelligence |
+| `insight` | Wisdom |
+| `intimidation` | Charisma |
+| `investigation` | Intelligence |
+| `medicine` | Wisdom |
+| `nature` | Intelligence |
+| `perception` | Wisdom |
+| `performance` | Charisma |
+| `persuasion` | Charisma |
+| `religion` | Intelligence |
+| `sleight_of_hand` | Dexterity |
+| `stealth` | Dexterity |
+| `survival` | Wisdom |
+
+- **AC 77.2 (Skill Bonus Formula):** `skill_bonus = ability_modifier + (is_proficient ? proficiency_bonus : 0) + (is_expertise ? proficiency_bonus : 0)`.
+- **AC 77.3 (Validation):** The system must reject any `CharacterSkill` record whose `skill_id` is not in the catalog above.
+
+---
+
+### US-78: Concentration Mechanic
+
+**As a** spellcaster maintaining a concentration spell, **I want** the system to enforce Concentration rules **so that** I cannot maintain two concentration spells simultaneously and must make saves when damaged.
+
+- **AC 78.1 (One At A Time):** A character may only have one `concentration` spell active at any time. If the character casts a new concentration spell, the previous one ends immediately and its effects are removed.
+- **AC 78.2 (Concentration Tracking):** The system must track `active_concentration_spell_id` (nullable foreign key to `KnownSpell`). When a concentration spell is cast, this field is set. When concentration ends for any reason, it is set to `null`.
+- **AC 78.3 (Damage CON Save):** When a concentrating character takes damage, the system must prompt a Constitution Saving Throw. The DC is `max(10, floor(damage_taken / 2))`. If the character fails, `active_concentration_spell_id` is set to `null`.
+- **AC 78.4 (CON Save Bonus):** The save roll uses `constitution_modifier + proficiency_bonus` (if the character is proficient in Constitution saves) vs. the DC.
+- **AC 78.5 (Automatic End Conditions):** Concentration also ends if: (a) the character is incapacitated or killed, (b) the character casts another concentration spell, or (c) the player voluntarily ends it (no action required).
+- **AC 78.6 (Spell Tagging):** Each `Spell` record in the catalog must include a boolean `requires_concentration` field. The system must use this field to trigger AC 78.1 and 78.3.
+
+---
+
+### US-79: Spell Slot Progression Tables
+
+**As a** spellcaster leveling up, **I want** the system to automatically set my spell slot counts per level **so that** my available slots always match the official progression.
+
+- **AC 79.1 (Full Casters — Levels 1–5):** The system must seed or derive the following slot tables for Bard, Cleric, Druid, Sorcerer, and Wizard:
+
+| Level | 1st | 2nd | 3rd |
+|---|---|---|---|
+| 1 | 2 | — | — |
+| 2 | 3 | — | — |
+| 3 | 4 | 2 | — |
+| 4 | 4 | 3 | — |
+| 5 | 4 | 3 | 2 |
+
+- **AC 79.2 (Half Casters — Paladin & Ranger):** Spell slots begin at level 2. The system must apply the half-caster progression table, where total slot counts are derived from `floor(class_level / 2)` mapped to the full-caster table.
+- **AC 79.3 (Warlock — Pact Magic):** Warlock uses an independent `pact_magic` slot system. Slots are **always at the highest available level** (levels 1–2: 1st level; levels 3–4: 2nd level; level 5: 3rd level). All slots recover on a Short Rest instead of a Long Rest.
+- **AC 79.4 (SpellSlotTracker Sync):** When a character gains a level in a spellcasting class, the `SpellSlotTracker` table must be updated to match the new slot counts. `max_slots` is updated; `expended_slots` is not altered (slots are not recovered on leveling up).
+- **AC 79.5 (Slot Expenditure):** When a spell is cast, `expended_slots` for that `slot_level` increments by 1. The system must reject a cast if `expended_slots >= max_slots` for the chosen slot level.
+- **AC 79.6 (Long Rest Recovery):** On a Long Rest, all `expended_slots` for all slot levels are reset to 0. For Warlocks, all Pact Magic slots recover on a Short Rest instead.
+
+---
+
+### US-80: Conditions Catalog
+
+**As a** character affected by a condition, **I want** the system to apply the mechanical effects of each condition **so that** all rules are enforced automatically.
+
+- **AC 80.1 (Conditions List):** The system must implement the following conditions with their exact mechanical effects:
+
+| Condition | Key Effects |
+|---|---|
+| `blinded` | Auto-fail checks requiring sight; attack rolls against the target have Advantage; target's attacks have Disadvantage. |
+| `charmed` | Cannot attack or target the charmer with harmful abilities or spells; the charmer has Advantage on social checks against the charmed creature. |
+| `deafened` | Auto-fail any check requiring hearing. |
+| `exhaustion` | See US-81 for the leveled exhaustion rules. |
+| `frightened` | Disadvantage on ability checks and attack rolls while the source of fear is in sight; cannot willingly move closer to the source. |
+| `grappled` | Speed becomes 0 and cannot be increased; ends if the grappler is incapacitated or if the target is moved out of reach. |
+| `incapacitated` | Cannot take Actions or Reactions. |
+| `invisible` | Impossible to see without special sense; treated as heavily obscured; Advantage on attack rolls; Disadvantage on attacks against it. |
+| `paralyzed` | Incapacitated; auto-fail STR and DEX saves; attacks against it have Advantage; any hit within 5 ft. is a critical hit. |
+| `petrified` | Transformed to stone; incapacitated, speed 0, unaware of surroundings; Advantage on attacks against it; auto-fail STR and DEX saves; Resistance to all damage; immune to poison and disease. |
+| `poisoned` | Disadvantage on attack rolls and ability checks. |
+| `prone` | Can only crawl (movement costs double); Disadvantage on attack rolls; attacks within 5 ft. have Advantage; ranged attacks beyond 5 ft. have Disadvantage. |
+| `restrained` | Speed 0; Disadvantage on attack rolls; attacks against the target have Advantage; Disadvantage on DEX saves. |
+| `stunned` | Incapacitated; can't move; can only speak falteringly; auto-fail STR and DEX saves; attacks against it have Advantage. |
+| `unconscious` | Incapacitated; can't move or speak; unaware of surroundings; drops everything held; falls prone; auto-fail STR and DEX saves; attacks have Advantage; any hit within 5 ft. is a critical hit. |
+
+- **AC 80.2 (ActiveState Integration):** Each condition must be stored as a boolean flag in `ActiveState` using the keys in the table above. The engine must check these flags when calculating attack rolls, saving throws, speed, and AC.
+- **AC 80.3 (Stacking):** Multiple different conditions can apply simultaneously and stack their effects. The same condition from different sources does not apply twice.
+
+---
+
+### US-81: Exhaustion Levels
+
+**As a** player tracking exhaustion, **I want** the system to apply cumulative exhaustion penalties **so that** my character suffers the correct debuffs at each level.
+
+- **AC 81.1 (Exhaustion Levels):** The system must track `exhaustion_level` (integer, range 0–6) in `ActiveState`. The effects are cumulative:
+
+| Level | Effect |
+|---|---|
+| 1 | Disadvantage on ability checks. |
+| 2 | Speed halved. |
+| 3 | Disadvantage on attack rolls and saving throws. |
+| 4 | HP maximum halved. |
+| 5 | Speed reduced to 0. |
+| 6 | Death. |
+
+- **AC 81.2 (Cumulative Application):** A character at level 3 suffers all effects from levels 1, 2, and 3 simultaneously.
+- **AC 81.3 (HP Max Halved):** At exhaustion level 4, the `max_hp` calculation must be halved (floor). If `current_hp` exceeds the new `max_hp`, it must be reduced to match.
+- **AC 81.4 (Death at Level 6):** When `exhaustion_level` reaches 6, the character dies. The system must set `is_dead = true`.
+- **AC 81.5 (Recovery):** A Long Rest reduces `exhaustion_level` by 1, provided the character has sufficient food and water. The level cannot go below 0.
+
+---
+
+### US-82: Multiclassing Requirements & Rules
+
+**As a** player wanting to multiclass, **I want** the system to validate the prerequisites and apply the correct rules **so that** only legal multiclass combinations are permitted.
+
+- **AC 82.1 (Ability Score Prerequisites):** Before allowing a new class to be added via `CharacterClass`, the system must verify the character meets both the current class's **exit** requirement AND the new class's **entry** requirement. The prerequisites are:
+
+| Class | Minimum Ability Score Required |
+|---|---|
+| Barbarian | STR 13 |
+| Bard | CHA 13 |
+| Cleric | WIS 13 |
+| Druid | WIS 13 |
+| Fighter | STR 13 or DEX 13 |
+| Monk | DEX 13 and WIS 13 |
+| Paladin | STR 13 and CHA 13 |
+| Ranger | DEX 13 and WIS 13 |
+| Rogue | DEX 13 |
+| Sorcerer | CHA 13 |
+| Warlock | CHA 13 |
+| Wizard | INT 13 |
+
+- **AC 82.2 (Hit Points on Multiclass):** When gaining a level in a new class (not the primary), HP increases by the new class's `hit_die / 2 + 1 + CON modifier` (floor). The first level of a new multiclass does NOT grant maximum hit die — it uses the average.
+- **AC 82.3 (Proficiencies on Multiclass):** A character does not gain all starting proficiencies from a new class. They gain only the **multiclassing proficiencies** listed for that class (a subset defined per class in the catalog, e.g., Fighters gain light armor, medium armor, shields, simple weapons, and martial weapons when multiclassing in).
+- **AC 82.4 (Spell Slots — Combined Caster Level):** For multiclassed spellcasters, the total spell slot count is determined by summing a "caster level" calculated as: full caster classes contribute their full level; half-caster classes (Paladin, Ranger) contribute floor(level/2); Warlock Pact Magic slots remain separate and are not combined. The combined caster level is then looked up in the full caster progression table (AC 79.1).
+- **AC 82.5 (Proficiency Bonus):** Proficiency bonus is always based on **total character level** (sum of all class levels), never on any single class level.
+
+---
+
+### US-83: Feats Data Structure
+
+**As a** player choosing a Feat instead of an ASI, **I want** the system to support Feats as an alternative to Ability Score Improvements **so that** my character can gain special abilities.
+
+- **AC 83.1 (ASI vs. Feat Choice):** At levels where a class grants an Ability Score Improvement (US-51), the player must be able to choose between taking the standard +2/+1/+1 ASI or selecting one Feat. The system must represent this as a mutually exclusive choice.
+- **AC 83.2 (Feat Prerequisites):** Each `Feat` record must include an optional `prerequisite` field (e.g., minimum ability score, race, proficiency). The system must validate the character meets all prerequisites before allowing the feat to be assigned.
+- **AC 83.3 (Feat Effects as Traits):** Feat mechanical effects (e.g., ability score increase, new proficiency, new action) must be stored as structured data in the `Feat` table (similar to `Trait`) and processed by the engine during hydration.
+- **AC 83.4 (No Duplicate Feats):** A character cannot take the same feat more than once unless the feat description explicitly states it can be taken multiple times.
+
+---
+
+### US-84: Languages Catalog
+
+**As a** character with linguistic abilities, **I want** the system to track the languages I know **so that** communication rules can be applied.
+
+- **AC 84.1 (Standard Languages):** The system must include a catalog of standard languages: `common`, `dwarvish`, `elvish`, `giant`, `gnomish`, `goblin`, `halfling`, `orc`.
+- **AC 84.2 (Exotic Languages):** The system must also include exotic languages: `abyssal`, `celestial`, `draconic`, `deep_speech`, `infernal`, `primordial`, `sylvan`, `undercommon`.
+- **AC 84.3 (Character Languages Table):** A `CharacterLanguage` junction table must link `character_id` to `language_id`.
+- **AC 84.4 (Racial & Background Grants):** Race and Background selection must automatically populate the character's `CharacterLanguage` records per the rules:
+  - All characters know `common`.
+  - Races grant additional languages as defined in their data (e.g., Elves know `elvish`, Dwarves know `dwarvish`, Half-Elves choose 1 extra language).
+  - Backgrounds grant additional languages where specified (e.g., Sage gains 2 languages of the player's choice).
+- **AC 84.5 (Extra Language Choices):** When a race or background grants a "choose N languages," the system must prompt the player to select from the catalog and validate their choices are not duplicates of already-known languages.
+
+---
+
+### US-85: Point Buy Cost Table
+
+**As a** player using the Point Buy method to assign ability scores, **I want** the system to enforce the official non-linear cost table **so that** the 27-point budget is spent correctly.
+
+- **AC 85.1 (Cost Table):** The system must use the following official Point Buy cost table. The API must reject any attempt to set a base ability score outside the 8–15 range during Point Buy:
+
+| Score | Point Cost |
+|---|---|
+| 8 | 0 |
+| 9 | 1 |
+| 10 | 2 |
+| 11 | 3 |
+| 12 | 4 |
+| 13 | 5 |
+| 14 | 7 |
+| 15 | 9 |
+
+- **AC 85.2 (Budget):** The total sum of all six ability score costs must not exceed **27 points**.
+- **AC 85.3 (Minimum Score):** No ability score may be set below 8 via Point Buy.
+- **AC 85.4 (Maximum Score Before Racial Bonus):** No ability score may be set above 15 via Point Buy. Racial bonuses (applied after Point Buy is finalized) can raise a score above 15.
+- **AC 85.5 (Score Floor at 1):** After applying all bonuses (racial, ASI, feats), no ability score may be reduced below 1 by any means.
+
+---
+
+### US-86: Long Rest Rules
+
+**As a** player completing a Long Rest, **I want** the system to apply all Long Rest benefits automatically **so that** my character's resources reset correctly.
+
+- **AC 86.1 (Duration & Frequency):** A Long Rest is a period of at least 8 hours. A character may only benefit from one Long Rest per 24-hour period.
+- **AC 86.2 (HP Recovery):** Upon completing a Long Rest, `current_hp` is restored to `max_hp` (taking into account any exhaustion-related `max_hp` reduction).
+- **AC 86.3 (Hit Dice Recovery):** The character recovers `floor(total_character_level / 2)` expended Hit Dice (minimum 1). `HitDiceTracker.expended_dice` is decremented accordingly (cannot go below 0).
+- **AC 86.4 (Spell Slot Recovery):** All `expended_slots` are reset to 0 for full and half casters. Warlock Pact Magic slots recover on Short Rest (see US-79.6).
+- **AC 86.5 (Exhaustion Reduction):** `exhaustion_level` decreases by 1 (see US-81.5).
+- **AC 86.6 (Class Resource Resets):** Class-specific resources that reset on a Long Rest must also reset:
+  - Barbarian: `rage_count` reset to max rages per level.
+  - Fighter: `action_surge` and `second_wind` usage counters reset.
+  - Paladin: `lay_on_hands_pool` reset to max.
+  - Wizard: `arcane_recovery` reset.
+
+---
+
+### US-87: Initiative & Turn Order
+
+**As a** player entering combat, **I want** the system to calculate initiative scores **so that** turn order can be determined.
+
+- **AC 87.1 (Initiative Roll):** Initiative is a **Dexterity check**: `d20 + dexterity_modifier`.
+- **AC 87.2 (Jack of All Trades — Bard):** Bards add `floor(proficiency_bonus / 2)` to their Initiative roll if they are not already proficient in Initiative (Bards are not proficient in Initiative by default, so this always applies from level 2 onwards per US-27.4).
+- **AC 87.3 (Alert Feat):** Characters with the `alert` feat gain a +5 bonus to initiative and cannot be surprised while conscious.
+- **AC 87.4 (Tie-Breaking):** In the event of a tie in initiative, the entity with the higher `dexterity_modifier` acts first. Further ties may be broken arbitrarily (the system may use a secondary d20 roll).
+- **AC 87.5 (Storage):** The current combat initiative order may be stored in a transient `CombatSession` structure (not persisted to the main character tables).
+
+---
+
+### US-88: Character Advancement & XP Thresholds
+
+**As a** player earning XP, **I want** the system to track my total experience and notify me when I reach the next level threshold **so that** I can level up my character.
+
+- **AC 88.1 (XP Thresholds Table):** The system must enforce the following official XP-to-Level thresholds:
+
+| Level | XP Required (Total) |
+|---|---|
+| 1 | 0 |
+| 2 | 300 |
+| 3 | 900 |
+| 4 | 2,700 |
+| 5 | 6,500 |
+
+- **AC 88.2 (XP Accumulation):** XP is stored in `Character.xp` and only ever increments (never decrements).
+- **AC 88.3 (Level-Up Notification):** When `Character.xp` meets or exceeds the next level threshold, the system must flag `level_up_available = true` and expose a `triggerLevelUp()` function.
+- **AC 88.4 (Level-Up Effects):** Calling `triggerLevelUp()` must: (a) increment the relevant `CharacterClass.class_level`, (b) recalculate `max_hp` per the class's hit die, (c) update the `proficiency_bonus` based on total character level, (d) unlock new class features, spells, and spell slots per plan.md's progression tables.
+- **AC 88.5 (Milestone Option):** As an alternative to XP, the system must support a `milestone_leveling` boolean flag on the character. When `true`, the `xp` field is ignored and level-up is triggered manually by the player or GM.
+
+---
+
+### US-89: Character Roster (List & Load)
+
+**As a** player, **I want** to see a list of all my saved characters and open any one of them **so that** I can continue where I left off across multiple sessions.
+
+- **AC 89.1:** The system must expose a `GET /characters` endpoint that returns all characters with summary data: `id`, `name`, `race`, `class(es)`, `total_level`, `current_hp`, `max_hp`, `xp`, `alignment`.
+- **AC 89.2:** The UI must display this roster as a list/grid of character cards on the home screen before any character is loaded.
+- **AC 89.3:** Selecting a character card loads that character into the full sheet view, restoring all state (inventory, conditions, spell slots, skills, languages, feats, etc.) exactly as it was last saved.
+- **AC 89.4:** The system must expose a `DELETE /characters/:id` endpoint. Deleting a character must cascade and remove all related rows (CharacterClass, CharacterSkill, KnownSpell, SpellSlotTracker, etc.).
+- **AC 89.5:** While a character is loaded, the roster is still accessible via navigation so the player can switch characters without refreshing the page.
+
+---
+
+### US-90: Multi-Step Creation Wizard
+
+**As a** player, **I want** a guided step-by-step wizard when creating a new character **so that** I don't miss any mandatory choices and every step is validated before proceeding.
+
+- **AC 90.1:** The wizard must consist of exactly these ordered steps: (1) Name + Point Buy, (2) Race / Subrace, (3) Background, (4) Class + Class Choices. No step can be skipped.
+- **AC 90.2:** Each step must show a "Back" and "Next/Finish" button. The "Next" button is disabled until all mandatory selections for that step are complete.
+- **AC 90.3:** The character record is only written to the database when the final step ("Finish") is confirmed. All intermediate state is held in the client.
+- **AC 90.4:** On completion, the wizard transitions directly to the character sheet of the newly created character.
+- **AC 90.5:** The wizard must populate every dropdown from live catalog endpoints (`/catalog/races`, `/catalog/classes`, `/catalog/backgrounds`, `/catalog/spells`, etc.) so that new catalog entries are reflected automatically without UI changes.
+
+---
+
+### US-91: Background Roleplay Data
+
+**As a** player, **I want** to record my character's personality traits, bonds, ideals, and flaws during creation **so that** the character sheet reflects my character's full identity.
+
+- **AC 91.1:** The schema must add four nullable text fields to the `Character` model: `personality_traits`, `bonds`, `ideals`, `flaws`.
+- **AC 91.2:** During the Background step of the wizard, the system must present up to 8 Personality Traits, 6 Bonds, 6 Ideals, and 6 Flaws from the chosen background's catalog entry; the player must select or write at least one of each.
+- **AC 91.3:** These fields are free-text editable at any time from the character sheet (not locked after creation).
+- **AC 91.4:** `GET /characters/:id` must include these four fields in the response.
+
+---
+
+### US-92: Background Variant Selection
+
+**As a** player choosing a background with variants (e.g., Criminal/Spy, Noble/Knight), **I want** to select a variant **so that** the correct overridden skill proficiencies and features are applied.
+
+- **AC 92.1:** The `Background` model's `variant_rules` JSONB field must encode variant names and which proficiencies/features they replace.
+- **AC 92.2:** When a background with `variant_rules` is selected, the wizard must present the variant choices; the default (base) background is always available as one of the options.
+- **AC 92.3:** Selecting a variant replaces only the fields specified in `variant_rules`; all other background grants (equipment, languages, feature) remain unchanged.
+- **AC 92.4:** The active variant name must be stored on the character as `background_variant` (nullable string).
+
+---
+
+### US-93: Class Starting Skill Selection
+
+**As a** player, **I want** to choose the correct number of skills from my class's allowed list at character creation **so that** my proficiencies are legal per SRD rules.
+
+- **AC 93.1:** Each class must have a `starting_skill_choices` JSONB field listing: `count` (number of skills to pick) and `pool` (array of valid skill_ids). Values per SRD:
+  - Bárbaro: 2 from [Animal Handling, Athletics, Intimidation, Nature, Perception, Survival]
+  - Bardo: 3 from any skill
+  - Clérigo: 2 from [History, Insight, Medicine, Persuasion, Religion]
+  - Druida: 2 from [Arcana, Animal Handling, Insight, Medicine, Nature, Perception, Religion, Survival]
+  - Explorador: 3 from [Animal Handling, Athletics, Insight, Investigation, Nature, Perception, Stealth, Survival]
+  - Guerrero: 2 from [Acrobatics, Animal Handling, Athletics, History, Insight, Intimidation, Perception, Survival]
+  - Hechicero: 2 from [Arcana, Deception, Insight, Intimidation, Persuasion, Religion]
+  - Mago: 2 from [Arcana, History, Insight, Investigation, Medicine, Religion]
+  - Monje: 2 from [Acrobatics, Athletics, History, Insight, Religion, Stealth]
+  - Paladín: 2 from [Athletics, Insight, Intimidation, Medicine, Persuasion, Religion]
+  - Pícaro: 4 from [Acrobatics, Athletics, Deception, Insight, Intimidation, Investigation, Perception, Performance, Persuasion, Sleight of Hand, Stealth]
+  - Warlock: 2 from [Arcana, Deception, History, Intimidation, Investigation, Nature, Religion]
+- **AC 93.2:** The wizard must prevent selecting more or fewer skills than `count`.
+- **AC 93.3:** Skills already granted by race or background must be shown as already proficient and must not count against the class skill pick count (they stack as expected per SRD).
+- **AC 93.4:** All chosen skills are written to `CharacterSkill` with `is_proficient = true` on character creation.
+
+---
+
+### US-94: Starting Cantrip Selection
+
+**As a** spellcasting player, **I want** to choose my starting cantrips from my class's cantrip list **so that** I have the correct number of cantrips known.
+
+- **AC 94.1:** The wizard must present a cantrip-selection step for the following classes and counts (SRD):
+  - Bardo: 2 cantrips from the Bard spell list
+  - Clérigo: 3 cantrips from the Cleric spell list
+  - Druida: 2 cantrips from the Druid spell list
+  - Hechicero: 4 cantrips from the Sorcerer spell list
+  - Warlock: 2 cantrips from the Warlock spell list
+  - Mago: 3 cantrips from the Wizard spell list
+- **AC 94.2:** Cantrips are defined as spells with `level = 0`. The selector must be pre-filtered by class via `ClassSpell`.
+- **AC 94.3:** Selected cantrips are written to `KnownSpell` with `is_prepared = true` on character creation.
+- **AC 94.4:** Classes not in the list above (Bárbaro, Guerrero base, Monje, Paladín, Pícaro base, Explorador) must not show this step.
+
+---
+
+### US-95: Starting Spell Selection
+
+**As a** spellcasting player, **I want** to choose my starting level-1 spells at character creation **so that** my spellbook or spell list is ready from the first session.
+
+- **AC 95.1:** The wizard must present a spell-selection step for classes that begin with known or prepared spells. Starting counts per SRD:
+  - Bardo: 4 level-1 spells known (from Bard list)
+  - Explorador: 0 spells at level 1 (gains at level 2 — skip this step)
+  - Hechicero: 2 level-1 spells known (from Sorcerer list)
+  - Mago: 6 level-1 spells known in spellbook (from Wizard list)
+  - Warlock: 2 level-1 spells known (from Warlock list)
+- **AC 95.2:** Clerics, Druids, and Paladins prepare spells daily and do not select known spells at creation; this step is skipped for those classes.
+- **AC 95.3:** The spell selector must be pre-filtered to `level = 1` and the correct class via `ClassSpell`.
+- **AC 95.4:** Selected spells are written to `KnownSpell` (`is_prepared = true` for Mago, `false` for others until explicitly prepared).
+
+---
+
+### US-96: Subclass Selection at Level 1
+
+**As a** player choosing a class that grants a subclass at level 1, **I want** to select my subclass during the creation wizard **so that** its features are immediately applied.
+
+- **AC 96.1:** The following classes grant their subclass at level 1 per SRD and must present subclass selection in the wizard: Clérigo (Divine Domain), Hechicero (Sorcerous Origin), Warlock (Otherworldly Patron).
+- **AC 96.2:** For all other classes, subclass selection is deferred to the Level-Up wizard at the appropriate level (Bard L3, Druid L2, Fighter L3, Monk L3, Paladin L3, Ranger L3, Rogue L3, Wizard L2).
+- **AC 96.3:** The subclass selector must be populated from `Subclass` filtered by `class_id`.
+- **AC 96.4:** The chosen `subclass_id` is written to `CharacterClass.subclass_id` on creation.
+
+---
+
+### US-97: Fighting Style Selection
+
+**As a** Fighter or Paladin player, **I want** to select my Fighting Style at creation **so that** its combat bonus is applied automatically.
+
+- **AC 97.1:** Fighters choose 1 Fighting Style at level 1. Paladins choose 1 at level 2 (deferred to Level-Up wizard).
+- **AC 97.2:** Valid Fighting Styles per SRD (stored in a `FightingStyle` catalog or as a Feature subset): Archery (+2 ranged attack rolls), Defense (+1 AC when armored), Dueling (+2 melee damage with one-handed weapon and no other weapon), Great Weapon Fighting (reroll 1s and 2s on damage with two-handed weapons), Protection (use reaction to impose disadvantage on attackers), Two-Weapon Fighting (add ability modifier to off-hand attack damage).
+- **AC 97.3:** The chosen style is stored as a character trait/feature and its mechanical effect is applied during stat hydration.
+
+---
+
+### US-98: Ranger Starting Choices
+
+**As a** Ranger player, **I want** to choose my Favored Enemy and Natural Explorer terrain at creation **so that** the correct language and terrain bonuses are active.
+
+- **AC 98.1:** The player must select 1 Favored Enemy type from a catalog (e.g., Aberrations, Beasts, Celestials, Constructs, Dragons, Elementals, Fey, Fiends, Giants, Monstrosities, Oozes, Plants, Undead, or two humanoid races). This is stored as a character trait.
+- **AC 98.2:** Choosing a humanoid Favored Enemy grants knowledge of 1 extra language of the player's choice; the wizard must present the language selector in this case.
+- **AC 98.3:** The player must select 1 Natural Explorer terrain type from: Arctic, Coast, Desert, Forest, Grassland, Mountain, Swamp, Underdark. Stored as a character trait.
+- **AC 98.4:** These choices are replaceable on level-up when Ranger gains additional Favored Enemy or Natural Explorer selections (levels 6 and 10).
+
+---
+
+### US-99: Expertise at Creation (Rogue & Bard)
+
+**As a** Rogue or Bard player, **I want** to select my Expertise skills at creation **so that** the double-proficiency bonus applies from level 1.
+
+- **AC 99.1:** Rogues at level 1 choose 2 skills (from their already-chosen skill proficiencies or Thieves' Tools) to gain Expertise (`is_expertise = true`).
+- **AC 99.2:** Bards at level 3 gain Expertise in 2 skills (deferred to Level-Up wizard at L3).
+- **AC 99.3:** The Expertise selector must only show skills the character is already proficient in, plus Thieves' Tools for Rogue.
+- **AC 99.4:** `CharacterSkill.is_expertise = true` is set for chosen skills; the proficiency bonus doubles for those skills in all calculations.
+- **AC 99.5:** Rogues gain 2 more Expertise at level 6 (handled by Level-Up wizard).
+
+---
+
+### US-100: Bard Musical Instrument Proficiencies
+
+**As a** Bard player, **I want** to choose 3 musical instrument proficiencies at creation **so that** my character's tool kit is correctly set up.
+
+- **AC 100.1:** The creation wizard must present a multi-select of musical instruments when the Bard class is chosen. The player must select exactly 3.
+- **AC 100.2:** Musical instruments are a subset of the `Item` catalog with `item_type = 'tool'` and a `is_musical_instrument` flag (or equivalent tag in the catalog).
+- **AC 100.3:** Selected instruments are written to `CharacterTool` with `is_expertise = false`.
+
+---
+
+### US-101: Monk Tool Proficiency at Creation
+
+**As a** Monk player, **I want** to choose 1 artisan tool or musical instrument proficiency at creation **so that** the correct tool kit is recorded.
+
+- **AC 101.1:** The creation wizard must present a selector containing all artisan tools and musical instruments when the Monk class is chosen. The player must select exactly 1.
+- **AC 101.2:** The chosen tool is written to `CharacterTool`.
+
+---
+
+### US-102: Starting Equipment
+
+**As a** player, **I want** the system to automatically grant my character's starting equipment from their background **so that** I begin play with the correct gear.
+
+- **AC 102.1:** The `Background` model must include a `starting_equipment` JSONB field listing `item_id` references and quantities that are auto-granted on character creation.
+- **AC 102.2:** On character creation, the system must iterate `starting_equipment` and create `InventoryItem` rows for each entry.
+- **AC 102.3:** The system must also credit the background's `starting_gold` value to the character's `gp` field.
+- **AC 102.4:** Class starting equipment (equipment packs, weapons) is presented as a choice during the Class step of the wizard; the player selects one of the official starting equipment packages, and those items are added to inventory.
+
+---
+
+### US-103: Level-Up Wizard
+
+**As a** player whose character is ready to level up, **I want** a guided level-up flow **so that** all choices (HP, new features, new spells, ASI, subclass unlock) are handled correctly.
+
+- **AC 103.1:** When `level_up_available = true` (XP threshold met or milestone), the UI must display a prominent "¡Subir de Nivel!" call-to-action on the character sheet.
+- **AC 103.2:** The level-up wizard must present only the choices relevant to the class and new level. Steps are shown only if applicable:
+  - HP roll or fixed average (player chooses)
+  - New class features (shown as read-only unlocked features)
+  - ASI or Feat choice (at levels defined in US-104)
+  - New spells known (for classes that add known spells per level)
+  - New cantrips (where applicable per level)
+  - Subclass selection (at the correct level per class — see US-96 AC 96.2)
+  - New Expertise selections (Rogue L6, Bard L3)
+  - New Fighting Style (Paladin L2, Ranger L2)
+- **AC 103.3:** After confirming all choices, the system writes all changes atomically: increments `class_level`, updates `max_hp`, inserts new `KnownSpell` rows, updates `SpellSlotTracker`, sets `level_up_available = false`.
+- **AC 103.4:** If multiclassing, the level-up wizard must ask which class gains the level before proceeding (see US-82).
+- **AC 103.5:** If the new level unlocks a subclass and none has been chosen yet, subclass selection is mandatory before finishing the wizard.
+
+---
+
+### US-104: Ability Score Improvement (ASI)
+
+**As a** player reaching an ASI level, **I want** to increase two ability scores (or take a feat) **so that** my character becomes more powerful.
+
+- **AC 104.1:** ASI is offered at the following class levels per SRD:
+  - Bárbaro: 4, 8, 12, 16, 19
+  - Bardo: 4, 8, 12, 16, 19
+  - Clérigo: 4, 8, 12, 16, 19
+  - Druida: 4, 8, 12, 16, 19
+  - Guerrero: 4, 6, 8, 12, 14, 16, 19
+  - Hechicero: 4, 8, 12, 16, 19
+  - Mago: 4, 8, 12, 16, 19
+  - Monje: 4, 8, 12, 16, 19
+  - Paladín: 4, 8, 12, 16, 19
+  - Pícaro: 4, 8, 10, 12, 16, 19
+  - Explorador: 4, 8, 12, 16, 19
+  - Warlock: 4, 8, 12, 16, 19
+- **AC 104.2:** The player may either: (a) increase two different ability scores by +1 each, or (b) increase one ability score by +2, or (c) take a Feat instead (if feats are enabled).
+- **AC 104.3:** No ability score can exceed 20 through ASI (FR-06).
+- **AC 104.4:** After applying an ASI, all derived stats (modifiers, HP, skill bonuses, spell save DC, attack bonus) must be recalculated in the same transaction.
+
+---
+
+### US-105: Subclass Unlock on Level-Up
+
+**As a** player reaching the level where my class grants a subclass, **I want** the level-up wizard to prompt me to select it **so that** all subclass features are immediately applied.
+
+- **AC 105.1:** Subclass unlock levels per SRD:
+  - Bardo: level 3 (Bard College)
+  - Clérigo: level 1 (Divine Domain — handled at creation per US-96)
+  - Druida: level 2 (Druid Circle)
+  - Explorador: level 3 (Ranger Archetype)
+  - Guerrero: level 3 (Martial Archetype)
+  - Hechicero: level 1 (Sorcerous Origin — handled at creation per US-96)
+  - Mago: level 2 (Arcane Tradition)
+  - Monje: level 3 (Monastic Tradition)
+  - Paladín: level 3 (Sacred Oath)
+  - Pícaro: level 3 (Roguish Archetype)
+  - Warlock: level 1 (Otherworldly Patron — handled at creation per US-96)
+- **AC 105.2:** At the correct level, the level-up wizard must show a mandatory subclass selector before allowing the wizard to finish.
+- **AC 105.3:** The chosen subclass is written to `CharacterClass.subclass_id`. All features tagged to that subclass at current level are immediately added to `CharacterTrait`.
+
+---
+
+### US-106: Dynamic HP Recalculation
+
+**As a** player, **I want** my Max HP to always reflect my current level and Constitution modifier **so that** changes to CON (via ASI or magic items) are properly reflected.
+
+- **AC 106.1:** Max HP must never be stored as a static value. It must be computed at hydration time from `CharacterClass` levels, class hit dice, and `constitution_modifier`.
+- **AC 106.2:** Level 1 HP = `max(1, hit_die + con_mod)`. Each subsequent level HP = `max(1, floor(hit_die / 2) + 1 + con_mod)` (fixed PHB average).
+- **AC 106.3:** If CON changes (ASI, magical effect), the entire HP history across all levels is recalculated — the delta is added or subtracted from `current_hp` proportionally (same as the PHB ruling).
+- **AC 106.4:** Hill Dwarf adds +1 HP per level (from US-10 AC 10.2); this must be included in the calculation.
+- **AC 106.5:** The system must expose a `GET /characters/:id/hydrated` endpoint (or equivalent) that returns the fully derived character sheet: max_hp, AC, all skill bonuses, passive perception, initiative, spell save DC, spell attack bonus, carrying capacity, and proficiency bonus.
+
+---
+
+### US-107: Spell Slot & Spell Known Progression on Level-Up
+
+**As a** spellcasting player, **I want** my spell slots and known spells to update automatically when I level up **so that** I always have the right number available.
+
+- **AC 107.1:** On level-up, the system must consult `SpellSlotProgression` for the new class level and upsert/insert `SpellSlotTracker` rows accordingly — adding new slot levels and increasing max counts.
+- **AC 107.2:** For classes with a fixed spells-known list (Bardo, Hechicero, Explorador L2+, Warlock), the level-up wizard must present the correct number of new spells to learn per the SRD progression table.
+- **AC 107.3:** For Wizard, each level-up grants 2 new spells to copy into the spellbook; the wizard must prompt selection.
+- **AC 107.4:** Prepared-spell classes (Clérigo, Druida, Paladín) do not have spells-known selections on level-up; their prepared count formula updates automatically.
+- **AC 107.5:** Cantrip upgrades (e.g., Bard L4 +1 cantrip, Wizard L4 +1 cantrip) must be triggered at the correct level by the level-up wizard.
+
+---
+
+*End of requirements.md — Total User Stories: US-01 through US-107.*

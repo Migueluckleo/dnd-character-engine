@@ -1,0 +1,551 @@
+// schema.prisma — DnD Character Engine
+// Spec: plan.md §2.1 (Static Catalogs) + §2.2 (Transactional Data)
+// Convention: snake_case for all table/column names (.claude.md §4)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum Size {
+  tiny
+  small
+  medium
+  large
+}
+
+enum ArmorCategory {
+  light
+  medium
+  heavy
+  shield
+}
+
+enum CasterType {
+  full
+  half
+  warlock
+  none
+}
+
+enum SlotSource {
+  standard
+  pact_magic
+}
+
+enum RestRecovery {
+  short_rest
+  long_rest
+}
+
+enum LanguageType {
+  standard
+  exotic
+}
+
+enum Alignment {
+  lawful_good
+  neutral_good
+  chaotic_good
+  lawful_neutral
+  true_neutral
+  chaotic_neutral
+  lawful_evil
+  neutral_evil
+  chaotic_evil
+  unaligned
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STATIC CATALOGS (Reference Data — seeded from SRD 5.1, read-only at runtime)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// US-07 to US-19 — Racial data catalog
+model Race {
+  race_id          String   @id @default(cuid())
+  name             String   @unique
+  parent_race_id   String?
+  size             Size
+  base_speed       Int
+  /// JSONB: { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 }
+  ability_bonuses  Json
+  darkvision_radius Int     @default(0)
+  /// JSONB: array of language_id strings granted by default
+  languages        Json     @default("[]")
+  /// JSONB: number of language choices granted (0 if none)
+  language_choices Int      @default(0)
+
+  parent_race      Race?    @relation("SubraceOf", fields: [parent_race_id], references: [race_id])
+  subraces         Race[]   @relation("SubraceOf")
+  traits           RaceTrait[]
+  characters       Character[]
+}
+
+/// US-20 to US-47 — Class data catalog
+model Class {
+  class_id         String      @id @default(cuid())
+  name             String      @unique
+  hit_die          Int
+  caster_type      CasterType
+  /// JSONB: array of ability keys (e.g. ["str","con"])
+  saving_throws    Json
+  /// JSONB: { light_armor, medium_armor, heavy_armor, shields, simple_weapons, martial_weapons, ... }
+  starting_proficiencies Json
+  /// JSONB: subset granted when multiclassing INTO this class (US-82.3)
+  multiclass_proficiencies Json
+  /// JSONB: minimum ability score required to multiclass into this class (US-82.1)
+  multiclass_prerequisites Json
+  /// JSONB: { count: number, pool: string[] | null }  null pool = any skill (US-93)
+  starting_skill_choices   Json    @default("{\"count\":2,\"pool\":null}")
+  /// Number of cantrips chosen at level 1 (US-94)
+  starting_cantrip_count   Int     @default(0)
+  /// Number of level-1 spells known at creation (US-95)
+  starting_spells_known    Int     @default(0)
+  /// Spellcasting ability key ("int"|"wis"|"cha"|null)
+  spellcasting_ability     String?
+  /// Level at which subclass is chosen (null = no subclass)
+  subclass_level           Int?
+
+  subclasses       Subclass[]
+  features         Feature[]
+  character_classes CharacterClass[]
+  spell_slot_progressions SpellSlotProgression[]
+  class_spells     ClassSpell[]
+}
+
+/// Archetypes, Domains, Circles, Oaths — unlock at specific levels
+model Subclass {
+  subclass_id   String  @id @default(cuid())
+  class_id      String
+  name          String
+  unlock_level  Int
+
+  class         Class   @relation(fields: [class_id], references: [class_id])
+  character_classes CharacterClass[]
+
+  @@unique([class_id, name])
+}
+
+/// US-48 to US-61 — Background catalog
+model Background {
+  background_id        String  @id @default(cuid())
+  name                 String  @unique
+  starting_gold        Int
+  /// JSONB: array of skill_id strings
+  skill_proficiencies  Json
+  /// JSONB: array of tool_id strings
+  tool_proficiencies   Json
+  /// JSONB: array of language_id strings
+  language_grants      Json    @default("[]")
+  /// Number of free language choices (US-84.4)
+  language_choices     Int     @default(0)
+  /// JSONB: variant rules if applicable (e.g. Spy, Knight)
+  variant_rules        Json?
+  /// JSONB: { personality_traits: string[], bonds: string[], ideals: string[], flaws: string[] }
+  roleplay_data        Json    @default("{}")
+  /// JSONB: [{ item_name: string, quantity: number }]
+  starting_equipment   Json    @default("[]")
+  /// Short description of the background feature (utility trait)
+  feature_name         String  @default("")
+  feature_description  String  @default("")
+
+  characters           Character[]
+}
+
+/// Racial and class features with structured effects
+model Trait {
+  trait_id    String  @id @default(cuid())
+  name        String  @unique
+  source_type String  // 'racial' | 'class'
+  /// JSONB: structured effects consumed by the engine during hydration
+  effects     Json
+
+  race_traits  RaceTrait[]
+  char_traits  CharacterTrait[]
+}
+
+/// Junction: Race ↔ Trait
+model RaceTrait {
+  race_id   String
+  trait_id  String
+
+  race      Race   @relation(fields: [race_id], references: [race_id])
+  trait     Trait  @relation(fields: [trait_id], references: [trait_id])
+
+  @@id([race_id, trait_id])
+}
+
+/// US-62–US-69 — Master item catalog
+model Item {
+  item_id               String         @id @default(cuid())
+  name                  String         @unique
+  item_type             String         // 'weapon' | 'armor' | 'gear' | 'tool' | 'pack'
+  weight                Float          @default(0)
+  cost_gp               Float          @default(0)
+  /// Armor fields
+  armor_category        ArmorCategory?
+  ac_base               Int?
+  strength_requirement  Int?
+  stealth_disadvantage  Boolean        @default(false)
+  /// Weapon fields
+  damage_dice           String?        // e.g. "1d8"
+  damage_type           String?        // e.g. "slashing"
+  /// JSONB: weapon properties (finesse, heavy, light, thrown, versatile, two_handed, range_normal, range_long, ammunition)
+  properties            Json?
+  /// JSONB: pack contents array for equipment packs (US-69.1)
+  pack_contents         Json?
+  requires_attunement   Boolean        @default(false)
+
+  inventory_items       InventoryItem[]
+}
+
+/// US-31, US-37, US-41 etc. — Spell catalog with concentration flag (US-78.6)
+model Spell {
+  spell_id                String  @id @default(cuid())
+  name                    String  @unique
+  level                   Int     // 0 = cantrip
+  school                  String
+  casting_time            String
+  duration                String
+  range_ft                String
+  requires_concentration  Boolean @default(false)
+  /// Which ability governs this spell (e.g. "int", "wis", "cha")
+  spellcasting_ability    String?
+  components              String  // "V,S,M" etc.
+  /// Short mechanical description
+  description             String?
+  /// JSONB: free-form effects data
+  effects                 Json?
+
+  known_spells            KnownSpell[]
+  class_spells            ClassSpell[]
+}
+
+/// Junction: Class ↔ Spell (spell list per class)
+model ClassSpell {
+  class_id  String
+  spell_id  String
+
+  class     Class  @relation(fields: [class_id], references: [class_id])
+  spell     Spell  @relation(fields: [spell_id], references: [spell_id])
+
+  @@id([class_id, spell_id])
+}
+
+/// Class features per level with resource reset trigger
+model Feature {
+  feature_id      String       @id @default(cuid())
+  class_id        String
+  name            String
+  level_acquired  Int
+  description     String
+  /// JSONB: resource cost data (e.g. { pool: "rage", cost: 1 })
+  resource_cost   Json?
+  reset_on        RestRecovery?
+
+  class           Class        @relation(fields: [class_id], references: [class_id])
+
+  @@unique([class_id, name])
+}
+
+/// US-84 — Language catalog (standard + exotic)
+model Language {
+  language_id   String       @id @default(cuid())
+  name          String       @unique
+  language_type LanguageType
+
+  character_languages CharacterLanguage[]
+}
+
+/// US-83 — Feat catalog with prerequisites
+model Feat {
+  feat_id      String  @id @default(cuid())
+  name         String  @unique
+  description  String
+  /// JSONB: { min_ability: { str: 13 }, requires_spellcasting: true, ... }
+  prerequisite Json?
+  /// JSONB: structured effects processed by engine hydration
+  effects      Json
+  repeatable   Boolean @default(false)
+
+  character_feats CharacterFeat[]
+}
+
+/// US-79 — Spell slot progression tables (full, half, warlock pact magic)
+model SpellSlotProgression {
+  class_id      String
+  class_level   Int
+  slot_level    Int
+  max_slots     Int
+  slot_source   SlotSource   @default(standard)
+  rest_recovery RestRecovery @default(long_rest)
+
+  class         Class        @relation(fields: [class_id], references: [class_id])
+
+  @@id([class_id, class_level, slot_level])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TRANSACTIONAL DATA (Character State — mutable at runtime)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// US-132 — Player profile for login and owned characters
+model User {
+  user_id       String   @id @default(cuid())
+  email         String   @unique
+  display_name  String
+  password_hash String
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  characters Character[]
+}
+
+/// Core character record — base scores only; ALL derived values computed at runtime
+model Character {
+  id            String     @id @default(cuid())
+  user_id       String?
+  name          String
+  race_id       String
+  background_id String
+  alignment     Alignment  @default(true_neutral)
+
+  // XP & leveling (US-88)
+  xp                  Int     @default(0)
+  milestone_leveling  Boolean @default(false)
+  level_up_available  Boolean @default(false)
+
+  // Base ability scores — modifiers are NEVER stored (FR-01)
+  base_str  Int @default(8)
+  base_dex  Int @default(8)
+  base_con  Int @default(8)
+  base_int  Int @default(8)
+  base_wis  Int @default(8)
+  base_cha  Int @default(8)
+
+  // HP (US-70, US-72, US-73)
+  current_hp  Int @default(0)
+  temp_hp     Int @default(0)
+  is_dead     Boolean @default(false)
+  // Rolled level-1 hit die base from creation wizard. Null preserves legacy max-hit-die behavior.
+  level_1_hp_roll Int?
+
+  // Death Saves (US-70)
+  death_saves_success Int @default(0)
+  death_saves_fail    Int @default(0)
+
+  // Concentration (US-78)
+  active_concentration_spell_id String? @unique
+
+  // Currency
+  cp Int @default(0)
+  sp Int @default(0)
+  ep Int @default(0)
+  gp Int @default(0)
+  pp Int @default(0)
+
+  // Misc
+  has_inspiration   Boolean @default(false)
+  base_speed        Int     @default(30)
+  darkvision_radius Int     @default(0)
+
+  // Roleplay data (US-91)
+  personality_traits  String?
+  bonds               String?
+  ideals              String?
+  flaws               String?
+  background_variant  String?
+
+  // Relations
+  user              User?          @relation(fields: [user_id], references: [user_id], onDelete: SetNull)
+  race              Race           @relation(fields: [race_id], references: [race_id])
+  background        Background     @relation(fields: [background_id], references: [background_id])
+  active_concentration_spell KnownSpell? @relation("ConcentrationSpell", fields: [active_concentration_spell_id], references: [id])
+
+  character_classes     CharacterClass[]
+  character_skills      CharacterSkill[]
+  character_tools       CharacterTool[]
+  character_traits      CharacterTrait[]
+  character_feats       CharacterFeat[]
+  character_languages   CharacterLanguage[]
+  inventory_items       InventoryItem[]
+  known_spells          KnownSpell[]       @relation("CharacterSpells")
+  spell_slot_trackers   SpellSlotTracker[]
+  hit_dice_trackers     HitDiceTracker[]
+  resource_pools        ResourcePool[]
+  active_state          ActiveState?
+}
+
+/// Supports multiclassing (US-82)
+model CharacterClass {
+  character_id  String
+  class_id      String
+  subclass_id   String?
+  class_level   Int
+  is_primary    Boolean @default(false)
+
+  character     Character @relation(fields: [character_id], references: [id], onDelete: Cascade)
+  class         Class     @relation(fields: [class_id], references: [class_id])
+  subclass      Subclass? @relation(fields: [subclass_id], references: [subclass_id])
+
+  @@id([character_id, class_id])
+}
+
+/// US-77 — 18-skill catalog with proficiency and expertise
+model CharacterSkill {
+  character_id  String
+  skill_id      String  // must be one of the 18 valid skill_ids (validated by middleware)
+  is_proficient Boolean @default(false)
+  is_expertise  Boolean @default(false)
+
+  character     Character @relation(fields: [character_id], references: [id], onDelete: Cascade)
+
+  @@id([character_id, skill_id])
+}
+
+/// US-46 — Tool proficiency and expertise
+model CharacterTool {
+  character_id  String
+  tool_id       String
+  is_expertise  Boolean @default(false)
+
+  character     Character @relation(fields: [character_id], references: [id], onDelete: Cascade)
+
+  @@id([character_id, tool_id])
+}
+
+/// Junction: Character active racial/class traits
+model CharacterTrait {
+  character_id  String
+  trait_id      String
+
+  character     Character @relation(fields: [character_id], references: [id], onDelete: Cascade)
+  trait         Trait     @relation(fields: [trait_id], references: [trait_id])
+
+  @@id([character_id, trait_id])
+}
+
+/// US-83 — Feats assigned to a character
+model CharacterFeat {
+  character_id  String
+  feat_id       String
+
+  character     Character @relation(fields: [character_id], references: [id], onDelete: Cascade)
+  feat          Feat      @relation(fields: [feat_id], references: [feat_id])
+
+  @@id([character_id, feat_id])
+}
+
+/// US-84 — Languages known by a character
+model CharacterLanguage {
+  character_id  String
+  language_id   String
+
+  character     Character @relation(fields: [character_id], references: [id], onDelete: Cascade)
+  language      Language  @relation(fields: [language_id], references: [language_id])
+
+  @@id([character_id, language_id])
+}
+
+/// US-62–US-69 — Inventory items per character
+model InventoryItem {
+  id            String  @id @default(cuid())
+  character_id  String
+  item_id       String
+  quantity      Int     @default(1)
+  is_equipped   Boolean @default(false)
+  is_attuned    Boolean @default(false)
+
+  character     Character @relation(fields: [character_id], references: [id], onDelete: Cascade)
+  item          Item      @relation(fields: [item_id], references: [item_id])
+
+  @@unique([character_id, item_id])
+}
+
+/// US-31, US-41 — Spells known or prepared
+model KnownSpell {
+  id            String  @id @default(cuid())
+  character_id  String
+  spell_id      String
+  is_prepared   Boolean @default(false)
+
+  character                 Character  @relation("CharacterSpells", fields: [character_id], references: [id], onDelete: Cascade)
+  spell                     Spell      @relation(fields: [spell_id], references: [spell_id])
+  concentration_character   Character? @relation("ConcentrationSpell")
+
+  @@unique([character_id, spell_id])
+}
+
+/// US-79 — Spell slot tracker per class (multiclass-aware)
+model SpellSlotTracker {
+  character_id    String
+  class_id        String
+  slot_level      Int
+  max_slots       Int
+  expended_slots  Int        @default(0)
+  slot_source     SlotSource @default(standard)
+
+  character       Character  @relation(fields: [character_id], references: [id], onDelete: Cascade)
+
+  @@id([character_id, class_id, slot_level])
+}
+
+/// US-71 — Hit Dice pool per die type
+model HitDiceTracker {
+  character_id    String
+  die_type        Int     // e.g. 6, 8, 10, 12
+  max_dice        Int
+  expended_dice   Int     @default(0)
+
+  character       Character @relation(fields: [character_id], references: [id], onDelete: Cascade)
+
+  @@id([character_id, die_type])
+}
+
+/// Class resources (rage, ki, lay_on_hands, bardic_inspiration, etc.)
+model ResourcePool {
+  character_id  String
+  pool_id       String  // e.g. 'rage', 'ki', 'lay_on_hands', 'bardic_inspiration'
+  current       Int
+  max           Int
+  reset_on      RestRecovery
+
+  character     Character @relation(fields: [character_id], references: [id], onDelete: Cascade)
+
+  @@id([character_id, pool_id])
+}
+
+/// US-80, US-81, US-74 — All condition flags + exhaustion + reaction
+/// One row per character, structured columns (not generic key-value)
+model ActiveState {
+  character_id       String  @id
+  exhaustion_level   Int     @default(0)  // 0–6 (US-81)
+  reaction_available Boolean @default(true) // reset at start of each turn (US-74)
+
+  // Conditions (US-80) — all 15 from PHB
+  is_blinded        Boolean @default(false)
+  is_charmed        Boolean @default(false)
+  is_deafened       Boolean @default(false)
+  is_frightened     Boolean @default(false)
+  is_grappled       Boolean @default(false)
+  is_incapacitated  Boolean @default(false)
+  is_invisible      Boolean @default(false)
+  is_paralyzed      Boolean @default(false)
+  is_petrified      Boolean @default(false)
+  is_poisoned       Boolean @default(false)
+  is_prone          Boolean @default(false)
+  is_restrained     Boolean @default(false)
+  is_stunned        Boolean @default(false)
+  is_unconscious    Boolean @default(false)
+  // Note: exhaustion is tracked as a level above, not a boolean
+
+  character         Character @relation(fields: [character_id], references: [id], onDelete: Cascade)
+}
