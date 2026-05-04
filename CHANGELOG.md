@@ -1214,3 +1214,29 @@ Registro retroactivo del proyecto. El código actual es la fuente principal de v
 - Confirmado por código actual
 - Basado en reporte del usuario en app publicada
 - Pendiente de validación visual en GitHub Pages
+
+## [2026-05-04] - Persistencia backend de imagen de personaje
+
+### Cambios
+- Se agregó `Character.image_data` al esquema Prisma y migración `20260504131500_add_character_image`.
+- Se agregó endpoint `PATCH /characters/:id/image` para guardar imágenes comprimidas como data URL validada.
+- La UI ahora envía la imagen comprimida al backend y usa `localStorage` solo como cache/fallback.
+- Al cargar la ficha, la imagen se toma primero desde el personaje devuelto por API y luego desde cache local.
+
+### Archivos modificados
+- `prisma/schema.prisma`
+- `prisma/migrations/20260504131500_add_character_image/migration.sql`
+- `src/api/controllers/character.controller.ts`
+- `ui.html`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-118: Character Image Upload and Figma-Matched Detail Subflows
+- US-132: Player Profiles and Owned Character Roster
+
+### Fuente / certeza
+- Confirmado por código actual
+- Basado en reporte del usuario en app publicada
+- Pendiente de validación: migración en Render/Supabase y subida real desde GitHub Pages

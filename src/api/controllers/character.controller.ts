@@ -632,6 +632,26 @@ characterRouter.get('/:id', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// ─── PATCH /characters/:id/image ─────────────────────────────────────────────
+// US-118: Persist compressed character image data for the active profile/device.
+const CharacterImageSchema = z.object({
+  image_data: z.string()
+    .regex(/^data:image\/(webp|jpeg|jpg|png);base64,[A-Za-z0-9+/=]+$/)
+    .max(1_500_000),
+});
+
+characterRouter.patch('/:id/image', async (req, res, next) => {
+  try {
+    const body = CharacterImageSchema.parse(req.body);
+    const character = await (prisma.character as any).update({
+      where: { id: req.params['id']! },
+      data: { image_data: body.image_data },
+      select: { id: true, image_data: true },
+    });
+    res.json({ message: 'Imagen del personaje guardada.', character });
+  } catch (err) { next(err); }
+});
+
 // ─── PATCH /characters/:id ────────────────────────────────────────────────────
 // US-110: Edit existing character — name, alignment, current_hp, ability scores, level
 const EditCharacterSchema = z.object({

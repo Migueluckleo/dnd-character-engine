@@ -11,6 +11,12 @@
 
 ## Últimos cambios realizados (2026-05-04)
 
+- Se corrigió persistencia real de imágenes de personaje: `Character.image_data` en Prisma, migración `20260504131500_add_character_image`, endpoint `PATCH /characters/:id/image` y UI enviando imagen comprimida al backend.
+- `localStorage` queda solo como cache/fallback, ya no como fuente principal.
+- Pendiente: deploy en Render para aplicar migración y validar subida desde `https://www.migueleo.com`.
+
+## Últimos cambios realizados (2026-05-04)
+
 - Se corrigieron los íconos de la app pública: `ui.html` ahora incluye un sprite SVG local para navegación, placeholders y quick stats; `style.css` define tamaños/colores.
 - Motivo: los assets originales de Figma MCP no son aptos para producción y los fallbacks de letras se veían incorrectos en GitHub Pages.
 
@@ -286,7 +292,7 @@
 - La UI actual es standalone; no hay framework frontend ni bundler.
 - El estilo visual mobile-first del wizard se centraliza en `style.css`.
 - La navegación inferior móvil representa destinos de producto, no pestañas internas de personaje. El detalle de personaje se maneja como microflujo independiente y oculta el bottom nav.
-- Las imágenes de personaje se guardan actualmente en `localStorage` con clave `dnd-character-image:{characterId}` después de redimensionar/comprimir en navegador; esto evita cambios de base de datos pero no sincroniza entre dispositivos.
+- Las imágenes de personaje se guardan en `Character.image_data` después de redimensionar/comprimir en navegador; `localStorage` (`dnd-character-image:{characterId}`) queda como cache local.
 - En el detalle de personaje, `Habilidades` y `Conjuros` tienen subtabs internos que no deben mezclarse con la navegación inferior de producto.
 - En el detalle de personaje, `Habilidades` debe contener subtabs internos para `Habilidades`, `Tiradas de salvación` y `Competencias`; esta última muestra armas, armaduras, escudos, herramientas y objetos competentes.
 - La card del roster debe seguir el componente Figma `beast-card-B`: raza/clase, nombre, acciones compactas, quick info y biografía; no debe volver al layout de cards genéricas.

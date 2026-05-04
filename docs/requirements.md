@@ -1411,6 +1411,8 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 - **AC 118.2:** Uploaded character images must be adapted to the platform image area using fixed sizing and `cover` cropping without distorting the source image.
 - **AC 118.3:** The uploaded image must remain available for the same browser/device session after refreshing the local UI.
 - **AC 118.4:** Before saving browser-local image data, the UI must resize and compress the selected file to reduce local storage failures.
+- **AC 118.5:** Uploaded character images must persist through the backend so they remain available after login, refresh, and device changes for the same profile.
+- **AC 118.6:** The backend must reject invalid image payloads and enforce a maximum compressed data size.
 - **AC 118.4:** The `Habilidades` tab must contain a secondary tab switch between `Habilidades` and `Tiradas de salvación`.
 - **AC 118.5:** Skill rows and saving throw rows must be rendered separately, each with proficiency indicator, name, and calculated bonus.
 - **AC 118.6:** The `Conjuros` tab must contain a secondary tab switch between `Trucos` and `Conjuros`.
@@ -1643,7 +1645,7 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 | US-115 | Implementada | Current `ui.html` has header back/cancel behavior and validation-based primary button state; `style.css` contains extracted styling. |
 | US-116 | Implementada / pendiente de validación visual | Current `ui.html` auto-advances selection screens to review cards, adds subclass review, requires HP roll, and sends `hp_roll_base`; Prisma/API persist `level_1_hp_roll`. |
 | US-117 | Implementada / pendiente de validación visual | Current `ui.html` adds the Figma bottom navigation destinations, placeholder screens, and a character detail microflow with internal tabs; the opened-character summary now shows CA, Velocidad, Nivel and visible B. Comp. matching the Figma row. Visual QA against Figma remains recommended. |
-| US-118 | Implementada / pendiente de persistencia backend | Current `ui.html` supports local character image upload, separates skills from saving throws, and separates cantrips from spells in Figma-style detail subflows. Image persistence is browser-local only. |
+| US-118 | Implementada / pendiente de validación E2E en producción | Current `ui.html` compresses uploaded character images, sends them to `PATCH /characters/:id/image`, persists `Character.image_data`, and keeps local cache as fallback. Skills/saving throws and cantrips/spells remain separated in Figma-style detail subflows. |
 | US-119 | Implementada / pendiente de validación visual | Current `ui.html` and `style.css` render created character cards with the Figma `beast-card-B` hierarchy, quick info row, action buttons, and biography summary. |
 | US-120 | Implementada / pendiente de validación visual | Current `ui.html` and `style.css` render the Figma full-width add-character CTA below the roster card list while preserving empty-state creation. |
 | US-121 | Implementada / pendiente de validación E2E con base de datos | Backend validates subclass unlocks, ASI milestones/caps, exact cantrip/spell counts, class spell availability, and prepared-spell counts; UI requires ASI before spells and uses ASI-aware HP/spell calculations. Verified by `npm run typecheck`, `npm run test`, and HTML script parse. |
