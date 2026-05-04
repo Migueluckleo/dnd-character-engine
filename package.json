@@ -3,10 +3,16 @@
   "version": "1.0.0",
   "description": "D&D 5e SRD Character Management Engine",
   "main": "dist/index.js",
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "dev": "ts-node src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
+    "postinstall": "prisma generate",
+    "deploy:migrate": "prisma migrate deploy",
+    "render:build": "npm run prisma:generate && npm run build",
     "test": "jest",
     "test:unit": "jest tests/unit",
     "test:integration": "jest tests/integration",

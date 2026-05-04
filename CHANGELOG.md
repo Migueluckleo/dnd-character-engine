@@ -1081,3 +1081,57 @@ Registro retroactivo del proyecto. El código actual es la fuente principal de v
 ### Fuente / certeza
 - Basado en solicitud directa del usuario
 - Pendiente de validación: disponibilidad real de `/health` y endpoints API en `https://www.migueleo.com`
+
+## [2026-05-04] - Preparación de backend público para Render
+
+### Cambios
+- Se agregó CORS seguro por entorno: en producción solo se aceptan orígenes configurados en `ALLOWED_ORIGINS`.
+- Se agregaron scripts `postinstall`, `deploy:migrate` y `render:build` para generar Prisma Client, aplicar migraciones con `prisma migrate deploy`, compilar TypeScript y arrancar `dist/index.js`.
+- Se agregó `render.yaml` para crear un Web Service gratuito sin secretos embebidos.
+- Se actualizó `.env.example` con `ALLOWED_ORIGINS`.
+- Se documentó la historia US-134 para separar GitHub Pages UI de API pública HTTPS.
+
+### Archivos modificados
+- `src/index.ts`
+- `package.json`
+- `.env.example`
+- `render.yaml`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-132: Player Profiles and Owned Character Roster
+- US-133: Safe GitHub Repository and GitHub Pages Publication
+- US-134: Public Backend API Deployment
+
+### Fuente / certeza
+- Confirmado por código actual
+- Basado en solicitud directa del usuario
+- Validado con `npm run typecheck`
+- Validado con `npm run test`
+- Validado con `npm run build`
+- Validado con `npm run security:check`
+- Pendiente de validación: despliegue real en Render y prueba de `GET /health`
+
+## [2026-05-04] - Ajuste de build Render con Node 20
+
+### Cambios
+- Se fijó Node 20 LTS en `package.json` y `render.yaml` para evitar builds con Node 24 por defecto.
+- Se separó `render:build` de las migraciones: ahora solo genera Prisma Client y compila TypeScript.
+- Las migraciones quedan para `npm run deploy:migrate` como Pre-Deploy Command o ejecución manual.
+
+### Archivos modificados
+- `package.json`
+- `render.yaml`
+- `.env.example`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-134: Public Backend API Deployment
+
+### Fuente / certeza
+- Confirmado por captura de Render usando Node 24 por defecto
+- Basado en solicitud directa del usuario
+- Pendiente de validación: redeploy en Render

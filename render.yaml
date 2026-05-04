@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: dnd-character-engine-api
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run render:build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 20
+      - key: ALLOWED_ORIGINS
+        value: https://www.migueleo.com
+      - key: DATABASE_URL
+        sync: false
+      - key: AUTH_SECRET
+        sync: false

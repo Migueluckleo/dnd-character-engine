@@ -11,6 +11,23 @@
 
 ## Últimos cambios realizados (2026-05-04)
 
+- Se ajustó deploy Render para fijar Node 20 LTS y separar build de migraciones.
+- `package.json` ahora declara `engines.node = 20.x`.
+- `render:build` ya no ejecuta migraciones; solo genera Prisma Client y compila TypeScript.
+- `render.yaml` incluye `NODE_VERSION=20`. Las migraciones deben correr como Pre-Deploy Command (`npm run deploy:migrate`) o manualmente con `npx prisma migrate deploy`.
+
+## Últimos cambios realizados (2026-05-04)
+
+- Se preparó el backend para despliegue público en Render Free Web Service.
+- `src/index.ts` ahora restringe CORS en producción mediante `ALLOWED_ORIGINS`; localmente mantiene compatibilidad cuando no hay orígenes configurados.
+- `package.json` incluye `postinstall`, `deploy:migrate` y `render:build`.
+- Se agregó `render.yaml` sin secretos embebidos: `DATABASE_URL` y `AUTH_SECRET` quedan como variables privadas `sync: false`.
+- Se agregó US-134.
+- Validado con `npm run typecheck`, `npm run test`, `npm run build` y `npm run security:check`.
+- Pendiente: crear Web Service en Render, configurar `DATABASE_URL`, `AUTH_SECRET`, confirmar `/health` y actualizar `config.public.js` con la URL HTTPS real de API. Si `www.migueleo.com` es GitHub Pages, usar otra URL para API, por ejemplo la URL `onrender.com` o `api.migueleo.com`.
+
+## Últimos cambios realizados (2026-05-04)
+
 - `config.public.js` ahora apunta la UI publicada a `https://www.migueleo.com` como URL pública de API.
 - Pendiente de validación: confirmar que `https://www.migueleo.com/health` responda desde un backend Express/Prisma. Si el dominio solo sirve GitHub Pages, la app seguirá marcando “Sin conexión”.
 
