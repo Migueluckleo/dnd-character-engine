@@ -1610,6 +1610,17 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 - **AC 133.7:** The project must include a pre-publication security check that scans for common secret leaks and unsafe public dependencies.
 - **AC 133.8:** The release preparation must be validated with typecheck, tests, and security check.
 
+### US-134: Public Backend API Deployment
+
+**As a** project owner, **I want** the Express/Prisma API prepared for a free public backend deployment **so that** the GitHub Pages UI can connect to profiles, characters, inventory, spells, and rules through HTTPS.
+
+- **AC 134.1:** The backend must expose `/health` for deployment health checks.
+- **AC 134.2:** The backend must read `PORT` from the host environment and continue to work locally.
+- **AC 134.3:** Production CORS must be restricted by an `ALLOWED_ORIGINS` environment variable instead of allowing every public origin.
+- **AC 134.4:** Deployment configuration must not include real `DATABASE_URL`, `AUTH_SECRET`, or private credentials.
+- **AC 134.5:** Deployment scripts must generate Prisma Client, apply pending migrations with `prisma migrate deploy`, build TypeScript, and start the compiled server.
+- **AC 134.6:** Documentation must clarify that the API should use a separate HTTPS origin from GitHub Pages, for example a Render URL or `api.migueleo.com`.
+
 ---
 
 ## Implementation Status Addendum — 2026-04-30
@@ -1648,5 +1659,6 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 | US-131 | Implementada / pendiente de validación visual en navegador | Current `ui.html` calculates weapon attack totals with ability modifier plus proficiency only when the character is proficient with that weapon, and current `style.css`/`ui.html` show proficiency badges and summaries for skills, saving throws, weapons, armor, shields, tools, and item-related proficiencies. |
 | US-132 | Implementada / pendiente de migración en base remota y validación E2E | Current backend adds `User`, `/auth/register`, `/auth/login`, `/auth/me`, optional bearer auth, owner guard for character subroutes, and profile-filtered roster. Current `ui.html` adds login/register/logout and sends tokens through `api()`. Migration file exists; applying it to Supabase remoto is pendiente por restricción de red del entorno. |
 | US-133 | Implementada / pendiente de configuración real en GitHub | Current repo adds `.gitignore` hardening, `.env.example`, public `config.public.js`, `index.html`, `.nojekyll`, `README.md`, `SECURITY.md`, GitHub Pages workflow, and `npm run prepublish:check`. Runtime Figma MCP asset URLs were removed from UI/CSS. Validated with `npm run prepublish:check`. |
+| US-134 | Implementada / pendiente de despliegue real | Current backend has env-based production CORS, Render blueprint `render.yaml`, build/migrate/start scripts, safe env placeholders, and `/health`. Validated locally with typecheck, tests, build, and security check. Pending: create Render service and update `config.public.js` with the backend HTTPS URL. |
 
-*End of requirements.md — Total User Stories: US-01 through US-133.*
+*End of requirements.md — Total User Stories: US-01 through US-134.*

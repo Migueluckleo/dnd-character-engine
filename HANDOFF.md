@@ -11,6 +11,12 @@
 
 ## Últimos cambios realizados (2026-05-04)
 
+- Render no estaba instalando `devDependencies`, por lo que `tsc` no existía durante build y `npx` intentaba usar el paquete incorrecto `tsc`.
+- Se agregó `NPM_CONFIG_PRODUCTION=false` en `render.yaml` y `.env.example`.
+- En Render Free, el Build Command recomendado es: `npm ci --include=dev && npm run prisma:generate && npm run deploy:migrate && npm run build`.
+
+## Últimos cambios realizados (2026-05-04)
+
 - Se corrigió el build de TypeScript en Render agregando `ignoreDeprecations: "5.0"` en `tsconfig.json`; esto evita que la advertencia de `moduleResolution: node10` falle como error.
 - Validado con `npm run build` y `npm run prepublish:check`.
 

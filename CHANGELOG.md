@@ -1154,3 +1154,22 @@ Registro retroactivo del proyecto. El código actual es la fuente principal de v
 - Confirmado por logs de Render
 - Validado con `npm run build`
 - Validado con `npm run prepublish:check`
+
+## [2026-05-04] - Fix instalación de TypeScript en Render
+
+### Cambios
+- Se agregó `NPM_CONFIG_PRODUCTION=false` a la configuración de Render para que el build instale `devDependencies`.
+- Esto evita que `npx tsc` intente usar el paquete incorrecto `tsc` cuando TypeScript no está instalado.
+
+### Archivos modificados
+- `render.yaml`
+- `.env.example`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-134: Public Backend API Deployment
+
+### Fuente / certeza
+- Confirmado por logs de Render: `This is not the tsc command you are looking for`
+- Pendiente de validación: redeploy en Render

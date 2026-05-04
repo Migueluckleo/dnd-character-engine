@@ -13,9 +13,27 @@ import { characterAccessGuard, optionalAuth } from './api/middleware/auth';
 
 const app = express();
 
-// CORS — permite peticiones desde ui.html (file://) y cualquier origen local
+const allowedOrigins = (process.env['ALLOWED_ORIGINS'] ?? '')
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean);
+
+function isAllowedOrigin(origin: string | undefined): boolean {
+  if (!origin) return true;
+  if (allowedOrigins.length === 0) return process.env['NODE_ENV'] !== 'production';
+  return allowedOrigins.includes(origin);
+}
+
+// CORS — in production, set ALLOWED_ORIGINS to the GitHub Pages/custom domains.
 app.use((_req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const origin = _req.headers.origin;
+  if (!isAllowedOrigin(origin)) {
+    if (_req.method === 'OPTIONS') { res.sendStatus(403); return; }
+    next();
+    return;
+  }
+  res.setHeader('Vary', 'Origin');
+  res.setHeader('Access-Control-Allow-Origin', origin ?? '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (_req.method === 'OPTIONS') { res.sendStatus(204); return; }
