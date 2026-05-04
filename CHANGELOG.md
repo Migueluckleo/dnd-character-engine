@@ -1173,3 +1173,22 @@ Registro retroactivo del proyecto. El código actual es la fuente principal de v
 ### Fuente / certeza
 - Confirmado por logs de Render: `This is not the tsc command you are looking for`
 - Pendiente de validación: redeploy en Render
+
+## [2026-05-04] - Conexión UI Pages con API Render
+
+### Cambios
+- Se actualizó `config.public.js` para apuntar la UI publicada a la API desplegada en Render: `https://dnd-character-engine-api.onrender.com`.
+- Se confirmó manualmente que `/health` responde `{"status":"ok"}` en la API pública.
+
+### Archivos modificados
+- `config.public.js`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-133: Safe GitHub Repository and GitHub Pages Publication
+- US-134: Public Backend API Deployment
+
+### Fuente / certeza
+- Confirmado por captura del usuario de `GET /health`
+- Pendiente de validación: GitHub Pages consumiendo la API pública tras push

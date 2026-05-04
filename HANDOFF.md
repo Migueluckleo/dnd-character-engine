@@ -11,6 +11,12 @@
 
 ## Últimos cambios realizados (2026-05-04)
 
+- API Render pública verificada: `https://dnd-character-engine-api.onrender.com/health` responde `{"status":"ok"}`.
+- `config.public.js` ahora apunta GitHub Pages a `https://dnd-character-engine-api.onrender.com`.
+- Pendiente: hacer commit/push y validar en `https://www.migueleo.com` que el estado cambie a conectado y permita login/registro.
+
+## Últimos cambios realizados (2026-05-04)
+
 - Render no estaba instalando `devDependencies`, por lo que `tsc` no existía durante build y `npx` intentaba usar el paquete incorrecto `tsc`.
 - Se agregó `NPM_CONFIG_PRODUCTION=false` en `render.yaml` y `.env.example`.
 - En Render Free, el Build Command recomendado es: `npm ci --include=dev && npm run prisma:generate && npm run deploy:migrate && npm run build`.
