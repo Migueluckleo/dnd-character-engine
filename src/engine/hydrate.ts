@@ -59,6 +59,8 @@ export interface RawCharacter {
   hasAlertFeat: boolean;
   unArmoredOverride: 'barbarian' | 'monk' | 'none';
   spellcastingAbilityScore?: number;
+  /** Actual rolled hit die at level 1 from wizard (null = use max die) */
+  level_1_hp_roll?: number | null;
 }
 
 /**
@@ -110,6 +112,7 @@ export function hydrate(raw: RawCharacter): HydratedCharacter {
     raw.classes as unknown as HealthClassEntry[],
     scores.con,
     raw.traitEffects,
+    raw.level_1_hp_roll ?? undefined,
   );
 
   // ── Step 5: Combat Calculations (delegated to combat.service per endpoint) ──

@@ -8,8 +8,8 @@ import { pointBuyGuard, skillSelectionGuard, deadCharacterGuard } from '../middl
 import { AppError } from '../middleware/error-handler';
 import { validateMulticlassPrerequisites } from '../../services/multiclass.service';
 import { addXP, isLevelUpAvailable, getXPForLevel, XP_THRESHOLDS } from '../../services/xp.service';
-import { calculateAC } from '../../services/ac.service';
-import { findCharacterById, createCharacter, updateCharacter, prisma } from '../../repositories/character.repository';
+import { findCharacterById, buildRawCharacter, createCharacter, updateCharacter, prisma } from '../../repositories/character.repository';
+import { hydrate } from '../../engine/hydrate';
 import { currentAuthUser } from '../middleware/auth';
 
 export const characterRouter = Router();
@@ -785,126 +785,55 @@ characterRouter.patch('/:id', async (req, res, next) => {
 });
 
 // ─── GET /characters/:id/hydrated ─────────────────────────────────────────────
-// US-106: All derived stats computed server-side (HP max, AC, prof bonus, etc.)
+// US-106: All derived stats computed server-side via hydrate engine.
 characterRouter.get('/:id/hydrated', async (req, res, next) => {
   try {
     const character = await findCharacterById(req.params['id']!);
     if (!character) throw new AppError(404, 'Character not found.', 'Personaje no encontrado.');
 
-    const racialBonuses = ((character as any).race?.ability_bonuses as Record<string, number>) ?? {};
-    const scores: Record<string, number> = {
-      str: character.base_str + (racialBonuses['str'] ?? 0),
-      dex: character.base_dex + (racialBonuses['dex'] ?? 0),
-      con: character.base_con + (racialBonuses['con'] ?? 0),
-      int: character.base_int + (racialBonuses['int'] ?? 0),
-      wis: character.base_wis + (racialBonuses['wis'] ?? 0),
-      cha: character.base_cha + (racialBonuses['cha'] ?? 0),
-    };
+    // Build the engine input and run all 10 hydration steps at once.
+    // This ensures equipped items (armor, shield) correctly affect AC, speed,
+    // stealth disadvantage, encumbrance, conditions, etc.
+    const raw = buildRawCharacter(character);
+    const h   = hydrate(raw);
 
-    const totalLevel = (character as any).character_classes
-      .reduce((sum: number, cc: any) => sum + cc.class_level, 0) || 1;
-    const prof    = Math.floor((totalLevel - 1) / 4) + 2;
-    const conMod  = Math.floor((scores['con']! - 10) / 2);
-    const dexMod  = Math.floor((scores['dex']! - 10) / 2);
-
-    // Max HP: level-1 uses the wizard roll when available; legacy characters use the max hit die.
-    let maxHP = 0;
-    for (const cc of (character as any).character_classes) {
-      const hitDie: number = cc.class?.hit_die ?? 8;
-      const avg = Math.floor(hitDie / 2) + 1;
-      if (cc.is_primary) {
-        maxHP += ((character as any).level_1_hp_roll ?? hitDie) + conMod;
-        maxHP += Math.max(0, cc.class_level - 1) * Math.max(1, avg + conMod);
-      } else {
-        maxHP += cc.class_level * Math.max(1, avg + conMod);
-      }
-    }
-    maxHP = Math.max(1, maxHP);
-
-    // Primary class info
-    const primaryCC = (character as any).character_classes.find((c: any) => c.is_primary);
-    const classData  = primaryCC?.class;
-    const saveProfs: string[] = (classData?.saving_throws as string[]) ?? [];
-    const spellcastingAbility: string | null = classData?.spellcasting_ability ?? null;
-
-    let spellSaveDC = 0, spellAttackBonus = 0;
-    if (spellcastingAbility) {
-      const spellAbilMod = Math.floor((scores[spellcastingAbility]! - 10) / 2);
-      spellSaveDC = 8 + prof + spellAbilMod;
-      spellAttackBonus = prof + spellAbilMod;
-    }
-
-    // Skill bonuses (full computation with prof and expertise)
-    const charSkillMap: Record<string, { is_proficient: boolean; is_expertise: boolean }> = {};
-    for (const sk of (character as any).character_skills) {
-      charSkillMap[sk.skill_id] = { is_proficient: sk.is_proficient, is_expertise: sk.is_expertise };
-    }
-    const skillBonuses: Record<string, number> = {};
-    for (const [skillId, abilKey] of Object.entries(SKILL_ABILITY)) {
-      const abilMod = Math.floor((scores[abilKey]! - 10) / 2);
-      const sk = charSkillMap[skillId];
-      skillBonuses[skillId] = abilMod + (sk?.is_expertise ? prof * 2 : sk?.is_proficient ? prof : 0);
-    }
-
-    // Saving throw bonuses
-    const savingThrowBonuses: Record<string, number> = {};
-    for (const ability of ['str', 'dex', 'con', 'int', 'wis', 'cha']) {
-      const abilMod = Math.floor((scores[ability]! - 10) / 2);
-      savingThrowBonuses[ability] = abilMod + (saveProfs.includes(ability) ? prof : 0);
-    }
-
-    // Armor Class — use equipped armor/shield from inventory
-    const inventoryItems = (character as any).inventory_items ?? [];
-    const equippedBodyArmor = inventoryItems.find(
-      (inv: any) => inv.is_equipped && inv.item?.armor_category && inv.item.armor_category !== 'shield'
-    );
-    const shieldEquipped = inventoryItems.some(
-      (inv: any) => inv.is_equipped && inv.item?.armor_category === 'shield'
-    );
-    const primaryClassName = (character as any).character_classes
-      ?.find((cc: any) => cc.is_primary)?.class?.name?.toLowerCase() ?? '';
-    const unArmoredOverrideType =
-      primaryClassName === 'barbarian' ? 'barbarian' :
-      primaryClassName === 'monk'      ? 'monk'      : 'none';
-    const armorClass = calculateAC({
-      dexScore: scores['dex']!,
-      conScore: scores['con']!,
-      wisScore: scores['wis']!,
-      equippedArmor: equippedBodyArmor
-        ? {
-            armorCategory: equippedBodyArmor.item.armor_category,
-            acBase: equippedBodyArmor.item.ac_base ?? 10,
-            strengthRequirement: equippedBodyArmor.item.strength_requirement ?? undefined,
-          }
-        : null,
-      shieldEquipped,
-      unArmoredOverride: { type: unArmoredOverrideType },
-    });
-
+    // Map HydratedCharacter → legacy response shape expected by the UI
     res.json({
       ...character,
       computed: {
-        max_hp:                maxHP,
-        total_level:           totalLevel,
-        proficiency_bonus:     prof,
-        initiative:            dexMod,
-        armor_class:           armorClass,
-        unarmored_ac:          10 + dexMod,
-        speed:                 (character as any).race?.base_speed ?? 30,
-        darkvision_radius:     (character as any).race?.darkvision_radius ?? 0,
-        passive_perception:    10 + skillBonuses['perception']!,
-        passive_investigation: 10 + skillBonuses['investigation']!,
-        passive_insight:       10 + skillBonuses['insight']!,
-        ability_scores:        scores,
-        ability_modifiers:     Object.fromEntries(
-          Object.entries(scores).map(([k, v]) => [k, Math.floor((v - 10) / 2)])
+        max_hp:                     h.maxHp,
+        total_level:                h.totalLevel,
+        proficiency_bonus:          h.proficiencyBonus,
+        initiative:                 h.initiativeBonus,
+        armor_class:                h.armorClass,
+        unarmored_ac:               10 + Math.floor((h.abilityScores.dex - 10) / 2),
+        speed:                      h.speed,
+        darkvision_radius:          (character as any).race?.darkvision_radius ?? 0,
+        passive_perception:         h.passiveChecks.passivePerception,
+        passive_investigation:      h.passiveChecks.passiveInvestigation,
+        passive_insight:            h.passiveChecks.passiveInsight,
+        ability_scores:             h.abilityScores,
+        ability_modifiers:          h.abilityModifiers,
+        saving_throw_proficiencies: (character as any).character_classes
+          ?.find((cc: any) => cc.is_primary)?.class?.saving_throws ?? [],
+        saving_throw_bonuses: Object.fromEntries(
+          h.skills
+            .filter(s => ['str','dex','con','int','wis','cha'].includes(s.skillId))
+            .map(s => [s.skillId, s.bonus])
         ),
-        saving_throw_proficiencies: saveProfs,
-        saving_throw_bonuses:  savingThrowBonuses,
-        skill_bonuses:         skillBonuses,
-        spellcasting_ability:  spellcastingAbility,
-        spell_save_dc:         spellSaveDC,
-        spell_attack_bonus:    spellAttackBonus,
+        skill_bonuses: Object.fromEntries(h.skills.map(s => [s.skillId, s.bonus])),
+        spellcasting_ability:  (character as any).character_classes
+          ?.find((cc: any) => cc.is_primary)?.class?.spellcasting_ability ?? null,
+        spell_save_dc:         raw.spellcastingAbilityScore != null
+          ? 8 + h.proficiencyBonus + Math.floor((raw.spellcastingAbilityScore - 10) / 2)
+          : 0,
+        spell_attack_bonus:    raw.spellcastingAbilityScore != null
+          ? h.proficiencyBonus + Math.floor((raw.spellcastingAbilityScore - 10) / 2)
+          : 0,
+        stealth_disadvantage:  (character as any).inventory_items?.some(
+          (inv: any) => inv.is_equipped && inv.item?.stealth_disadvantage
+        ) ?? false,
+        carried_weight:        h.carriedWeight,
       },
     });
   } catch (err) { next(err); }

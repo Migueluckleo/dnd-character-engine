@@ -2,6 +2,40 @@
 
 Registro retroactivo del proyecto. El código actual es la fuente principal de verdad; las fechas previas se basan en marcas de archivo y documentación disponible, por lo que algunas entradas se indican como estimadas.
 
+## [2026-05-04] - Motor de hidratación completo + CA desde armadura equipada
+
+### Cambios
+- Se cableó el endpoint `/hydrated` con el motor `hydrate.ts` vía el nuevo adaptador `buildRawCharacter()` en `character.repository.ts`.
+- Antes, `/hydrated` calculaba manualmente solo `unarmored_ac = 10 + DEX_mod` ignorando armadura equipada, armadura pesada con penalización de velocidad y desventaja de sigilo.
+- Ahora `/hydrated` pasa los datos reales de Prisma al motor y devuelve todos los valores derivados correctos: CA con armadura/escudo, velocidad con penalización por armadura pesada, peso cargado, encumbrance, penalización de sigilo y PG con `level_1_hp_roll` real.
+- Se agregó la card `Carga / Monedas` en la pestaña `Mochila` de Inventario: muestra capacidad de carga con barra de progreso y columnas de monedas (PO / PP / PC) con íconos SVG y colores diferenciados.
+- La UI ahora lee `armor_class` (del motor) con fallback a `unarmored_ac`; `speed` muestra el valor final con penalización de armadura pesada en pies.
+- Se agregó badge de `Desventaja sigilo` en equipamiento cuando `stealth_disadvantage = true` en algún ítem equipado.
+
+### Archivos modificados
+- `src/repositories/character.repository.ts` — nuevo `buildRawCharacter()` que traduce Prisma → `RawCharacter`
+- `src/api/controllers/character.controller.ts` — `/hydrated` reescrito, usa `buildRawCharacter` + `hydrate()`
+- `src/engine/hydrate.ts` — agrega `level_1_hp_roll` en `RawCharacter`
+- `src/services/health.service.ts` — `calculateMaxHP` acepta `level1HpRoll` opcional
+- `ui.html` — card Carga/Monedas, lectura de `armor_class`, velocidad en pies, badge sigilo
+- `style.css` — `.inventory-carry-card` y estilos de monedas/barra de progreso
+
+### Historias de usuario relacionadas
+- US-138: Card Carga/Monedas en Mochila (nueva)
+- US-139: Hidratación completa de stats desde ítems equipados (nueva)
+
+### Notas técnicas
+- `buildRawCharacter()` es la única fuente de traducción Prisma → motor; no hay lógica de negocio ahí.
+- TypeCheck: 0 errores. Tests: 77/77 passing.
+- El campo `level_1_hp_roll` requiere la migración `20260430161500_add_level_1_hp_roll` aplicada.
+
+### Fuente / certeza
+- Basado en solicitud directa del usuario
+- Confirmado por `npm run typecheck` (0 errores) y `npm run test` (77/77)
+- Pendiente de validación visual en navegador con personaje que lleve armadura equipada
+
+---
+
 ## [2026-05-04] - Sugerencia de atributos e Inventario Figma
 
 ### Cambios

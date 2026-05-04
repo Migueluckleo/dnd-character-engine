@@ -1659,6 +1659,30 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 
 ---
 
+### US-138: Carry / Coins Card in Mochila Tab
+
+**As a** player managing a character's inventory, **I want** a visible carry capacity and coin summary card in the Mochila tab **so that** I know at a glance how much weight I'm carrying and what currencies I have.
+
+- **AC 138.1:** The Mochila tab must display a card showing current carried weight, max carrying capacity, and a visual progress bar.
+- **AC 138.2:** The card must show coin columns for PO (gold), PP (silver), and PC (copper) with distinct icon colors and bold values.
+- **AC 138.3:** Carried weight must be derived from the engine (`hydrate.ts`) and reflect equipped and carried item weights plus coin weight.
+- **AC 138.4:** The progress bar must change color or style when encumbered.
+
+---
+
+### US-139: Full Item-Stat Hydration via Engine
+
+**As a** player using the character sheet, **I want** all equipped item effects (AC, speed penalty, stealth disadvantage, encumbrance) to be reflected immediately in the character sheet **so that** the stats shown always match the rules for what I have equipped.
+
+- **AC 139.1:** The `/hydrated` endpoint must use `buildRawCharacter()` and `hydrate()` to derive all computed stats; no manual stat calculation is allowed in the controller.
+- **AC 139.2:** AC must reflect the equipped body armor category (light/medium/heavy) and shield, following SRD rules.
+- **AC 139.3:** Speed must reflect heavy armor penalty (`-10 ft`) when `STR < strength_requirement`.
+- **AC 139.4:** A stealth disadvantage badge must appear when any equipped item has `stealth_disadvantage = true`.
+- **AC 139.5:** Max HP must use the actual `level_1_hp_roll` value when available, not always the hit die maximum.
+- **AC 139.6:** Encumbrance (carried weight, capacity, is_encumbered) must be present in the hydrated response.
+
+---
+
 ## Implementation Status Addendum — 2026-04-30
 
 > Source priority: current code first, existing documentation second, available chat context third. Items marked `Pendiente de validación` require a full runtime/database verification before being treated as complete.
@@ -1699,5 +1723,7 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 | US-135 | Implementada / pendiente de validación visual en navegador | Current `ui.html` groups race cards by inferred parent/family order, keeps elf variants adjacent, leaves tiefling subraces as catalog-supported/pending validation, and moves Point Buy attributes into the late creation phase before skills/conjuros and HP. Current `style.css` adds family section styling. |
 | US-136 | Implementada / pendiente de validación visual en navegador | Current `ui.html` suggests valid Point Buy distributions based on class priority, background hint, and racial bonuses; users can apply the suggested base scores while preserving the no-double-racial-bonus contract. |
 | US-137 | Implementada parcial / pendiente de validación visual y modelo de monedas/alijo | Current `ui.html` and `style.css` add Figma-style `Equipo`, `Mochila`, `Alijo`, equipped-slot cards, dashed empty states, add-object search/filter/list flow, and quantity confirmation. Coin persistence and true storage locations remain pending backend modeling. |
+| US-138 | Implementada / pendiente de validación visual en navegador | Current `ui.html` adds `renderInventoryCarryCard()` with SVG bag/coin icons, progress bar, and PO/PP/PC columns in the Mochila tab. Weight is derived from the hydration engine (`h.carriedWeight`, `h.carryingCapacity`). Coin values read directly from the character record (`gp`, `sp`, `cp`). |
+| US-139 | Implementada / pendiente de validación visual con personaje armado | Current `character.repository.ts` adds `buildRawCharacter()` translating Prisma output to `RawCharacter`; current `character.controller.ts` `/hydrated` endpoint replaces ~120 lines of manual calculation with `buildRawCharacter()` + `hydrate()`. AC now uses equipped armor category, speed includes heavy-armor penalty, stealth disadvantage badge is shown, HP uses `level_1_hp_roll`, and encumbrance is included in the response. TypeCheck: 0 errors. Tests: 77/77 passing. |
 
-*End of requirements.md — Total User Stories: US-01 through US-137.*
+*End of requirements.md — Total User Stories: US-01 through US-139.*

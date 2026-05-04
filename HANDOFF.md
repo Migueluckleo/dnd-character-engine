@@ -9,6 +9,19 @@
 - El wizard de creación está orientado a mobile-first y debe seguir `docs/Create Character.pdf` y el Figma `DM-Dnd-App--Copy-`.
 - La documentación viva principal está en `docs/requirements.md`, `docs/plan.md`, `docs/tasks.md`, `.claude.md`, `CHANGELOG.md` y este archivo.
 
+## Últimos cambios realizados (2026-05-04) — Motor de hidratación completo
+
+- Se cableó el endpoint `/hydrated` con el motor `hydrate.ts` usando el nuevo adaptador `buildRawCharacter()` en `character.repository.ts`.
+- `buildRawCharacter()` traduce el resultado Prisma (snake_case, relaciones anidadas) a `RawCharacter` (camelCase, shape del motor). Es la única fuente de verdad para esta traducción.
+- `/hydrated` eliminó ~120 líneas de cálculo manual y ahora devuelve: CA real con armadura/escudo, velocidad con penalización por armadura pesada, peso cargado y capacidad, desventaja de sigilo, HP con `level_1_hp_roll` real, y todos los demás stats del motor.
+- `calculateMaxHP` acepta `level1HpRoll` opcional para usar la tirada real del mago en vez del máximo del dado.
+- Se agregó la card `Carga / Monedas` en la pestaña `Mochila` con barra de progreso, íconos SVG de mochila y monedas (PO/PP/PC) en colores diferenciados.
+- La UI lee `computed.armor_class` (del motor) con fallback a `unarmored_ac`; `computed.speed` muestra el valor final en pies con penalización de armadura pesada ya aplicada.
+- Se agregó badge de `Desventaja sigilo` en equipamiento cuando algún ítem equipado tiene `stealth_disadvantage = true`.
+- TypeCheck: 0 errores. Tests: 77/77 passing.
+- Se agregaron US-138 y US-139.
+- Pendiente: validar visualmente en navegador con un personaje que lleve armadura equipada (confirmar CA cambia, velocidad baja con armadura pesada, y que la card de carga muestre valores correctos).
+
 ## Últimos cambios realizados (2026-05-04)
 
 - Se agregó recomendación óptima de atributos en el wizard: usa clase como prioridad principal, trasfondo como ajuste secundario y raza para mostrar el resultado final.
@@ -318,6 +331,8 @@
 - US-135: agrupación experta de razas y atributos tardíos. Implementada, pendiente de validación visual en navegador.
 - US-136: recomendación óptima de atributos por raza/clase/trasfondo. Implementada, pendiente de validación visual.
 - US-137: sección Inventario Figma con Equipo/Mochila/Alijo y agregar objeto. Implementada parcial, pendiente de monedas/alijo persistente y QA visual.
+- US-138: card Carga/Monedas en Mochila con barra de progreso y columnas PO/PP/PC. Implementada, pendiente de validación visual en navegador.
+- US-139: hidratación completa de stats desde ítems equipados (CA, velocidad, sigilo, PG, encumbrance). Implementada vía `buildRawCharacter` + `hydrate()`, pendiente de validación visual con personaje armado.
 
 ## Decisiones técnicas tomadas
 
@@ -395,29 +410,31 @@
 ## Pendientes prioritarios
 
 1. ~~Aplicar la migración `20260430161500_add_level_1_hp_roll`~~ **PENDIENTE DE CONFIRMAR** — El SQL tenía `ALTER TABLE "character"` (minúscula) pero la tabla real es `"Character"` (mayúscula, creada en la primera migración). Se corrigió el archivo SQL. Para aplicar: `npx prisma migrate resolve --rolled-back 20260430161500_add_level_1_hp_roll` y luego `npx prisma migrate deploy`. Sin esta migración, abrir cualquier personaje falla con error 500 (P3018 / 42P01).
-2. Validar visualmente el wizard, roster y microflujo de detalle contra `docs/Create Character.pdf` y Figma en navegador real, especialmente screenshots de autoavance, cards `Tu selección`, card `beast-card-B`, bottom nav, personaje abierto, tabs, textos, tipografías, paleta, espaciados y orden de pantallas.
-3. Validar visualmente la nueva sección de PG y el modal `Puntos de golpe Modal` contra los nodos Figma `2052:305` y `2052:472`, incluyendo edición con steppers, guardado de PG actuales y guardado de PG temporales.
-4. Validar visualmente el loader global durante cargas lentas y guardados, especialmente que no bloquee demasiado rápido la lectura del estado cuando la respuesta es inmediata.
-5. ~~Limpiar `ui.html`~~ **COMPLETADO** — Se eliminaron 425 líneas de código muerto. Cada función del wizard ahora tiene exactamente una definición.
-6. Validar visualmente la pantalla `Equipamiento` contra Figma y probar creación real de personaje con cada clase principal para detectar objetos faltantes en seeds.
-7. Ejecutar pruebas completas con PostgreSQL configurado: `npm run test`, `npm run test:integration`, migraciones y seed.
-8. **Validar end-to-end creación de personaje de nivel alto desde UI** — especialmente flujo de ASI corregido: Bardo Nv4 + Escuela de Saber + subclase + +2 CAR, verificar que la ficha abierta muestre el valor correcto.
-9. ~~Verificar si el level-up wizard cubre completamente ASI/dotes, conjuros nuevos y selección de subclase fuera de nivel 1.~~ **IMPLEMENTADO** — El wizard ahora incluye paso de ASI para personajes L4+, muestra subclase para clases que la desbloquean en L3+, y ofrece conjuros hasta el nivel máximo accesible según la clase y nivel. Ver CHANGELOG [2026-04-30].
-10. ~~Revisar seed data de items contra SRD/manual~~ **COMPLETADO** — `prisma/seeds/item.ts` reescrito con 287 items en 11 categorías (ver CHANGELOG [2026-04-30] Catálogo completo de items SRD 5.1). Ejecutar `npm run db:seed` después de aplicar la migración pendiente.
-11. Definir persistencia backend para imagen/avatar de personaje si la plataforma debe sincronizar imágenes entre navegadores o dispositivos.
-12. Validar visualmente en navegador los nuevos flujos `Lanzar Dado Flujo de ataque` y `Lanzamiento de conjuro` contra Figma: tamaños, spacing, estados disabled, textos, descuento de munición y consumo de espacios.
-13. Validar visualmente la animación de dados en navegador real, incluyendo `prefers-reduced-motion` y que no permita doble tirada durante el movimiento.
-14. Validar visualmente el nuevo desglose de ataque con competencia y los badges de habilidades/salvaciones en un personaje con armas competentes y otro con arma no competente.
-15. Aplicar migración de perfiles en la base remota con `npx prisma migrate deploy`. Evitar `npm run db:migrate` contra Supabase si pregunta por reset del schema, porque puede borrar datos.
-16. Definir política para personajes legados sin dueño: dejarlos en modo local, migrarlos manualmente a un perfil, o crear una acción explícita “Importar a mi perfil”.
-17. Configurar `AUTH_SECRET` en `.env` antes de usar perfiles fuera de desarrollo local.
-18. Activar GitHub Pages en el repositorio real y confirmar que el workflow publica el sitio estático.
-19. Si se despliega backend aparte, actualizar `config.public.js` con la URL pública de la API. No agregar secretos en ese archivo.
+2. **Validar hidratación completa en navegador** — Equipar una armadura a un personaje y confirmar que la ficha muestra CA correcta (no `10 + DEX`), velocidad con penalización de armadura pesada cuando STR es baja, y card de Carga/Monedas con valores reales. Requiere que la migración `20260430161500_add_level_1_hp_roll` esté aplicada.
+3. Validar visualmente el wizard, roster y microflujo de detalle contra `docs/Create Character.pdf` y Figma en navegador real, especialmente screenshots de autoavance, cards `Tu selección`, card `beast-card-B`, bottom nav, personaje abierto, tabs, textos, tipografías, paleta, espaciados y orden de pantallas.
+4. Validar visualmente la nueva sección de PG y el modal `Puntos de golpe Modal` contra los nodos Figma `2052:305` y `2052:472`, incluyendo edición con steppers, guardado de PG actuales y guardado de PG temporales.
+5. Validar visualmente el loader global durante cargas lentas y guardados, especialmente que no bloquee demasiado rápido la lectura del estado cuando la respuesta es inmediata.
+6. ~~Limpiar `ui.html`~~ **COMPLETADO** — Se eliminaron 425 líneas de código muerto. Cada función del wizard ahora tiene exactamente una definición.
+7. Validar visualmente la pantalla `Equipamiento` contra Figma y probar creación real de personaje con cada clase principal para detectar objetos faltantes en seeds.
+8. Ejecutar pruebas completas con PostgreSQL configurado: `npm run test`, `npm run test:integration`, migraciones y seed.
+9. **Validar end-to-end creación de personaje de nivel alto desde UI** — especialmente flujo de ASI corregido: Bardo Nv4 + Escuela de Saber + subclase + +2 CAR, verificar que la ficha abierta muestre el valor correcto.
+10. ~~Verificar si el level-up wizard cubre completamente ASI/dotes, conjuros nuevos y selección de subclase fuera de nivel 1.~~ **IMPLEMENTADO** — El wizard ahora incluye paso de ASI para personajes L4+, muestra subclase para clases que la desbloquean en L3+, y ofrece conjuros hasta el nivel máximo accesible según la clase y nivel. Ver CHANGELOG [2026-04-30].
+11. ~~Revisar seed data de items contra SRD/manual~~ **COMPLETADO** — `prisma/seeds/item.ts` reescrito con 287 items en 11 categorías (ver CHANGELOG [2026-04-30] Catálogo completo de items SRD 5.1). Ejecutar `npm run db:seed` después de aplicar la migración pendiente.
+12. Definir persistencia backend para imagen/avatar de personaje si la plataforma debe sincronizar imágenes entre navegadores o dispositivos.
+13. Validar visualmente en navegador los nuevos flujos `Lanzar Dado Flujo de ataque` y `Lanzamiento de conjuro` contra Figma: tamaños, spacing, estados disabled, textos, descuento de munición y consumo de espacios.
+14. Validar visualmente la animación de dados en navegador real, incluyendo `prefers-reduced-motion` y que no permita doble tirada durante el movimiento.
+15. Validar visualmente el nuevo desglose de ataque con competencia y los badges de habilidades/salvaciones en un personaje con armas competentes y otro con arma no competente.
+16. Aplicar migración de perfiles en la base remota con `npx prisma migrate deploy`. Evitar `npm run db:migrate` contra Supabase si pregunta por reset del schema, porque puede borrar datos.
+17. Definir política para personajes legados sin dueño: dejarlos en modo local, migrarlos manualmente a un perfil, o crear una acción explícita “Importar a mi perfil”.
+18. Configurar `AUTH_SECRET` en `.env` antes de usar perfiles fuera de desarrollo local.
+19. Activar GitHub Pages en el repositorio real y confirmar que el workflow publica el sitio estático.
+20. Si se despliega backend aparte, actualizar `config.public.js` con la URL pública de la API. No agregar secretos en ese archivo.
 
 ## Riesgos o inconsistencias detectadas
 
 - El daño de ataque/conjuro aún no puede aplicarse a criaturas objetivo porque el proyecto no tiene módulo de enemigos/combate contra NPCs; por ahora se muestra para resolución del DM.
-- `src/api/controllers/character.controller.ts` contiene lógica de creación/hidratación parcialmente duplicada respecto a servicios y `src/engine/hydrate.ts`; conviene unificar gradualmente.
+- El endpoint `/hydrated` fue reescrito para usar `buildRawCharacter()` + `hydrate()`; la duplicación de cálculo manual fue eliminada. Si en el futuro se agrega lógica directamente en el controller (ej. stats adicionales), debe seguir usando el motor, no reimplementar fórmulas.
+- `buildRawCharacter()` usa `as any` en varios cast de Prisma porque los tipos generados no siempre coinciden exactamente con las interfaces del motor. Si se regenera el cliente Prisma (ej. tras migración), verificar que los campos mapeados no cambien de nombre.
 - La completitud exacta de seeds SRD está pendiente de validación contra manual.
 - Las pruebas de integración pueden requerir PostgreSQL y `.env` correctamente configurados.
 - La migración de `level_1_hp_roll` falló con P3018/42P01 porque el SQL usaba `"character"` (minúscula) pero la tabla en Postgres es `"Character"`. Corregido en `migration.sql`. Requiere `prisma migrate resolve --rolled-back` antes de re-aplicar.

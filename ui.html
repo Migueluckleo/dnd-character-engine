@@ -1191,7 +1191,7 @@ function renderCastSpellCard(knownSpell) {
     s.duration ?? '',
   ].filter(Boolean).slice(0, 4);
   return `<article class="dice-equipment-card">
-    <div class="dice-equipment-head"><div><strong>${escapeText(s.name ?? 'Conjuro')}</strong></div><em>${escapeText(school)}</em></div>
+    <div class="dice-equipment-head"><div><strong>${escapeText(SPELL_NAME_ES[s.name] ?? s.name ?? 'Conjuro')}</strong></div><em>${escapeText(school)}</em></div>
     <div class="dice-tag-row">${chips.map(c => `<span>${escapeText(c)}</span>`).join('')}</div>
     <p>${escapeText(spellEffectSummary(s) || spellDescription(s, getKnownSpellLevel(knownSpell) === 0 ? 'Truco' : `Nivel ${getKnownSpellLevel(knownSpell)}`, school))}</p>
     <button class="dice-info-link" onclick="showSpellInfo('${encodeURIComponent(s.name ?? 'Conjuro')}', '${encodeURIComponent(spellDescription(s, 'Conjuro', school))}')">Ver más información</button>
@@ -1234,7 +1234,7 @@ function renderSpellDie() {
   const resultUnit = spell?.effects?.heal ? 'Puntos de Golpe curados' : spell?.effects?.temp_hp ? 'Puntos de Golpe temporales' : 'Puntos de Golpe';
   const dc = characterData?.computed?.spell_save_dc;
   return `<section class="dice-roll-panel">
-    <div class="dice-copy"><h1>${escapeText(spell.name || 'Conjuro')}</h1><p>Elige el tipo de dado a usar según las condiciones.</p></div>
+    <div class="dice-copy"><h1>${escapeText((SPELL_NAME_ES[spell.name] ?? spell.name) || 'Conjuro')}</h1><p>Elige el tipo de dado a usar según las condiciones.</p></div>
     <label class="dice-select-label">Elige el dado a usar</label>
     <select class="dice-select" onchange="diceFlow.selectedDie=this.value; renderDiceFlow()">
       ${options.map(o => `<option value="${o.formula}" ${o.formula === diceFlow.selectedDie ? 'selected' : ''}>${o.label}</option>`).join('')}
@@ -1756,10 +1756,8 @@ const SCHOOL_ES = {
 
 // ── Spell name translations (level 0 & 1 — shown in wizard) ──────────────────
 const SPELL_NAME_ES = {
-  // ── Trucos (nivel 0) ──
-  'Acid Splash':       'Salpicadura de Ácido',
-  'Blade Ward':        'Protección de Espada',
-  'Chill Touch':       'Toque Gélido',
+  // ── Trucos (Nivel 0) ──────────────────────────────────────────────────────
+  'Acid Splash':'Salpicadura de Ácido','Blade Ward':'Protección de Espada','Chill Touch':'Toque Gélido',
   'Dancing Lights':    'Luces Danzantes',
   'Druidcraft':        'Arte Druídico',
   'Eldritch Blast':    'Descarga Sobrenatural',
@@ -1902,9 +1900,133 @@ const SPELL_NAME_ES = {
   'Skywrite':                 'Escritura Celeste',
   'Spike Growth':             'Crecimiento de Pinchos',
   'Spiritual Weapon':         'Arma Espiritual',
-  'Suggestion':               'Sugestión',
-  'Warding Bond':             'Vínculo Protector',
-  'Web':                      'Telaraña',
+  'Suggestion':'Sugestión','Warding Bond':'Vínculo Protector','Web':'Telaraña',
+  // ── Nivel 3 ───────────────────────────────────────────────────────────────
+  'Animate Dead':'Animar Muertos','Aura of Vitality':'Aura de Vitalidad','Beacon of Hope':'Faro de Esperanza',
+  'Bestow Curse':'Imponer Maldición','Blink':'Parpadeo','Call Lightning':'Invocar Rayo',
+  'Clairvoyance':'Clarividencia','Conjure Animals':'Convocar Animales','Conjure Barrage':'Lluvia de Proyectiles',
+  'Conjure Minor Elementals':'Convocar Elementales Menores','Conjure Woodland Beings':'Convocar Seres del Bosque',
+  'Counterspell':'Contrahechizo','Create Food and Water':'Crear Alimentos y Agua','Crusader\'s Mantle':'Manto del Cruzado',
+  'Daylight':'Luz del Día','Dispel Magic':'Disipar Magia','Fear':'Miedo',
+  'Feign Death':'Fingir Muerte','Fireball':'Bola de Fuego','Fly':'Volar',
+  'Gaseous Form':'Forma Gaseosa','Glyph of Warding':'Glifo de Custodia','Haste':'Acelerar',
+  'Hypnotic Pattern':'Patrón Hipnótico','Leomund\'s Tiny Hut':'Pequeña Cabaña de Leomund',
+  'Lightning Bolt':'Rayo','Magic Circle':'Círculo Mágico','Major Image':'Imagen Mayor',
+  'Mass Healing Word':'Palabra Curativa en Masa','Meld into Stone':'Fusionarse con Piedra',
+  'Melf\'s Minute Meteors':'Diminutos Meteoros de Melf','Nondetection':'No Detección',
+  'Phantom Steed':'Corcel Fantasmal','Plant Growth':'Crecimiento Vegetal',
+  'Protection from Energy':'Protección contra Energía','Remove Curse':'Eliminar Maldición',
+  'Revivify':'Revivir','Sending':'Enviar Mensaje','Sleet Storm':'Tormenta de Granizo',
+  'Slow':'Ralentizar','Speak with Dead':'Hablar con los Muertos','Speak with Plants':'Hablar con las Plantas',
+  'Spirit Guardians':'Guardianes Espirituales','Stinking Cloud':'Nube Fétida','Thunder Step':'Paso de Trueno',
+  'Tidal Wave':'Ola Gigante','Tiny Servant':'Sirviente Diminuto','Tongues':'Lenguas',
+  'Vampiric Touch':'Toque Vampírico','Water Breathing':'Respirar Bajo el Agua','Water Walk':'Caminar sobre el Agua',
+  'Wind Wall':'Muro de Viento',
+  // ── Nivel 4 ───────────────────────────────────────────────────────────────
+  'Arcane Eye':'Ojo Arcano','Aura of Life':'Aura de Vida','Aura of Purity':'Aura de Pureza',
+  'Banishment':'Destierro','Blight':'Plaga','Charm Monster':'Encantar Monstruo',
+  'Compulsion':'Compulsión','Confusion':'Confusión','Conjure Minor Elementals':'Convocar Elementales Menores',
+  'Control Water':'Controlar el Agua','Death Ward':'Protección contra la Muerte',
+  'Dimension Door':'Puerta Dimensional','Divination':'Adivinación','Dominate Beast':'Dominar Bestia',
+  'Elemental Weapon':'Arma Elemental','Evard\'s Black Tentacles':'Tentáculos Negros de Evard',
+  'Fabricate':'Fabricar','Fire Shield':'Escudo de Fuego','Freedom of Movement':'Libertad de Movimiento',
+  'Giant Insect':'Insecto Gigante','Grasping Vine':'Enredadera Aferradora',
+  'Greater Invisibility':'Invisibilidad Superior','Guardian of Faith':'Guardián de la Fe',
+  'Hallucinatory Terrain':'Terreno Alucinatorio','Ice Storm':'Tormenta de Hielo',
+  'Locate Creature':'Localizar Criatura','Mordenkainen\'s Faithful Hound':'Sabueso Fiel de Mordenkainen',
+  'Otiluke\'s Resilient Sphere':'Esfera Resistente de Otiluke','Phantasmal Killer':'Asesino Fantasmal',
+  'Polymorph':'Polimorfismo','Secret Chest':'Cofre Secreto','Stone Shape':'Dar Forma a la Piedra',
+  'Stoneskin':'Piel Pétrea','Storm Sphere':'Esfera de Tormenta','Wall of Fire':'Muro de Fuego',
+  'Watery Sphere':'Esfera Acuosa',
+  // ── Nivel 5 ───────────────────────────────────────────────────────────────
+  'Animate Objects':'Animar Objetos','Antilife Shell':'Escudo Anticriaturas',
+  'Awaken':'Despertar','Banishing Smite':'Golpe de Destierro','Bigby\'s Hand':'Mano de Bigby',
+  'Circle of Power':'Círculo de Poder','Cloudkill':'Mortaja de Veneno',
+  'Commune':'Comunión','Commune with Nature':'Comunión con la Naturaleza',
+  'Cone of Cold':'Cono de Frío','Conjure Celestial':'Convocar Celestial',
+  'Conjure Elemental':'Convocar Elemental','Conjure Fey':'Convocar Hada','Conjure Volley':'Lluvia de Proyectiles',
+  'Contact Other Plane':'Contactar con otro Plano','Contagion':'Contagio','Contingency':'Contingencia',
+  'Control Winds':'Controlar Vientos','Create Undead':'Crear No Muerto','Dawn':'Alba',
+  'Destructive Wave':'Onda Destructora','Dispel Evil and Good':'Disipar el Bien y el Mal',
+  'Dominate Person':'Dominar Persona','Dream':'Sueño','Enervation':'Enervación',
+  'Far Step':'Paso Lejano','Flame Strike':'Golpe de Llama','Geas':'Geis','Hallow':'Consagrar',
+  'Hold Monster':'Paralizar Monstruo','Holy Aura':'Aura Sagrada','Immolation':'Inmolación',
+  'Infernal Calling':'Llamada Infernal','Insect Plague':'Plaga de Insectos',
+  'Investiture of Flame':'Investidura de Llama','Investiture of Ice':'Investidura de Hielo',
+  'Investiture of Stone':'Investidura de Piedra','Investiture of Wind':'Investidura de Viento',
+  'Legend Lore':'Leyenda de Conocimiento','Maelstrom':'Maelstrom',
+  'Mass Cure Wounds':'Curar Heridas en Masa','Mislead':'Confundir','Modify Memory':'Modificar Recuerdo',
+  'Passwall':'Paso por Muros','Planar Binding':'Vínculo Planar','Raise Dead':'Resucitar',
+  'Rary\'s Telepathic Bond':'Vínculo Telepático de Rary','Reincarnate':'Reencarnar',
+  'Scrying':'Escudriñar','Seeming':'Apariencia','Skill Empowerment':'Potenciación de Habilidad',
+  'Steel Wind Strike':'Golpe del Viento de Acero','Swift Quiver':'Carcaj Veloz','Symbol':'Símbolo',
+  'Synaptic Static':'Estática Sináptica','Telekinesis':'Telequinesis','Teleportation Circle':'Círculo de Teletransportación',
+  'Transmute Rock':'Transmutar Roca','Tree Stride':'Paso Arbóreo','Wall of Force':'Muro de Fuerza',
+  'Wall of Light':'Muro de Luz','Wall of Stone':'Muro de Piedra','Wrath of Nature':'Ira de la Naturaleza',
+  // ── Nivel 6 ───────────────────────────────────────────────────────────────
+  'Arcane Gate':'Puerta Arcana','Blade Barrier':'Barrera de Espadas','Chain Lightning':'Rayo en Cadena',
+  'Circle of Death':'Círculo de la Muerte','Conjure Fey':'Convocar Hada','Create Undead':'Crear No Muerto',
+  'Disintegrate':'Desintegrar','Divine Word':'Palabra Divina','Dominate Monster':'Dominar Monstruo',
+  'Drawmij\'s Instant Summons':'Invocación Instantánea de Drawmij','Eyebite':'Mirada de la Muerte',
+  'Flesh to Stone':'Carne a Piedra','Forbiddance':'Prohibición','Forcecage':'Jaula de Fuerza',
+  'Globe of Invulnerability':'Globo de Invulnerabilidad','Guards and Wards':'Guardias y Barreras',
+  'Harm':'Dañar','Heal':'Curar','Heroes\' Feast':'Banquete de Héroes',
+  'Illusory Dragon':'Dragón Ilusorio','Imprisonment':'Encarcelamiento',
+  'Investiture of Flame':'Investidura de Llama','Magic Jar':'Jarra Mágica',
+  'Mass Suggestion':'Sugestión en Masa','Mental Prison':'Prisión Mental',
+  'Move Earth':'Mover la Tierra','Otiluke\'s Freezing Sphere':'Esfera Helada de Otiluke',
+  'Otto\'s Irresistible Dance':'Danza Irresistible de Otto','Primordial Ward':'Protección Primordial',
+  'Programmed Illusion':'Ilusión Programada','Sunbeam':'Rayo de Sol','Transport via Plants':'Transporte por Plantas',
+  'True Seeing':'Visión Verdadera','Wall of Ice':'Muro de Hielo','Wall of Thorns':'Muro de Espinas',
+  'Wind Walk':'Caminar con el Viento','Word of Recall':'Palabra de Retorno',
+  // ── Nivel 7 ───────────────────────────────────────────────────────────────
+  'Conjure Celestial':'Convocar Celestial','Delayed Blast Fireball':'Bola de Fuego de Estallido Retrasado',
+  'Demiplane':'Demiplanno','Divine Word':'Palabra Divina','Etherealness':'Etereidad',
+  'Finger of Death':'Dedo de la Muerte','Fire Storm':'Tormenta de Fuego','Forcecage':'Jaula de Fuerza',
+  'Mirage Arcane':'Espejismo Arcano','Mordenkainen\'s Magnificent Mansion':'Mansión Magnífica de Mordenkainen',
+  'Mordenkainen\'s Sword':'Espada de Mordenkainen','Plane Shift':'Cambio de Plano',
+  'Power Word Pain':'Palabra de Poder: Dolor','Project Image':'Proyectar Imagen',
+  'Regenerate':'Regenerar','Resurrection':'Resurrección','Reverse Gravity':'Invertir Gravedad',
+  'Sequester':'Ocultar','Simulacrum':'Simulacro','Symbol':'Símbolo','Teleport':'Teletransportar',
+  'Temple of the Gods':'Templo de los Dioses','Tenser\'s Floating Disk':'Disco Flotante de Tenser',
+  'Whirlwind':'Torbellino',
+  // ── Nivel 8 ───────────────────────────────────────────────────────────────
+  'Abi-Dalzim\'s Horrid Wilting':'Marchitamiento Horroroso de Abi-Dalzim',
+  'Antimagic Field':'Campo Antimagia','Antipathy/Sympathy':'Antipatía/Simpatía',
+  'Arcane Hand':'Mano Arcana','Befuddlement':'Ofuscamiento','Clone':'Clonar',
+  'Control Weather':'Controlar el Tiempo Atmosférico','Demiplane':'Demiplano',
+  'Dominate Monster':'Dominar Monstruo','Earthquake':'Terremoto','Feeblemind':'Debilitar Mente',
+  'Glibness':'Labia','Holy Aura':'Aura Sagrada','Illusory Dragon':'Dragón Ilusorio',
+  'Incendiary Cloud':'Nube Incendiaria','Maddening Darkness':'Oscuridad Enloquecedora',
+  'Maze':'Laberinto','Mind Blank':'Mente en Blanco','Power Word Stun':'Palabra de Poder: Aturdir',
+  'Psychic Scream':'Grito Psíquico','Sunburst':'Destellazo','Telepathy':'Telepatía',
+  'Tsunami':'Tsunami','Vitriolic Sphere':'Esfera Vitriólica','Wall of Sand':'Muro de Arena',
+  'Wall of Water':'Muro de Agua',
+  // ── Nivel 9 ───────────────────────────────────────────────────────────────
+  'Astral Projection':'Proyección Astral','Foresight':'Previsión','Gate':'Puerta',
+  'Imprisonment':'Encarcelamiento','Invulnerability':'Invulnerabilidad',
+  'Mass Polymorph':'Polimorfismo en Masa','Meteor Swarm':'Lluvia de Meteoros',
+  'Mind Blank':'Mente en Blanco','Power Word Heal':'Palabra de Poder: Curar',
+  'Power Word Kill':'Palabra de Poder: Matar','Prismatic Spray':'Rocío Prismático',
+  'Prismatic Wall':'Muro Prismático','Psychic Scream':'Grito Psíquico',
+  'Shapechange':'Cambio de Forma','Storm of Vengeance':'Tormenta de Venganza',
+  'Time Stop':'Parar el Tiempo','True Polymorph':'Polimorfismo Verdadero',
+  'True Resurrection':'Resurrección Verdadera','Weird':'Lo Insólito','Wish':'Deseo',
+  // ── Otros / múltiples niveles ─────────────────────────────────────────────
+  'Animal Shapes':'Formas Animales','Creation':'Creación','Greater Restoration':'Restauración Mayor',
+  'Hunger of Hadar':'Hambre de Hadar','Lightning Arrow':'Flecha de Rayo','Spider Climb':'Trepar por Muros',
+  'Thunderous Smite':'Golpe Atronador','Zone of Truth':'Zona de Verdad','Ray of Enfeeblement':'Rayo de Debilitamiento',
+  'Blindness/Deafness':'Ceguera/Sordera','Bones of the Earth':'Huesos de la Tierra',
+  'Branding Smite':'Golpe Ardiente','Catapult':'Catapulta','Cloud of Daggers':'Nube de Dagas',
+  'Crown of Madness':'Corona de Locura','Darkness':'Oscuridad','Dragon\'s Breath':'Aliento de Dragón',
+  'Dust Devil':'Diablo de Polvo','Earthbind':'Atar a la Tierra','Enthrall':'Fascinar',
+  'Find the Path':'Encontrar el Camino','Frostbite':'Quemadura de Frío',
+  'Hunter\'s Mark':'Marca del Cazador','Ice Knife':'Cuchillo de Hielo',
+  'Locate Animals or Plants':'Localizar Animales o Plantas','Locate Object':'Localizar Objeto',
+  'Mass Heal':'Curación Masiva','Melf\'s Acid Arrow':'Flecha Ácida de Melf',
+  'Mind Spike':'Aguijón Mental','Nystul\'s Magic Aura':'Aura Mágica de Nystul',
+  'Phantasmal Force':'Fuerza Fantasmal','Soul Cage':'Jaula del Alma',
+  'Tether Essence':'Vincular Esencia','Wall of Sand':'Muro de Arena','Wall of Water':'Muro de Agua',
 };
 
 /** Compute expected skill bonus from current wizard state */
@@ -2796,16 +2918,121 @@ const EQUIPMENT_PRESETS = {
 };
 
 const ITEM_NAME_ES = {
-  'Mace':'Maza','Warhammer':'Martillo de guerra','Leather Armor':'Armadura de cuero','Scale Mail':'Cota de escamas',
-  'Chain Mail':'Cota de malla','Light Crossbow':'Ballesta ligera','Crossbow Bolts (20)':'Virotes',
-  'Spear':'Lanza','Holy Symbol':'Simbolo sagrado',"Priest's Pack":'Paquete de Sacerdote',"Explorer's Pack":'Paquete de explorador',
-  "Dungeoneer's Pack":'Paquete de exploracion de mazmorras',"Burglar's Pack":'Paquete de ladron',"Diplomat's Pack":'Paquete de diplomatico',
-  "Entertainer's Pack":'Paquete de artista',"Scholar's Pack":'Paquete de erudito','Greataxe':'Gran hacha','Battleaxe':'Hacha de batalla',
-  'Handaxe':'Hacha de mano','Rapier':'Estoque','Longsword':'Espada larga','Dagger':'Daga','Quarterstaff':'Baston',
-  'Sickle':'Hoz','Scimitar':'Cimitarra','Shield':'Escudo','Javelin':'Jabalina','Shortsword':'Espada corta',
-  'Longbow':'Arco largo','Shortbow':'Arco corto','Arrows (20)':'Flechas','Dart':'Dardo','Component Pouch':'Bolsa de componentes',
-  'Arcane Focus (Staff)':'Foco arcano: baston','Arcane Focus (Rod)':'Foco arcano: vara','Arcane Focus (Wand)':'Foco arcano: varita',
-  'Druidic Focus (Wooden Staff)':'Foco druidico','Spellbook':'Libro de conjuros',"Thieves' Tools":'Herramientas de ladron',
+  // ── Armaduras ──────────────────────────────────────────────────────────────
+  'Padded Armor':'Armadura Acolchada','Leather Armor':'Armadura de Cuero','Studded Leather':'Cuero Tachonado',
+  'Hide Armor':'Armadura de Pieles','Chain Shirt':'Camisote de Mallas','Scale Mail':'Cota de Escamas',
+  'Breastplate':'Peto','Half Plate Armor':'Media Armadura de Placas','Ring Mail':'Cota de Anillas',
+  'Chain Mail':'Cota de Mallas','Splint Armor':'Armadura de Tablillas','Plate Armor':'Armadura de Placas',
+  'Shield':'Escudo',
+  // ── Armas simples ──────────────────────────────────────────────────────────
+  'Club':'Porra','Dagger':'Daga','Greatclub':'Gran Porra','Handaxe':'Hacha de Mano','Javelin':'Jabalina',
+  'Light Hammer':'Martillo Ligero','Mace':'Maza','Quarterstaff':'Bastón','Sickle':'Hoz','Spear':'Lanza',
+  'Light Crossbow':'Ballesta Ligera','Dart':'Dardo','Shortbow':'Arco Corto','Sling':'Honda',
+  // ── Armas marciales ────────────────────────────────────────────────────────
+  'Battleaxe':'Hacha de Batalla','Flail':'Mayal','Glaive':'Guja','Greataxe':'Gran Hacha',
+  'Greatsword':'Gran Espada','Halberd':'Alabarda','Lance':'Lanza de Caballería','Longsword':'Espada Larga',
+  'Maul':'Maza Grande','Morningstar':'Estrella de la Mañana','Pike':'Pica','Rapier':'Estoque',
+  'Scimitar':'Cimitarra','Shortsword':'Espada Corta','Trident':'Tridente','War Pick':'Pico de Guerra',
+  'Warhammer':'Martillo de Guerra','Whip':'Látigo','Blowgun':'Cerbatana','Hand Crossbow':'Ballesta de Mano',
+  'Heavy Crossbow':'Ballesta Pesada','Longbow':'Arco Largo','Net':'Red',
+  // ── Munición ───────────────────────────────────────────────────────────────
+  'Arrows (20)':'Flechas (20)','Crossbow Bolts (20)':'Virotes (20)','Sling Bullets (20)':'Balas de Honda (20)',
+  'Blowgun Needles (50)':'Agujas de Cerbatana (50)','Silver Arrow':'Flecha de Plata',
+  // ── Equipo de aventurero ───────────────────────────────────────────────────
+  'Abacus':'Ábaco','Acid (vial)':'Ácido (vial)',"Alchemist's Fire":'Fuego de Alquimista',
+  'Antitoxin (vial)':'Antitoxina (vial)','Backpack':'Mochila','Ball Bearings (bag)':'Cojinetes de Acero (bolsa)',
+  'Basic Poison (vial)':'Veneno Básico (vial)','Basket':'Cesta','Bedroll':'Saco de Dormir','Bell':'Campana',
+  'Blanket':'Manta','Block and Tackle':'Polipasto','Bottle, Glass':'Botella de Vidrio','Bucket':'Cubo',
+  'Caltrops (bag of 20)':'Abrojos (bolsa de 20)','Candle':'Vela','Case, Map or Scroll':'Tubo para Mapas',
+  'Chain (10ft)':'Cadena (3m)','Chalk (1 piece)':'Tiza','Chest':'Cofre','Crossbow Bolt Case':'Carcaj de Virotes',
+  'Crowbar':'Palanca','Disguise Kit':'Kit de Disfraz','Fishing Tackle':'Equipo de Pesca','Flask':'Frasco',
+  'Forgery Kit':'Kit de Falsificación','Grappling Hook':'Garfio','Hammer':'Martillo','Hammer, Sledge':'Mazo',
+  "Healer's Kit":'Kit de Curación','Holy Symbol':'Símbolo Sagrado',
+  'Holy Symbol (Amulet)':'Símbolo Sagrado (Amuleto)','Holy Symbol (Emblem)':'Símbolo Sagrado (Emblema)',
+  'Holy Symbol (Reliquary)':'Símbolo Sagrado (Relicario)','Holy Water (flask)':'Agua Bendita (frasco)',
+  'Hourglass':'Reloj de Arena','Hunting Trap':'Trampa de Caza','Incense':'Incienso','Ink':'Tinta',
+  'Ink (1 ounce)':'Tinta (1 onza)','Inkpen':'Pluma de Escribir','Insignia of Rank':'Insignia de Rango',
+  'Iron Pot':'Olla de Hierro','Iron Spike':'Clavo de Hierro','Jug':'Jarra','Ladder (10ft)':'Escalera (3m)',
+  'Lamp':'Lámpara','Lantern, Bullseye':'Linterna de Ojo de Buey','Lantern, Hooded':'Linterna con Capucha',
+  'Lock':'Candado','Magnifying Glass':'Lupa','Manacles':'Grilletes','Mess Kit':'Kit de Campaña',
+  "Miner's Pick":'Pico de Minero','Mirror, Steel':'Espejo de Acero','Oil (flask)':'Aceite (frasco)',
+  'Paper (sheet)':'Papel (hoja)','Parchment (sheet)':'Pergamino (hoja)','Perfume (vial)':'Perfume (vial)',
+  'Piton':'Pitón','Pole (10ft)':'Palo (3m)','Portable Ram':'Ariete Portátil','Pouch':'Bolsa',
+  'Prayer Book':'Libro de Oraciones','Quiver':'Carcaj','Rations (1 day)':'Raciones (1 día)',
+  'Rope, Hempen (50ft)':'Cuerda de Cáñamo (15m)','Rope (Silk)':'Cuerda de Seda',
+  'Rope, Silk (50ft)':'Cuerda de Seda (15m)','Sack':'Saco',"Scale, Merchant's":'Balanza de Mercader',
+  'Scroll of Lore':'Pergamino de Conocimiento','Scroll of Pedigree':'Pergamino de Pedigree',
+  'Sealing Wax':'Lacre','Signal Whistle':'Silbato de Señales','Signet Ring':'Anillo de Sello',
+  'Soap':'Jabón','Spellbook':'Libro de Conjuros','Spyglass':'Catalejo',
+  'Tent, Two-Person':'Tienda de Campaña (2 personas)','Tinderbox':'Yesca','Torch':'Antorcha',
+  'Trophy':'Trofeo','Vial':'Vial','Vestments':'Vestiduras','Waterskin':'Odre',
+  'Whetstone':'Piedra de Afilar','Wooden Stake':'Estaca de Madera','Shovel':'Pala',
+  // ── Ropa ───────────────────────────────────────────────────────────────────
+  'Common Clothes':'Ropa Común','Costume':'Disfraz','Fine Clothes':'Ropa Elegante',
+  'Robe':'Túnica','Robes':'Túnicas',"Traveler's Clothes":'Ropa de Viajero',
+  // ── Herramientas e instrumentos ────────────────────────────────────────────
+  "Alchemist's Supplies":'Suministros de Alquimista',"Artisan's Tools":'Herramientas de Artesano',
+  'Bagpipes':'Gaita',"Brewer's Supplies":'Suministros de Cervecero',
+  "Calligrapher's Supplies":'Suministros de Calígrafo',"Carpenter's Tools":'Herramientas de Carpintero',
+  "Cartographer's Tools":'Herramientas de Cartógrafo','Chess Set':'Juego de Ajedrez',
+  "Cobbler's Tools":'Herramientas de Zapatero','Component Pouch':'Bolsa de Componentes',
+  "Cook's Utensils":'Utensilios de Cocina','Deck of Cards':'Mazo de Cartas','Dice Set':'Juego de Dados',
+  'Drum':'Tambor','Dulcimer':'Dulcémele','Flute':'Flauta',"Glassblower's Tools":'Herramientas de Vidriero',
+  'Herbalism Kit':'Kit de Herbolario','Horn':'Cuerno',"Jeweler's Tools":'Herramientas de Joyero',
+  "Leatherworker's Tools":'Herramientas de Talabartero','Lute':'Laúd','Lyre':'Lira',
+  "Mason's Tools":'Herramientas de Albañil','Musical Instrument':'Instrumento Musical',
+  "Navigator's Tools":'Herramientas de Navegante',"Painter's Supplies":'Suministros de Pintor',
+  'Pan Flute':'Flauta de Pan','Playing Card Set':'Juego de Cartas',"Poisoner's Kit":'Kit de Venenos',
+  "Potter's Tools":'Herramientas de Alfarero','Shawm':'Chirimía',"Smith's Tools":'Herramientas de Herrero',
+  'Three-Dragon Ante Set':'Juego Tres Dragones',"Thieves' Tools":'Herramientas de Ladrón',
+  "Tinker's Tools":'Herramientas de Chapucero','Viol':'Viola',"Weaver's Tools":'Herramientas de Tejedor',
+  "Woodcarver's Tools":'Herramientas de Tallador','Dragonchess Set':'Ajedrez Dragón',
+  // ── Packs ──────────────────────────────────────────────────────────────────
+  "Burglar's Pack":'Paquete de Ladrón',"Diplomat's Pack":'Paquete de Diplomático',
+  "Dungeoneer's Pack":'Paquete de Explorador de Mazmorras',"Entertainer's Pack":'Paquete de Artista',
+  "Explorer's Pack":'Paquete de Explorador',"Monster Hunter's Pack":'Paquete de Cazamonstruos',
+  "Priest's Pack":'Paquete de Sacerdote',"Scholar's Pack":'Paquete de Erudito',
+  // ── Pociones ───────────────────────────────────────────────────────────────
+  'Potion of Healing':'Poción de Curación','Potion of Greater Healing':'Poción de Curación Mayor',
+  'Potion of Superior Healing':'Poción de Curación Superior','Potion of Supreme Healing':'Poción de Curación Suprema',
+  'Potion of Poison':'Poción de Veneno','Antitoxin':'Antitoxina',
+  // ── Focos ──────────────────────────────────────────────────────────────────
+  'Arcane Focus (Crystal)':'Foco Arcano (Cristal)','Arcane Focus (Orb)':'Foco Arcano (Orbe)',
+  'Arcane Focus (Rod)':'Foco Arcano (Vara)','Arcane Focus (Staff)':'Foco Arcano (Bastón)',
+  'Arcane Focus (Wand)':'Foco Arcano (Varita)','Druidic Focus (Mistletoe)':'Foco Druídico (Muérdago)',
+  'Druidic Focus (Totem)':'Foco Druídico (Tótem)','Druidic Focus (Wooden Staff)':'Foco Druídico (Bastón de Madera)',
+  'Druidic Focus (Yew Wand)':'Foco Druídico (Varita de Tejo)','Staff':'Bastón',
+  // ── Objetos mágicos ────────────────────────────────────────────────────────
+  '+1 Armor':'Armadura +1','+2 Armor':'Armadura +2','+3 Armor':'Armadura +3',
+  '+1 Weapon':'Arma +1','+2 Weapon':'Arma +2','+3 Weapon':'Arma +3',
+  'Amulet of Health':'Amuleto de Salud',
+  'Amulet of Proof Against Detection':'Amuleto contra Detección',
+  'Bag of Holding':'Bolsa de Contención','Bag of Tricks (Gray)':'Bolsa de Trucos (Gris)',
+  'Bead of Force':'Cuenta de Fuerza','Belt of Giant Strength (Hill)':'Cinturón de Fuerza de Gigante (Colina)',
+  'Belt of Giant Strength (Stone)':'Cinturón de Fuerza de Gigante (Piedra)',
+  'Book of Lore':'Libro de Conocimiento','Boots of Elvenkind':'Botas Élvicas',
+  'Boots of Striding and Springing':'Botas de Zancada y Salto','Brooch of Shielding':'Broche Protector',
+  'Broom of Flying':'Escoba Voladora','Cantrip Spellwrought Tattoo':'Tatuaje de Truco Mágico',
+  'Cloak of Billowing':'Capa Ondulante','Cloak of Displacement':'Capa de Desplazamiento',
+  'Cloak of Elvenkind':'Capa Élvica','Cloak of Protection':'Capa de Protección',
+  'Cube of Force':'Cubo de Fuerza','Dust of Disappearance':'Polvo de Desaparición',
+  'Eyes of the Eagle':'Ojos de Águila','Flame Tongue':'Lengua de Llama',
+  'Gauntlets of Ogre Power':'Guanteletes de Poder de Ogro','Gem of Seeing':'Gema de la Visión',
+  'Gloves of Missile Snaring':'Guantes Atrapa Proyectiles','Goggles of Night':'Gafas Nocturnas',
+  'Hat of Disguise':'Sombrero del Disfraz','Headband of Intellect':'Diadema del Intelecto',
+  'Helm of Comprehending Languages':'Yelmo para Comprender Idiomas',
+  'Horseshoes of Speed':'Herraduras de Velocidad','Immovable Rod':'Vara Inamovible',
+  'Ioun Stone (Awareness)':'Piedra de Ioun (Percepción)','Lantern of Revealing':'Linterna de Revelación',
+  'Necklace of Fireballs':'Collar de Bolas de Fuego','Orb of Direction':'Orbe de Dirección',
+  'Pearl of Power':'Perla del Poder','Portable Hole':'Agujero Portátil',
+  'Pot of Awakening':'Olla del Despertar','Ring of Feather Falling':'Anillo de Caída de Pluma',
+  'Ring of Jumping':'Anillo de Salto','Ring of Mind Shielding':'Anillo de Escudo Mental',
+  'Ring of Protection':'Anillo de Protección','Ring of Regeneration':'Anillo de Regeneración',
+  'Ring of Spell Storing':'Anillo de Almacenamiento de Conjuros','Ring of Swimming':'Anillo de Natación',
+  'Ring of Warmth':'Anillo de Calor','Ring of X-Ray Vision':'Anillo de Visión Penetrante',
+  'Robe of Useful Items':'Túnica de Objetos Útiles','Rope of Climbing':'Cuerda Trepadora',
+  'Stone of Good Luck (Luckstone)':'Piedra de la Buena Suerte','Wand of Magic Missiles':'Varita de Misiles Mágicos',
+  'Wand of Secrets':'Varita de los Secretos',
 };
 
 const DAMAGE_ES = {
@@ -5179,7 +5406,7 @@ function renderSpellDetailCard(knownSpell) {
   return `
     <article class="figma-spell-card">
       <div class="spell-card-head">
-        <strong>${s.name ?? knownSpell.spell_id ?? 'Conjuro'}</strong>
+        <strong>${SPELL_NAME_ES[s.name] ?? s.name ?? knownSpell.spell_id ?? 'Conjuro'}</strong>
         <span>${school}</span>
       </div>
       <div class="spell-chip-row">${chips.map(c => `<em>${c}</em>`).join('')}</div>
@@ -5206,9 +5433,26 @@ async function loadSheet(){
     document.getElementById('s-init').textContent   = fmt(h.initiative);
     document.getElementById('s-level-visible').textContent = h.total_level;
     document.getElementById('s-prof-visible').textContent  = fmt(h.proficiency_bonus);
-    document.getElementById('s-speed').textContent  = h.speed;
+    document.getElementById('s-speed').textContent  = h.speed + ' ft';
     document.getElementById('s-hp').textContent     = `${c.current_hp} / ${h.max_hp}`;
     document.getElementById('s-ac').textContent     = h.armor_class ?? h.unarmored_ac;
+    // Stealth disadvantage indicator from equipped armor
+    const acEl = document.getElementById('s-ac');
+    if (acEl) {
+      const stealthBadge = document.getElementById('s-stealth-dis');
+      if (h.stealth_disadvantage) {
+        if (!stealthBadge) {
+          const badge = document.createElement('span');
+          badge.id = 's-stealth-dis';
+          badge.title = 'Esta armadura impone desventaja en pruebas de Sigilo';
+          badge.style.cssText = 'font-size:0.6rem;color:var(--red-soft,#e07);margin-left:4px;vertical-align:super;cursor:help';
+          badge.textContent = '★Sigilo';
+          acEl.parentElement.appendChild(badge);
+        }
+      } else if (stealthBadge) {
+        stealthBadge.remove();
+      }
+    }
 
     // Ability scores
     document.getElementById('stats-grid').innerHTML = STATS.map(k=>`
@@ -5580,14 +5824,14 @@ async function loadKnownSpells(){
     el.innerHTML = spells.map(ks=>`
       <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;border-radius:6px;background:var(--surface2);margin-bottom:4px;font-size:0.82rem">
         <div>
-          <span style="color:${ks.spell.requires_concentration?'var(--purple)':'var(--text)'}">${ks.spell.name}</span>
+          <span style="color:${ks.spell.requires_concentration?'var(--purple)':'var(--text)'}">${SPELL_NAME_ES[ks.spell.name] ?? ks.spell.name}</span>
           <span class="tag" style="margin-left:4px">${getKnownSpellLevel(ks) === 0 ? 'Truco' : `Nv.${getKnownSpellLevel(ks)}`}</span>
           ${ks.is_prepared?'<span class="tag accent">✓</span>':''}
         </div>
         <button class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:0.75rem" onclick="forgetSpell('${ks.spell.spell_id}')">✕</button>
       </div>`).join('');
     document.getElementById('cast-known-spell').innerHTML =
-      spells.map(ks=>`<option value="${ks.id}">${ks.spell.name} (${getKnownSpellLevel(ks) === 0 ? 'Truco' : `Nv.${getKnownSpellLevel(ks)}`})</option>`).join('');
+      spells.map(ks=>`<option value="${ks.id}">${SPELL_NAME_ES[ks.spell.name] ?? ks.spell.name} (${getKnownSpellLevel(ks) === 0 ? 'Truco' : `Nv.${getKnownSpellLevel(ks)}`})</option>`).join('');
   }catch(e){}
 }
 

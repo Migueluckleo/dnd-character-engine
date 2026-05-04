@@ -24,6 +24,7 @@ export function calculateMaxHP(
   classes: ClassEntry[],
   conScore: number,
   traitEffects: TraitEffects[] = [],
+  level1HpRoll?: number,
 ): number {
   const conMod = getModifier(conScore);
   const totalLevel = classes.reduce((sum, c) => sum + c.classLevel, 0);
@@ -37,8 +38,9 @@ export function calculateMaxHP(
   for (const cls of sorted) {
     for (let lvl = 1; lvl <= cls.classLevel; lvl++) {
       if (levelsProcessed === 0 && cls.isPrimary) {
-        // FR-03: Level 1 of primary class — use maximum hit die value
-        hp += cls.hitDie + conMod;
+        // FR-03: Level 1 — use actual rolled value when available, otherwise max die
+        const l1Base = (level1HpRoll != null && level1HpRoll > 0) ? level1HpRoll : cls.hitDie;
+        hp += l1Base + conMod;
       } else {
         // FR-04: All other levels — fixed average (floor(die/2)+1), minimum 1 per level
         hp += Math.max(1, Math.floor(cls.hitDie / 2) + 1 + conMod);
