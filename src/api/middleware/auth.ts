@@ -11,6 +11,10 @@ const PASSWORD_ITERATIONS = 120_000;
 const AUTH_SECRET = process.env['AUTH_SECRET'] ?? 'dev-auth-secret-change-me';
 const userDelegate = () => (prisma as any).user;
 
+if (process.env['NODE_ENV'] === 'production' && AUTH_SECRET === 'dev-auth-secret-change-me') {
+  throw new Error('AUTH_SECRET must be configured in production.');
+}
+
 export type AuthUser = {
   user_id: string;
   email: string;
@@ -19,7 +23,6 @@ export type AuthUser = {
 
 type TokenPayload = {
   sub: string;
-  email: string;
   iat: number;
   exp: number;
 };
@@ -45,16 +48,32 @@ function safeEqual(a: string, b: string): boolean {
 
 export function hashPassword(password: string): string {
   const salt = crypto.randomBytes(16).toString('hex');
-  const hash = crypto.pbkdf2Sync(password, salt, PASSWORD_ITERATIONS, 32, 'sha256').toString('hex');
-  return `pbkdf2_sha256$${PASSWORD_ITERATIONS}$${salt}$${hash}`;
+  const peppered = crypto.createHmac('sha256', AUTH_SECRET).update(password, 'utf8').digest();
+  const hash = crypto.scryptSync(peppered, salt, 64, { N: 16384, r: 8, p: 1 }).toString('hex');
+  return `scrypt_sha256pepper$16384$8$1$${salt}$${hash}`;
 }
 
 export function verifyPassword(password: string, storedHash: string): boolean {
-  const [algorithm, iterationsRaw, salt, hash] = storedHash.split('$');
-  const iterations = Number(iterationsRaw);
-  if (algorithm !== 'pbkdf2_sha256' || !iterations || !salt || !hash) return false;
-  const candidate = crypto.pbkdf2Sync(password, salt, iterations, 32, 'sha256').toString('hex');
-  return safeEqual(candidate, hash);
+  const parts = storedHash.split('$');
+  const algorithm = parts[0];
+  if (algorithm === 'scrypt_sha256pepper') {
+    const [, nRaw, rRaw, pRaw, salt, hash] = parts;
+    const N = Number(nRaw);
+    const r = Number(rRaw);
+    const p = Number(pRaw);
+    if (!N || !r || !p || !salt || !hash) return false;
+    const peppered = crypto.createHmac('sha256', AUTH_SECRET).update(password, 'utf8').digest();
+    const candidate = crypto.scryptSync(peppered, salt, 64, { N, r, p }).toString('hex');
+    return safeEqual(candidate, hash);
+  }
+  if (algorithm === 'pbkdf2_sha256') {
+    const [, iterationsRaw, salt, hash] = parts;
+    const iterations = Number(iterationsRaw);
+    if (!iterations || !salt || !hash) return false;
+    const candidate = crypto.pbkdf2Sync(password, salt, iterations, 32, 'sha256').toString('hex');
+    return safeEqual(candidate, hash);
+  }
+  return false;
 }
 
 export function signAuthToken(user: { user_id: string; email: string }): string {
@@ -62,7 +81,6 @@ export function signAuthToken(user: { user_id: string; email: string }): string 
   const header = base64url(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
   const payload = base64url(JSON.stringify({
     sub: user.user_id,
-    email: user.email,
     iat: now,
     exp: now + TOKEN_TTL_SECONDS,
   }));
@@ -78,7 +96,7 @@ export function verifyAuthToken(token: string): TokenPayload | null {
   if (!safeEqual(signature, expected)) return null;
   try {
     const parsed = JSON.parse(fromBase64url(payload).toString('utf8')) as TokenPayload;
-    if (!parsed.sub || !parsed.email || parsed.exp < Math.floor(Date.now() / 1000)) return null;
+    if (!parsed.sub || parsed.exp < Math.floor(Date.now() / 1000)) return null;
     return parsed;
   } catch {
     return null;

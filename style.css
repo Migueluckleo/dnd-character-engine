@@ -342,6 +342,11 @@
   .wsk-desc { font-size: 0.74rem; color: var(--muted); line-height: 1.45; }
   /* Race / bg / class cards */
   .wiz-option-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 10px; max-height: 380px; overflow-y: auto; }
+  .wiz-option-grid.race-family-list { display: flex; flex-direction: column; gap: 16px; }
+  .race-family-group { display: flex; flex-direction: column; gap: 10px; }
+  .race-family-title { color: var(--accent2); font-weight: 700; }
+  .race-family-note { color: var(--muted); font-size: 0.78rem; line-height: 1.35; margin: -2px 0 0; }
+  .race-family-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 10px; }
   .wiz-option-card { background: var(--surface2); border: 2px solid var(--border); border-radius: var(--radius); padding: 13px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
   .wiz-option-card:hover { border-color: var(--accent); }
   .wiz-option-card.selected { border-color: var(--accent2); background: #2a1f0a; }
@@ -597,6 +602,271 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
+  }
+  .attr-suggestion-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0 0 16px;
+    border: 1px solid var(--field-border, var(--border));
+    border-radius: 8px;
+    background: var(--surface2);
+    padding: 16px;
+  }
+  .attr-suggestion-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .attr-suggestion-head div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .attr-suggestion-head small {
+    color: var(--muted);
+    font-size: .72rem;
+  }
+  .attr-suggestion-head strong {
+    color: var(--accent2);
+    font-size: .95rem;
+  }
+  .attr-suggestion-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .attr-suggestion-grid span {
+    display: flex;
+    justify-content: space-between;
+    gap: 4px;
+    border-radius: 4px;
+    background: var(--surface);
+    color: var(--text);
+    padding: 4px;
+    font-size: .68rem;
+    font-weight: 700;
+  }
+  .attr-suggestion-card p {
+    color: var(--muted);
+    font-size: .76rem;
+    line-height: 1.4;
+  }
+  .inventory-section-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .inventory-section-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: end;
+    padding: 0 16px;
+  }
+  .inventory-section-tabs button {
+    min-height: 49px;
+    border: 1px solid var(--field-border, var(--border));
+    border-bottom: 0;
+    border-radius: 8px 8px 0 0;
+    background: var(--surface);
+    color: var(--accent2);
+    cursor: pointer;
+    font-family: "Roboto", Arial, sans-serif;
+    font-size: 1rem;
+  }
+  .inventory-section-tabs button.active {
+    background: #865637;
+  }
+  .inventory-section-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    border-radius: 16px;
+    background: #865637;
+    padding: 16px;
+  }
+  .inventory-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .inventory-section-head div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .inventory-section-head small,
+  .inventory-section-copy {
+    color: var(--muted);
+    font-size: .75rem;
+  }
+  .inventory-section-head strong {
+    color: var(--accent2);
+    font-size: 1rem;
+  }
+  .inventory-add-object-btn {
+    min-height: 34px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--red);
+    color: var(--text);
+    cursor: pointer;
+    font-family: "Pragati Narrow", Arial, sans-serif;
+    font-size: 15px;
+    padding: 4px 12px;
+  }
+  .inventory-equipped-loadout {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .inventory-empty-slot {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    min-height: 83px;
+    border: 1px dashed var(--field-border, var(--border));
+    color: var(--muted);
+    padding: 16px;
+    text-align: center;
+  }
+  .inventory-empty-slot strong {
+    color: var(--muted);
+    font-size: 1rem;
+  }
+  .inventory-empty-slot span {
+    color: var(--muted);
+    font-size: .82rem;
+    line-height: 1.35;
+  }
+  .inventory-add-screen {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    min-height: 720px;
+  }
+  .inventory-add-header {
+    display: grid;
+    grid-template-columns: 64px 1fr 64px;
+    align-items: center;
+    color: var(--accent2);
+    font-family: "Prata", Georgia, serif;
+  }
+  .inventory-add-header button {
+    border: 0;
+    background: transparent;
+    color: var(--accent2);
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+  }
+  .inventory-add-header strong {
+    text-align: center;
+    font-weight: 400;
+  }
+  .inventory-coin-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .inventory-coin-row article {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    background: var(--surface2);
+    padding: 16px;
+  }
+  .inventory-coin-row strong {
+    color: var(--accent2);
+  }
+  .inventory-coin-row button,
+  .inventory-search-row button,
+  .inventory-add-submit {
+    min-height: 29px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--red);
+    color: var(--text);
+    cursor: pointer;
+    font-family: "Pragati Narrow", Arial, sans-serif;
+    padding: 4px 12px;
+  }
+  .inventory-search-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+  }
+  .inventory-search-row input,
+  .inventory-qty-input {
+    min-height: 45px;
+    border: 1px solid var(--field-border, var(--border));
+    border-radius: 2px;
+    background: transparent;
+    color: var(--text);
+    font-size: 16px;
+    padding: 8px;
+  }
+  .inventory-filter-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 14px;
+    align-items: start;
+  }
+  .inventory-filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .inventory-filter-chips button {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    border: 0;
+    border-radius: 4px;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px;
+  }
+  .inventory-filter-chips button:not(.active) {
+    opacity: .55;
+  }
+  .inventory-filter-label {
+    color: var(--accent2);
+    font-size: 16px;
+  }
+  .inventory-catalog-list {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+  .inventory-catalog-card {
+    background: var(--surface2);
+  }
+  .inventory-qty-copy h2 {
+    margin: 0 0 8px;
+    color: var(--accent2);
+    font-family: "Prata", Georgia, serif;
+    font-size: 32px;
+    font-weight: 400;
+  }
+  .inventory-qty-copy p {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.35;
+  }
+  .inventory-add-submit {
+    width: 100%;
+    min-height: 45px;
   }
   .inventory-equipment-chooser {
     margin-bottom: 24px;
@@ -2435,6 +2705,36 @@
     .wiz-option-grid {
       max-height: none;
       overflow: visible;
+    }
+    .race-family-list {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .race-family-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .race-family-title {
+      color: var(--accent2);
+      font-family: "Pragati Narrow", Arial, sans-serif;
+      font-size: 22px;
+      font-weight: 400;
+      line-height: 1;
+      margin: 0;
+    }
+    .race-family-note {
+      margin: -4px 0 0;
+      color: var(--muted);
+      font-family: "Roboto", Arial, sans-serif;
+      font-size: 10px;
+      line-height: 1.35;
+    }
+    .race-family-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
     }
     .wiz-option-card,
     .wiz-skill-card,

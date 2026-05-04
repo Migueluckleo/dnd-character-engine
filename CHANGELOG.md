@@ -2,6 +2,84 @@
 
 Registro retroactivo del proyecto. El código actual es la fuente principal de verdad; las fechas previas se basan en marcas de archivo y documentación disponible, por lo que algunas entradas se indican como estimadas.
 
+## [2026-05-04] - Sugerencia de atributos e Inventario Figma
+
+### Cambios
+- El paso `Atributos del personaje` ahora muestra una sugerencia óptima de Point Buy basada en raza, clase y trasfondo.
+- La sugerencia puede aplicarse con un botón y solo modifica valores base, conservando el contrato `base + bono racial` sin duplicar bonos raciales.
+- Se integró la arquitectura Figma de `Inventario` dentro del personaje abierto con secciones internas `Equipo`, `Mochila` y `Alijo`.
+- `Equipo` muestra slots equipados y estados vacíos para arma primaria, arma secundaria, escudo, armadura, botas, guantes/guanteletes, anillos y amuleto.
+- `Mochila` conserva la lista real de inventario y agrega un flujo `Agregar objeto` con buscador, filtros, cards de catálogo y pantalla de cantidad.
+- `Alijo` agrupa objetos no equipados/no consumibles mientras queda pendiente un modelo persistente de ubicación o almacenamiento.
+- La UI muestra affordances para agregar monedas (`PO`, `PP`, `PC`) sin persistirlas todavía, porque el backend no tiene modelo de monedas.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-136: Ability Score Recommendation Engine
+- US-137: Figma-Matched Inventory Section
+
+### Fuente / certeza
+- Basado en solicitud directa del usuario
+- Confirmado por Figma (`2072:3743`, `2071:1169`, `2071:2299`, `2071:3139`)
+- Confirmado por código actual
+- Pendiente de validación visual en navegador
+
+## [2026-05-04] - Orden experto de razas y atributos tardíos
+
+### Cambios
+- La selección de raza ahora agrupa variantes por familia/raza padre en lugar de depender del orden alfabético del catálogo.
+- Los elfos se muestran juntos en orden explícito: `Drow`, `Elfo Alto`, `Elfo del Bosque`.
+- La agrupación soporta futuras subrazas tiefling cuando existan en catálogo, pero no inventa subrazas ni reglas que no estén sembradas/validadas.
+- El paso `Atributos del personaje` se movió a la fase final del wizard, después de raza, trasfondo, clase y equipamiento, y antes de validar habilidades/conjuros y tirar puntos de golpe.
+- Se mantuvo el contrato de Point Buy: la UI muestra `base + bono racial = total final`, pero el payload sigue enviando solo atributos base.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-112: PDF-Matched Character Creation Flow & Ability Score Preview
+- US-135: Hardcore Race Ordering and Late Attribute Allocation
+
+### Fuente / certeza
+- Basado en feedback directo de usuario avanzado
+- Confirmado por código actual
+- Pendiente de validación visual en navegador
+
+## [2026-05-04] - Endurecimiento de credenciales de perfiles
+
+### Cambios
+- El registro de perfiles ahora genera hashes de contraseña con `scrypt` salteado y pepper de servidor derivado de `AUTH_SECRET`.
+- Se conserva verificación de hashes PBKDF2 anteriores para compatibilidad.
+- Producción falla al iniciar si `AUTH_SECRET` queda con el valor de desarrollo.
+- El token de sesión ya no embebe correo ni datos innecesarios; conserva solo sujeto, emisión y expiración.
+- La UI exige mínimo 10 caracteres de contraseña para registro/login.
+
+### Archivos modificados
+- `src/api/middleware/auth.ts`
+- `src/api/controllers/auth.controller.ts`
+- `ui.html`
+- `docs/requirements.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-132: Player Profiles and Owned Character Roster
+
+### Fuente / certeza
+- Basado en solicitud directa del usuario sobre seguridad de correos y contraseñas
+- Confirmado por código actual
+- Pendiente de validación E2E en backend desplegado
+
 ## [2026-05-04] - Competencias de equipo y uso robusto de pociones
 
 ### Cambios

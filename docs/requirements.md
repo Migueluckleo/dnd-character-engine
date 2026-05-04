@@ -1335,7 +1335,7 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 
 **As a** player creating a character from the mobile-first flow, **I want** the wizard screens to match the approved `Create Character.pdf` architecture **so that** each choice is made, reviewed, and explained in the same order as the product design.
 
-- **AC 112.1 (PDF Flow Order):** The creation wizard UI must follow the approved PDF screen architecture: Datos generales → Selección de raza → Tu selección (raza) → Atributos del personaje → Trasfondo → Tu selección (trasfondo) → Rasgos de personalidad → Clase → Tu selección (clase) → Subclase when applicable per US-96 → Habilidades de clase → Trucos / Conjuros when applicable per US-94 and US-95 → Cálculo de puntos de golpe.
+- **AC 112.1 (Creation Flow Order):** The creation wizard UI must follow the approved PDF/Figma architecture, with the US-135 advanced-user override applied: Datos generales → Selección de raza → Tu selección (raza) → Trasfondo → Tu selección (trasfondo) → Rasgos de personalidad → Clase → Tu selección (clase) → Subclase when applicable per US-96 → Equipamiento → Atributos del personaje → ASI when applicable per US-121 → Habilidades de clase → Trucos / Conjuros when applicable per US-94 and US-95 → Cálculo de puntos de golpe.
 - **AC 112.2 (Review Screens):** Every catalog choice represented in the PDF with a "Tu selección" screen must show a read-only review card before continuing. The review must include the selected option name, relevant badges, and Spanish explanatory copy without mutating wizard state.
 - **AC 112.3 (Point Buy Base vs Final Score):** During "Atributos del personaje", controls still modify the Point Buy base score only, constrained to 8–15 and 27 points per US-85. The primary number shown to the user must be the final preview score: `base_score + racial_bonus`.
 - **AC 112.4 (Explicit Racial Bonus Reasoning):** Each ability score row must display the exact reasoning used for the preview, e.g. `Base 8 + +2 raza = 10`. If the selected race has no bonus for that ability, the row must show `Base 8 + 0 raza = 8`.
@@ -1598,6 +1598,9 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 - **AC 132.8:** The UI must show login/register screens before the roster when no active session exists, and must provide a way to close the session.
 - **AC 132.9:** Authentication data must store password hashes, not plaintext passwords.
 - **AC 132.10:** The required database migration and setup notes must be documented for continuity.
+- **AC 132.11:** Password hashes must use a one-way salted KDF with a server-side pepper derived from `AUTH_SECRET`; legacy password hashes may be verified only for backward compatibility.
+- **AC 132.12:** Production must reject startup when `AUTH_SECRET` is missing or left at the development fallback.
+- **AC 132.13:** Session tokens must not embed password hashes or unnecessary profile PII; the token payload should identify the user by subject and expiration only.
 
 ### US-133: Safe GitHub Repository and GitHub Pages Publication
 
@@ -1623,6 +1626,37 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 - **AC 134.5:** Deployment scripts must generate Prisma Client, apply pending migrations with `prisma migrate deploy`, build TypeScript, and start the compiled server.
 - **AC 134.6:** Documentation must clarify that the API should use a separate HTTPS origin from GitHub Pages, for example a Render URL or `api.migueleo.com`.
 
+### US-135: Hardcore Race Ordering and Late Attribute Allocation
+
+**As a** rules-focused player, **I want** race options grouped by parent race/family and ability scores placed near the end of creation **so that** character creation follows a clearer DnD mental model and avoids deciding attributes before ancestry/class context is understood.
+
+- **AC 135.1:** The race selection UI must group selectable variants by race family, keeping related options adjacent: dwarves, elves, halflings, gnomes, humans, dragonborn, half-elves, half-orcs, tieflings, and other future families.
+- **AC 135.2:** Elf variants must render together with `Drow`, `Elfo Alto`, and `Elfo del Bosque` in the configured family order rather than being separated alphabetically.
+- **AC 135.3:** The grouping logic must support future tiefling subraces when the catalog contains validated rows, but must not invent unsupported tiefling mechanics if the current catalog only contains base `tiefling`.
+- **AC 135.4:** The creation wizard must move `Atributos del personaje` out of the early race section and place it in the late creation phase after race/background/class/equipment context, before skills/conjuro validation and hit point rolling.
+- **AC 135.5:** Attribute controls must continue to show final scores as `base + bono racial` with explicit reasoning and must still submit only base Point Buy values to the API.
+
+### US-136: Ability Score Recommendation Engine
+
+**As a** player creating a character, **I want** the app to suggest an optimized Point Buy distribution from my race, class, and background **so that** I can make a competent character without needing to know every DnD build rule in advance.
+
+- **AC 136.1:** The attributes step must display an explicit recommended distribution before the manual Point Buy controls.
+- **AC 136.2:** The recommendation must prioritize class role first, then adjust secondary priorities with background identity, then show racial bonuses in the final preview.
+- **AC 136.3:** Applying the recommendation must update only `ability_scores` base Point Buy values and must not store racial bonuses in the base payload.
+- **AC 136.4:** The UI must explain in Spanish why the distribution was suggested, referencing the selected class, background, and race.
+- **AC 136.5:** The suggested base array must remain valid under Point Buy limits: 8–15 per ability and 27 points total.
+
+### US-137: Figma-Matched Inventory Section
+
+**As a** player managing a created character, **I want** an inventory section matching the Figma architecture **so that** I can separate equipped gear, backpack contents, stored loot, and add objects through a clear mobile flow.
+
+- **AC 137.1:** The character detail `Inventario` tab must contain internal sections `Equipo`, `Mochila`, and `Alijo`.
+- **AC 137.2:** `Equipo` must show equipped slots, including primary weapon, secondary weapon, shield, armor, boots, gloves/gauntlets, rings, and amulet; empty slots must show the Figma-style dashed empty state.
+- **AC 137.3:** `Mochila` must show the current inventory list and provide an `Agregar objeto` action.
+- **AC 137.4:** `Alijo` must group non-equipped non-consumable objects until a dedicated storage/location model is validated.
+- **AC 137.5:** The add-object flow must include search, filter chips, item cards, item descriptions/tags, and a quantity confirmation screen before calling the inventory API.
+- **AC 137.6:** Coin adding (`PO`, `PP`, `PC`) is visible as a Figma-aligned affordance but remains pending backend modeling and must not fake persistence.
+
 ---
 
 ## Implementation Status Addendum — 2026-04-30
@@ -1640,7 +1674,7 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 | US-89 to US-107 | En progreso / parcialmente implementada | Character roster, creation, edit, hydrated sheet, skills, languages, known spells, XP, level-up, and spell slot progression exist. Level-up wizard choices for spells/ASI/subclass are not fully represented in the current UI. |
 | US-108 to US-109 | Implementada | Confirmed by current wizard code for in-place selection updates and contextual skill descriptions/bonuses. |
 | US-110 to US-111 | Implementada / pendiente de validación final | Backend `PATCH /characters/:id`, initial level in `POST /characters`, and edit modal exist. Full browser/API regression remains recommended. |
-| US-112 to US-113 | En progreso / pendiente de validación visual | Current `ui.html` and `style.css` implement the PDF/Figma-matched mobile wizard flow, racial ability preview, tokens, header, and disabled state. Exact 1:1 PDF/Figma match remains pending visual QA. |
+| US-112 to US-113 | En progreso / pendiente de validación visual | Current `ui.html` and `style.css` implement the PDF/Figma-matched mobile wizard flow, racial ability preview, tokens, header, and disabled state. Exact 1:1 PDF/Figma match remains pending visual QA; US-135 intentionally supersedes the early placement of attributes based on advanced-user feedback. |
 | US-114 | Implementada | `HANDOFF.md`, `CHANGELOG.md`, and `.claude.md` continuity instructions are maintained as part of this documentation pass. |
 | US-115 | Implementada | Current `ui.html` has header back/cancel behavior and validation-based primary button state; `style.css` contains extracted styling. |
 | US-116 | Implementada / pendiente de validación visual | Current `ui.html` auto-advances selection screens to review cards, adds subclass review, requires HP roll, and sends `hp_roll_base`; Prisma/API persist `level_1_hp_roll`. |
@@ -1659,8 +1693,11 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 | US-129 | Implementada / pendiente de validación visual en navegador | Current `ui.html` and `style.css` add the Figma spell dice path: cantrip/spell tabs, slot summary, spell cards, dice selector, slot consumption for leveled spells, result screen, and save-DC instruction copy. |
 | US-130 | Implementada / pendiente de validación visual en navegador | Current `ui.html` and `style.css` animate virtual dice rolls for attack, damage, spell, custom, and consumable flows, with disabled buttons during rolling and reduced-motion CSS fallback. |
 | US-131 | Implementada / pendiente de validación visual en navegador | Current `ui.html` calculates weapon attack totals with ability modifier plus proficiency only when the character is proficient with that weapon, and current `style.css`/`ui.html` show proficiency badges and summaries for skills, saving throws, weapons, armor, shields, tools, and item-related proficiencies. |
-| US-132 | Implementada / pendiente de migración en base remota y validación E2E | Current backend adds `User`, `/auth/register`, `/auth/login`, `/auth/me`, optional bearer auth, owner guard for character subroutes, and profile-filtered roster. Current `ui.html` adds login/register/logout and sends tokens through `api()`. Migration file exists; applying it to Supabase remoto is pendiente por restricción de red del entorno. |
+| US-132 | Implementada / pendiente de migración en base remota y validación E2E | Current backend adds `User`, `/auth/register`, `/auth/login`, `/auth/me`, optional bearer auth, owner guard for character subroutes, profile-filtered roster, scrypt+pepper password hashing, legacy PBKDF2 verification, production `AUTH_SECRET` guard, and minimal token payload. Current `ui.html` adds login/register/logout and sends tokens through `api()`. Migration file exists; applying it to Supabase remoto es pendiente por restricción de red del entorno. |
 | US-133 | Implementada / pendiente de configuración real en GitHub | Current repo adds `.gitignore` hardening, `.env.example`, public `config.public.js`, `index.html`, `.nojekyll`, `README.md`, `SECURITY.md`, GitHub Pages workflow, and `npm run prepublish:check`. Runtime Figma MCP asset URLs were removed from UI/CSS. Validated with `npm run prepublish:check`. |
 | US-134 | Implementada / pendiente de despliegue real | Current backend has env-based production CORS, Render blueprint `render.yaml`, build/migrate/start scripts, safe env placeholders, and `/health`. Validated locally with typecheck, tests, build, and security check. Pending: create Render service and update `config.public.js` with the backend HTTPS URL. |
+| US-135 | Implementada / pendiente de validación visual en navegador | Current `ui.html` groups race cards by inferred parent/family order, keeps elf variants adjacent, leaves tiefling subraces as catalog-supported/pending validation, and moves Point Buy attributes into the late creation phase before skills/conjuros and HP. Current `style.css` adds family section styling. |
+| US-136 | Implementada / pendiente de validación visual en navegador | Current `ui.html` suggests valid Point Buy distributions based on class priority, background hint, and racial bonuses; users can apply the suggested base scores while preserving the no-double-racial-bonus contract. |
+| US-137 | Implementada parcial / pendiente de validación visual y modelo de monedas/alijo | Current `ui.html` and `style.css` add Figma-style `Equipo`, `Mochila`, `Alijo`, equipped-slot cards, dashed empty states, add-object search/filter/list flow, and quantity confirmation. Coin persistence and true storage locations remain pending backend modeling. |
 
-*End of requirements.md — Total User Stories: US-01 through US-134.*
+*End of requirements.md — Total User Stories: US-01 through US-137.*

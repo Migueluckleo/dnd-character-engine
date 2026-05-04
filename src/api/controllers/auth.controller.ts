@@ -19,7 +19,7 @@ const userDelegate = () => (prisma as any).user;
 
 const AuthSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
+  password: z.string().min(10).max(128),
   display_name: z.string().trim().min(1).max(80).optional(),
 });
 

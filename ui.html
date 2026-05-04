@@ -598,6 +598,10 @@ let characterData = null;
 let detailEquipmentChoices = {};
 let pendingUseItem = null;
 let detailInventoryCache = [];
+let detailInventoryMode = 'equipment';
+let detailInventorySearch = '';
+let detailInventoryFilters = new Set(['weapon', 'armor', 'consumable', 'ammunition']);
+let pendingInventoryAddItemId = null;
 let hpAdjustDraft = null;
 let activeRequests = 0;
 let currentProfile = null;
@@ -651,7 +655,7 @@ function showAuthScreen(mode = authMode) {
           <input id="auth-email" type="email" autocomplete="email" placeholder="correo@ejemplo.com">
         </label>
         <label>Contraseña
-          <input id="auth-password" type="password" autocomplete="${isRegister ? 'new-password' : 'current-password'}" placeholder="Mínimo 8 caracteres">
+          <input id="auth-password" type="password" autocomplete="${isRegister ? 'new-password' : 'current-password'}" placeholder="Mínimo 10 caracteres">
         </label>
         <button class="btn btn-accent btn-full auth-submit" onclick="submitAuthForm()">${isRegister ? 'Crear perfil' : 'Entrar'}</button>
       </div>
@@ -676,7 +680,7 @@ async function submitAuthForm() {
   const password = document.getElementById('auth-password')?.value;
   const display_name = document.getElementById('auth-name')?.value.trim();
   if (!email || !password) { toast('Ingresa correo y contraseña.', 'err'); return; }
-  if (password.length < 8) { toast('La contraseña debe tener al menos 8 caracteres.', 'err'); return; }
+  if (password.length < 10) { toast('La contraseña debe tener al menos 10 caracteres.', 'err'); return; }
   try {
     const payload = { email, password, ...(authMode === 'register' && display_name ? { display_name } : {}) };
     const result = await api('POST', authMode === 'register' ? '/auth/register' : '/auth/login', payload);
@@ -1448,29 +1452,10 @@ async function wizStep2HTML() {
   if (!wiz.catalog.races.length) {
     try { wiz.catalog.races = await api('GET', '/catalog/races'); } catch(e) {}
   }
-  const races = wiz.catalog.races;
+  const races = sortRaceCatalog(wiz.catalog.races);
   if (!races.length) return '<p style="color:var(--muted)">Cargando razas…</p>';
 
-  const cards = races.map(r => {
-    const bonuses = r.ability_bonuses
-      ? Object.entries(r.ability_bonuses).filter(([,v])=>v!==0).map(([k,v])=>`${STAT_NAMES[k]}${v>0?'+':''}${v}`)
-      : [];
-    const badges = [
-      ...bonuses.map(b => `<span class="oc-badge">${b}</span>`),
-      `<span class="oc-badge blue">Vel.${r.base_speed}ft</span>`,
-      ...(r.darkvision_radius ? [`<span class="oc-badge">👁 Oscuridad ${r.darkvision_radius}ft</span>`] : []),
-      ...(r.is_subrace ? [`<span class="oc-badge green">Subraza</span>`] : []),
-    ].join('');
-    const desc = RACE_DESC[r.name] ?? '';
-    const nameES = RACE_NAME_ES[r.name] ?? r.name;
-    return `<div class="wiz-option-card ${wiz.data.race_id===r.race_id?'selected':''}" onclick="wizSelectRace('${r.race_id}',this)">
-      <div class="oc-name">${nameES}</div>
-      <div class="oc-badges">${badges}</div>
-      ${desc ? `<div class="oc-desc">${desc}</div>` : ''}
-    </div>`;
-  }).join('');
-
-  return `<div class="wiz-option-grid">${cards}</div>
+  return `<div class="wiz-option-grid race-family-list">${raceFamilyGroupsHTML(races)}</div>
     <div id="race-desc" style="margin-top:10px;font-size:0.82rem;color:var(--muted)">
       ${wiz.data.race_id ? '✓ Raza seleccionada' : 'Selecciona una raza para continuar.'}
     </div>`;
@@ -1622,6 +1607,112 @@ const RACE_DESC = {
   'half_orc':           'Feroz y tenaz. Sobrevive a golpes letales una vez por día (Resistencia implacable).',
   'tiefling':           'Toca infernal. Magia oscura innata, resistencia al fuego.',
 };
+
+const RACE_FAMILY_LABEL_ES = {
+  dwarf: 'Enanos',
+  elf: 'Elfos',
+  halfling: 'Medianos',
+  gnome: 'Gnomos',
+  human: 'Humanos',
+  dragonborn: 'Draconidos',
+  half_elf: 'Semielfos',
+  half_orc: 'Semiorcos',
+  tiefling: 'Tieflings',
+  other: 'Otras razas',
+};
+
+const RACE_FAMILY_ORDER = [
+  'dwarf',
+  'elf',
+  'halfling',
+  'gnome',
+  'human',
+  'dragonborn',
+  'half_elf',
+  'half_orc',
+  'tiefling',
+  'other',
+];
+
+const RACE_VARIANT_ORDER = {
+  dwarf: ['hill_dwarf', 'mountain_dwarf'],
+  elf: ['drow', 'high_elf', 'wood_elf'],
+  halfling: ['lightfoot_halfling', 'stout_halfling'],
+  gnome: ['forest_gnome', 'rock_gnome'],
+  tiefling: ['tiefling'],
+};
+
+function raceFamilyKey(race) {
+  const name = race?.name ?? '';
+  if (name.includes('dwarf')) return 'dwarf';
+  if (['high_elf', 'wood_elf', 'drow'].includes(name)) return 'elf';
+  if (name.includes('halfling')) return 'halfling';
+  if (name.includes('gnome')) return 'gnome';
+  if (name === 'human') return 'human';
+  if (name === 'dragonborn') return 'dragonborn';
+  if (name === 'half_elf') return 'half_elf';
+  if (name === 'half_orc') return 'half_orc';
+  if (name.includes('tiefling')) return 'tiefling';
+  return 'other';
+}
+
+function sortRaceCatalog(races = []) {
+  return [...races].sort((a, b) => {
+    const familyA = raceFamilyKey(a);
+    const familyB = raceFamilyKey(b);
+    const familySort = RACE_FAMILY_ORDER.indexOf(familyA) - RACE_FAMILY_ORDER.indexOf(familyB);
+    if (familySort !== 0) return familySort;
+    const variantOrder = RACE_VARIANT_ORDER[familyA] ?? [];
+    const posA = variantOrder.indexOf(a.name);
+    const posB = variantOrder.indexOf(b.name);
+    if (posA !== posB) return (posA < 0 ? 999 : posA) - (posB < 0 ? 999 : posB);
+    return (RACE_NAME_ES[a.name] ?? a.name).localeCompare(RACE_NAME_ES[b.name] ?? b.name, 'es');
+  });
+}
+
+function groupRaceCatalog(races = []) {
+  const grouped = new Map();
+  sortRaceCatalog(races).forEach(race => {
+    const family = raceFamilyKey(race);
+    if (!grouped.has(family)) grouped.set(family, []);
+    grouped.get(family).push(race);
+  });
+  return [...grouped.entries()];
+}
+
+function raceBonusesHTML(race) {
+  return Object.entries(race?.ability_bonuses || {})
+    .filter(([, value]) => value)
+    .map(([stat, value]) => `<span class="oc-badge">${STAT_NAMES[stat]}${value > 0 ? '+' : ''}${value}</span>`)
+    .join('');
+}
+
+function raceOptionCardHTML(race) {
+  const badges = [
+    raceBonusesHTML(race),
+    `<span class="oc-badge blue">Vel.${race.base_speed}ft</span>`,
+    race.darkvision_radius ? `<span class="oc-badge">Oscuridad ${race.darkvision_radius}ft</span>` : '',
+    race.is_subrace || race.parent_race_id ? `<span class="oc-badge green">Subraza</span>` : '',
+  ].filter(Boolean).join('');
+  return `<div class="wiz-option-card ${wiz.data.race_id===race.race_id?'selected':''}" onclick="wizSelectRace('${race.race_id}',this)">
+    <div class="oc-name">${RACE_NAME_ES[race.name] ?? race.name}</div>
+    <div class="oc-badges">${badges}</div>
+    <div class="oc-desc">${RACE_DESC[race.name] ?? 'Variante racial disponible en el catalogo actual.'}</div>
+  </div>`;
+}
+
+function raceFamilyGroupsHTML(races = []) {
+  return groupRaceCatalog(races).map(([family, familyRaces]) => {
+    const tieflingNote = family === 'tiefling' && familyRaces.length === 1
+      ? '<p class="race-family-note">El catalogo actual incluye el Tiefling base. Subrazas tiefling quedan pendientes de validacion de contenido antes de agregarlas.</p>'
+      : '';
+    return `<section class="race-family-group">
+      <div class="race-family-title">${RACE_FAMILY_LABEL_ES[family] ?? RACE_FAMILY_LABEL_ES.other}</div>
+      ${tieflingNote}
+      <div class="race-family-grid">${familyRaces.map(raceOptionCardHTML).join('')}</div>
+    </section>`;
+  }).join('');
+}
 
 // ── Class descriptions (keys = snake_case DB names) ───────────────────────────
 const CLASS_DESC = {
@@ -2133,6 +2224,7 @@ function wizStep5HTML() {
     <div class="card">
       <div class="card-title">Atributos del personaje</div>
       <p style="color:var(--muted);font-size:.88rem;line-height:1.45;margin-bottom:12px">Distribuye tus puntos base. La pantalla muestra el atributo final ya calculado con los bonos de ${raceName}, tal como lo usa el motor: base + raza.</p>
+      ${wizardStatSuggestionHTML()}
       <div class="pb-budget">Puntos a distribuir: <span id="wpb-left" style="color:${pbLeft<0?'var(--red-soft)':'var(--accent2)'}">${pbLeft}</span> / 27</div>
       <div class="wiz-3col" id="wpb-grid">${rows}</div>
     </div>`;
@@ -2356,6 +2448,92 @@ function wizFinalAbilityScores() {
     stat,
     (wiz.data.ability_scores?.[stat] ?? 8) + (racial[stat] ?? 0) + (asi[stat] ?? 0),
   ]));
+}
+
+const WIZ_CLASS_STAT_PRIORITY = {
+  barbarian: ['str', 'con', 'dex', 'wis', 'cha', 'int'],
+  bard: ['cha', 'dex', 'con', 'wis', 'int', 'str'],
+  cleric: ['wis', 'con', 'str', 'cha', 'dex', 'int'],
+  druid: ['wis', 'con', 'dex', 'int', 'str', 'cha'],
+  fighter: ['str', 'con', 'dex', 'wis', 'cha', 'int'],
+  monk: ['dex', 'wis', 'con', 'str', 'int', 'cha'],
+  paladin: ['str', 'cha', 'con', 'wis', 'dex', 'int'],
+  ranger: ['dex', 'wis', 'con', 'str', 'int', 'cha'],
+  rogue: ['dex', 'con', 'cha', 'int', 'wis', 'str'],
+  sorcerer: ['cha', 'con', 'dex', 'wis', 'int', 'str'],
+  warlock: ['cha', 'con', 'dex', 'wis', 'int', 'str'],
+  wizard: ['int', 'con', 'dex', 'wis', 'cha', 'str'],
+};
+
+const WIZ_BACKGROUND_STAT_HINT = {
+  acolyte: ['wis', 'int'],
+  charlatan: ['cha', 'dex'],
+  criminal: ['dex', 'cha'],
+  entertainer: ['cha', 'dex'],
+  folk_hero: ['str', 'wis'],
+  guild_artisan: ['int', 'cha'],
+  hermit: ['wis', 'con'],
+  noble: ['cha', 'int'],
+  outlander: ['str', 'wis'],
+  sage: ['int', 'wis'],
+  sailor: ['str', 'dex'],
+  soldier: ['str', 'con'],
+  urchin: ['dex', 'wis'],
+};
+
+function wizardStatSuggestion() {
+  const cls = selectedWizardClass();
+  const race = selectedWizardRace();
+  const bg = wiz.catalog.backgrounds.find(b => b.background_id === wiz.data.background_id);
+  const clsName = cls?.name?.toLowerCase() ?? '';
+  const bgName = bg?.name?.toLowerCase() ?? '';
+  const priority = [...(WIZ_CLASS_STAT_PRIORITY[clsName] ?? ['str', 'dex', 'con', 'int', 'wis', 'cha'])];
+  const bgHints = WIZ_BACKGROUND_STAT_HINT[bgName] ?? [];
+
+  bgHints.slice().reverse().forEach(stat => {
+    const idx = priority.indexOf(stat);
+    if (idx > 2) {
+      priority.splice(idx, 1);
+      priority.splice(2, 0, stat);
+    }
+  });
+
+  const baseValues = [15, 14, 13, 12, 10, 8];
+  const scores = { str:8, dex:8, con:8, int:8, wis:8, cha:8 };
+  priority.forEach((stat, index) => { scores[stat] = baseValues[index] ?? 8; });
+
+  const racial = race?.ability_bonuses ?? {};
+  const finalScores = Object.fromEntries(STATS.map(stat => [stat, scores[stat] + (racial[stat] ?? 0)]));
+  const raceBoosts = Object.entries(racial).filter(([, value]) => value).map(([stat, value]) => `${STAT_NAMES[stat]} ${value > 0 ? '+' : ''}${value}`).join(', ');
+  const reasons = [
+    cls ? `Clase: ${CLASS_NAME_ES[cls.name] ?? cls.name} prioriza ${priority.slice(0, 3).map(stat => STAT_NAMES[stat]).join(', ')}.` : 'Clase: selecciona una clase para afinar la sugerencia.',
+    bg ? `Trasfondo: ${BG_NAME_ES[bg.name] ?? bg.name} refuerza ${bgHints.map(stat => STAT_NAMES[stat]).join(', ') || 'rol y competencias'}.` : 'Trasfondo: selecciona un trasfondo para ajustar el rol.',
+    race ? `Raza: ${RACE_NAME_ES[race.name] ?? race.name}${raceBoosts ? ` aporta ${raceBoosts}.` : ' no aporta bonos directos.'}` : 'Raza: selecciona una raza para calcular bonos finales.',
+  ];
+  return { scores, finalScores, priority, reasons };
+}
+
+function wizardStatSuggestionHTML() {
+  const suggestion = wizardStatSuggestion();
+  return `<section class="attr-suggestion-card">
+    <div class="attr-suggestion-head">
+      <div>
+        <small>Sugerencia óptima</small>
+        <strong>${suggestion.priority.slice(0, 3).map(stat => STAT_NAMES[stat]).join(' / ')}</strong>
+      </div>
+      <button type="button" class="inventory-equip-btn" onclick="wizApplySuggestedAbilities()">Aplicar</button>
+    </div>
+    <div class="attr-suggestion-grid">
+      ${STATS.map(stat => `<span><b>${STAT_NAMES[stat]}</b>${suggestion.scores[stat]} → ${suggestion.finalScores[stat]}</span>`).join('')}
+    </div>
+    <p>${suggestion.reasons.join(' ')}</p>
+  </section>`;
+}
+
+async function wizApplySuggestedAbilities() {
+  wiz.data.ability_scores = { ...wizardStatSuggestion().scores };
+  toast('Sugerencia de atributos aplicada', 'ok');
+  await wizRenderStep(wiz.step);
 }
 
 function wizAsiComplete() {
@@ -3077,7 +3255,6 @@ function wizFlow() {
     { key:'general', title:'Datos generales' },
     { key:'race', title:'Selección de Raza' },
     { key:'raceReview', title:'Tu selección' },
-    { key:'attributes', title:'Atributos del personaje' },
     { key:'background', title:'Trasfondo' },
     { key:'backgroundReview', title:'Tu selección' },
     { key:'personality', title:'Rasgos de personalidad' },
@@ -3088,13 +3265,14 @@ function wizFlow() {
     flow.push({ key:'subclass', title:'Elige Subclase' });
     flow.push({ key:'subclassReview', title:'Tu selección' });
   }
+  flow.push({ key:'equipment', title:'Equipamiento' });
+  flow.push({ key:'attributes', title:'Atributos del personaje' });
   const asiCount = wizAsiCount();
   if (asiCount > 0) {
     flow.push({ key:'asi', title:`Mejora de Atributos (${asiCount} ASI)` });
   }
   flow.push({ key:'skills', title:'Habilidades y conjuros' });
   flow.push({ key:'cantrips', title:'Habilidades y conjuros' });
-  flow.push({ key:'equipment', title:'Equipamiento' });
   flow.push({ key:'hp', title:'Puntos de golpe' });
   return flow;
 }
@@ -3106,10 +3284,10 @@ function wizCurrentKey() {
 function wizProgressIndex() {
   const key = wizCurrentKey();
   if (['general'].includes(key)) return 0;
-  if (['race','raceReview','attributes'].includes(key)) return 1;
+  if (['race','raceReview'].includes(key)) return 1;
   if (['background','backgroundReview','personality'].includes(key)) return 2;
-  if (['class','classReview','subclass','subclassReview','asi'].includes(key)) return 3;
-  if (['skills','cantrips','equipment','hp'].includes(key)) return 4;
+  if (['class','classReview','subclass','subclassReview'].includes(key)) return 3;
+  if (['equipment','attributes','asi','skills','cantrips','hp'].includes(key)) return 4;
   return 0;
 }
 
@@ -3253,14 +3431,7 @@ function wizPdfGeneralHTML() {
 
 async function wizPdfRaceHTML() {
   if (!wiz.catalog.races.length) wiz.catalog.races = await api('GET', '/catalog/races');
-  return `<div class="wiz-option-grid">${wiz.catalog.races.map(r => {
-    const bonuses = Object.entries(r.ability_bonuses || {}).filter(([,v])=>v).map(([k,v])=>`<span class="oc-badge">${STAT_NAMES[k]}${v>0?'+':''}${v}</span>`).join('');
-    return `<div class="wiz-option-card ${wiz.data.race_id===r.race_id?'selected':''}" onclick="wizSelectRace('${r.race_id}',this)">
-      <div class="oc-name">${RACE_NAME_ES[r.name] ?? r.name}</div>
-      <div class="oc-badges">${bonuses}<span class="oc-badge blue">Vel.${r.base_speed}ft</span>${r.darkvision_radius?`<span class="oc-badge">Oscuridad ${r.darkvision_radius}ft</span>`:''}</div>
-      <div class="oc-desc">${RACE_DESC[r.name] ?? ''}</div>
-    </div>`;
-  }).join('')}</div>`;
+  return `<div class="wiz-option-grid race-family-list">${raceFamilyGroupsHTML(wiz.catalog.races)}</div>`;
 }
 
 function wizPdfRaceReviewHTML() {
@@ -3316,6 +3487,7 @@ function wizPdfAttributesHTML() {
   }).join('');
   return `
     <div class="pdf-section-title">Atributos del personaje</div>
+    ${wizardStatSuggestionHTML()}
     <div class="attr-budget" style="justify-content:flex-end;margin-top:-12px;margin-bottom:8px">Puntos a distribuir: <span id="wpb-left" style="color:${pbLeft<0?'var(--red-soft)':'var(--accent2)'}">${pbLeft}</span></div>
     <div class="wiz-3col" id="wpb-grid">${rows}</div>
     <p class="pdf-help">Los puntos se han adaptado a tu selección de raza, clase y trasfondo. Cada atributo muestra el total final que usará el personaje: puntuación base + bono racial. Recuerda que no se podrán asignar más de 7 puntos a una característica.</p>`;
@@ -4065,13 +4237,92 @@ function renderDetailInventory(c) {
   const needsClassEquipment = equipmentGroupsForClass(classRef).length > 0
     && !localStorage.getItem(`dnd-class-equipment:${c.id}`)
     && !hasClassEquipmentSignature(items);
+  const active = detailInventoryMode || 'equipment';
   return `
-    <div class="detail-small-heading">Inventario</div>
+    <div class="inventory-section-shell">
+      <div class="inventory-section-tabs" role="tablist" aria-label="Inventario">
+        ${inventorySectionTab('equipment', 'Equipo', active)}
+        ${inventorySectionTab('backpack', 'Mochila', active)}
+        ${inventorySectionTab('stash', 'Alijo', active)}
+      </div>
+      <div class="inventory-section-panel">
     ${needsClassEquipment ? renderDetailEquipmentChooser(classRef) : ''}
+        ${active === 'equipment' ? renderInventoryEquipmentView(items) : ''}
+        ${active === 'backpack' ? renderInventoryBackpackView(items) : ''}
+        ${active === 'stash' ? renderInventoryStashView(items) : ''}
+      </div>
+    </div>`;
+}
+
+function inventorySectionTab(id, label, active) {
+  return `<button class="${active === id ? 'active' : ''}" onclick="switchInventorySection('${id}')">${label}</button>`;
+}
+
+function switchInventorySection(mode) {
+  detailInventoryMode = mode;
+  const panel = document.getElementById('detail-extra-panel');
+  if (panel && characterData) panel.innerHTML = renderDetailInventory(characterData);
+}
+
+function renderInventoryBackpackView(items) {
+  return `
+    <div class="inventory-section-head">
+      <div>
+        <small>Mochila</small>
+        <strong>${items.length} objeto${items.length === 1 ? '' : 's'}</strong>
+      </div>
+      <button class="inventory-add-object-btn" onclick="openInventoryAddObject()">Agregar objeto</button>
+    </div>
     ${items.length ? `
       <div class="inventory-rich-list">
         ${items.map(renderInventoryItemCard).join('')}
       </div>` : '<div class="detail-empty">Sin objetos registrados.</div>'}`;
+}
+
+function renderInventoryStashView(items) {
+  const stashItems = items.filter(inv => !inv.is_equipped && !isUiUsable(inv.item || itemByRef(inv.item_id)));
+  return `
+    <div class="inventory-section-head">
+      <div>
+        <small>Alijo</small>
+        <strong>${stashItems.length} objeto${stashItems.length === 1 ? '' : 's'} guardado${stashItems.length === 1 ? '' : 's'}</strong>
+      </div>
+      <button class="inventory-add-object-btn" onclick="openInventoryAddObject()">Agregar objeto</button>
+    </div>
+    <p class="inventory-section-copy">El alijo agrupa objetos no equipados ni consumibles para revisar tesoro, herramientas y piezas de rol sin mezclarlas con el equipo activo.</p>
+    ${stashItems.length ? `
+      <div class="inventory-rich-list">
+        ${stashItems.map(renderInventoryItemCard).join('')}
+      </div>` : '<div class="inventory-empty-slot">No has agregado objetos al alijo.</div>'}`;
+}
+
+function renderInventoryEquipmentView(items) {
+  const equippedWeapons = items.filter(inv => inv.is_equipped && inv.item?.item_type === 'weapon');
+  const primary = equippedWeapons[0] || null;
+  const secondary = equippedWeapons[1] || null;
+  const shield = items.find(inv => inv.is_equipped && inv.item?.armor_category === 'shield') || null;
+  const armor = items.find(inv => inv.is_equipped && inv.item?.item_type === 'armor' && inv.item?.armor_category !== 'shield') || null;
+  return `
+    <div class="inventory-equipped-loadout">
+      ${renderEquipmentSlot('Arma primaria', primary, 'No has agregado arma primaria', 'Entra a tu mochila y equipa el arma que desees')}
+      ${renderEquipmentSlot('Arma secundaria', secondary, 'No has agregado arma secundaria', 'Entra a tu mochila y equipa el arma que desees')}
+      ${renderEquipmentSlot('Escudo', shield, 'No has agregado escudo', 'Un escudo solo se puede equipar si el arma secundaria o primaria es de 1 mano')}
+      ${renderEquipmentSlot('Armadura', armor, 'No has equipado armadura', 'Entra a tu mochila y equipa la armadura que desees')}
+      ${renderEquipmentSlot('Botas', null, 'No has equipado Botas', 'Entra a tu mochila y equipa las botas que desees')}
+      ${renderEquipmentSlot('Guantes o guanteletes', null, 'No has equipado Guantes o guanteletes', 'Entra a tu mochila y equipa los guantes o guanteletes')}
+      ${renderEquipmentSlot('Anillos', null, 'No has equipado anillos', 'Entra a tu mochila y equipa los anillos a usar')}
+      ${renderEquipmentSlot('Amuleto', null, 'No has equipado Amuleto', 'Entra a tu mochila y equipa los amuletos a usar')}
+    </div>`;
+}
+
+function renderEquipmentSlot(label, inv, emptyTitle, emptyCopy) {
+  if (!inv) {
+    return `<article class="inventory-empty-slot">
+      <strong>${emptyTitle}</strong>
+      <span>${emptyCopy}</span>
+    </article>`;
+  }
+  return renderInventoryItemCard(inv, { slotLabel: label, compact: true });
 }
 
 function inventoryAmmoType(inv) {
@@ -4220,7 +4471,7 @@ async function applyDetailEquipment() {
   }
 }
 
-function renderInventoryItemCard(inv) {
+function renderInventoryItemCard(inv, options = {}) {
   const item = inv.item || itemByName(inv.item_id) || {};
   const name = itemLabel(item.name ?? inv.item_id ?? 'Objeto');
   const displayQty = inventoryDisplayQuantity(inv, item);
@@ -4229,11 +4480,12 @@ function renderInventoryItemCard(inv) {
   const usable = isUiUsable(item);
   const pack = item?.item_type === 'pack' && Array.isArray(item.pack_contents);
   const status = [
+    options.slotLabel || '',
     inv.is_equipped ? 'Equipado' : '',
     inv.is_attuned ? 'Sintonizado' : '',
   ].filter(Boolean);
   return `
-    <article class="inventory-item-card">
+    <article class="inventory-item-card ${options.compact ? 'inventory-slot-card' : ''}">
       <div class="inventory-item-head">
         <div class="inventory-item-title">
           <small>${item.item_type ? itemTypeLabel(item) : 'Objeto'}</small>
@@ -4252,6 +4504,150 @@ function renderInventoryItemCard(inv) {
         </div>
       </div>
     </article>`;
+}
+
+function inventoryItemCategory(item) {
+  if (!item) return 'gear';
+  if (item.item_type === 'weapon') return 'weapon';
+  if (item.item_type === 'armor') return 'armor';
+  if (item.item_type === 'ammunition') return 'ammunition';
+  if (item.item_type === 'potion' || isUiUsable(item)) return 'consumable';
+  if (item.item_type === 'clothing') return 'clothing';
+  if (item.item_type === 'magic_item') return 'curiosity';
+  if (['tool', 'instrument', 'focus'].includes(item.item_type)) return 'tool';
+  return 'gear';
+}
+
+const INVENTORY_FILTER_LABELS = {
+  weapon: 'Armas',
+  armor: 'Armaduras',
+  consumable: 'Consumibles',
+  ammunition: 'Municiones',
+  gear: 'Baratija',
+  curiosity: 'Curiosidad',
+  clothing: 'Ropa',
+  tool: 'Arte',
+};
+
+async function openInventoryAddObject() {
+  await ensureItemCatalog();
+  pendingInventoryAddItemId = null;
+  const panel = document.getElementById('detail-extra-panel');
+  if (panel) panel.innerHTML = renderInventoryAddObjectScreen();
+}
+
+function renderInventoryAddObjectScreen() {
+  const filters = Object.entries(INVENTORY_FILTER_LABELS).map(([key, label]) => `
+    <button class="${detailInventoryFilters.has(key) ? 'active' : ''}" onclick="toggleInventoryCatalogFilter('${key}')">${label}<span>${detailInventoryFilters.has(key) ? '×' : '+'}</span></button>
+  `).join('');
+  return `<section class="inventory-add-screen">
+    <div class="inventory-add-header">
+      <button onclick="closeInventoryAddObject()">‹ Atrás</button>
+      <strong>Agregar objeto</strong>
+      <span></span>
+    </div>
+    <div class="inventory-coin-row">
+      ${['PO','PP','PC'].map(label => `<article><strong>${label}</strong><button onclick="toast('Monedas pendiente de modelo de base de datos','info')">Agregar</button></article>`).join('')}
+    </div>
+    <div class="inventory-search-row">
+      <input value="${escapeText(detailInventorySearch)}" placeholder="Busca el objeto que desees" oninput="detailInventorySearch=this.value; refreshInventoryCatalogResults()">
+      <button onclick="refreshInventoryCatalogResults()">Buscar</button>
+    </div>
+    <div class="inventory-filter-row">
+      <div class="inventory-filter-chips">${filters}</div>
+      <div class="inventory-filter-label">Filtros</div>
+    </div>
+    <div id="inventory-catalog-results">${inventoryCatalogResultsHTML()}</div>
+  </section>`;
+}
+
+function closeInventoryAddObject() {
+  pendingInventoryAddItemId = null;
+  const panel = document.getElementById('detail-extra-panel');
+  if (panel && characterData) panel.innerHTML = renderDetailInventory(characterData);
+}
+
+function toggleInventoryCatalogFilter(key) {
+  if (detailInventoryFilters.has(key)) detailInventoryFilters.delete(key);
+  else detailInventoryFilters.add(key);
+  refreshInventoryCatalogResults();
+}
+
+function refreshInventoryCatalogResults() {
+  const wrap = document.getElementById('inventory-catalog-results');
+  if (wrap) wrap.innerHTML = inventoryCatalogResultsHTML();
+  const filterRow = document.querySelector('.inventory-filter-chips');
+  if (filterRow) {
+    filterRow.innerHTML = Object.entries(INVENTORY_FILTER_LABELS).map(([key, label]) => `
+      <button class="${detailInventoryFilters.has(key) ? 'active' : ''}" onclick="toggleInventoryCatalogFilter('${key}')">${label}<span>${detailInventoryFilters.has(key) ? '×' : '+'}</span></button>
+    `).join('');
+  }
+}
+
+function inventoryCatalogResultsHTML() {
+  const q = detailInventorySearch.trim().toLowerCase();
+  const activeFilters = detailInventoryFilters.size ? detailInventoryFilters : new Set(Object.keys(INVENTORY_FILTER_LABELS));
+  const results = (wiz.catalog.items || [])
+    .filter(item => activeFilters.has(inventoryItemCategory(item)))
+    .filter(item => !q || itemLabel(item.name).toLowerCase().includes(q) || String(item.name || '').toLowerCase().includes(q))
+    .slice(0, 24);
+  if (!results.length) return '<div class="detail-empty">No encontramos objetos con esos filtros.</div>';
+  return `<div class="inventory-catalog-list">${results.map(renderInventoryCatalogCard).join('')}</div>`;
+}
+
+function renderInventoryCatalogCard(item) {
+  return `<article class="inventory-item-card inventory-catalog-card">
+    <div class="inventory-item-head">
+      <div class="inventory-item-title">
+        <small>${itemTypeLabel(item)}</small>
+        <strong>${itemLabel(item.name)}</strong>
+      </div>
+      <span class="inventory-status-row"><em>${INVENTORY_FILTER_LABELS[inventoryItemCategory(item)] ?? 'Objeto'}</em></span>
+    </div>
+    <div class="equipment-chip-row">${itemChips(item)}</div>
+    <p>${itemDescription(item)}</p>
+    <div class="inventory-card-actions">
+      <span></span>
+      <button class="inventory-equip-btn" onclick="openInventoryQuantityScreen('${item.item_id}')">Agregar</button>
+    </div>
+  </article>`;
+}
+
+function openInventoryQuantityScreen(itemId) {
+  pendingInventoryAddItemId = itemId;
+  const item = itemByRef(itemId);
+  const panel = document.getElementById('detail-extra-panel');
+  if (!panel || !item) return;
+  panel.innerHTML = `<section class="inventory-add-screen inventory-qty-screen">
+    <div class="inventory-add-header">
+      <button onclick="openInventoryAddObject()">‹ Atrás</button>
+      <strong>Agregar objeto</strong>
+      <span></span>
+    </div>
+    <div class="inventory-qty-copy">
+      <h2>${itemLabel(item.name)}</h2>
+      <p>Agrega la cantidad de objetos de este tipo que vas a agregar a tu inventario</p>
+    </div>
+    <input id="inventory-add-qty" class="inventory-qty-input" type="number" min="1" value="${ammunitionBundleSize(item) || 1}" placeholder="Cantidad">
+    <button class="inventory-add-submit" onclick="confirmInventoryAddObject()">Agregar</button>
+  </section>`;
+}
+
+async function confirmInventoryAddObject() {
+  if (!characterId || !pendingInventoryAddItemId) return;
+  const quantity = Math.max(1, parseInt(document.getElementById('inventory-add-qty')?.value, 10) || 1);
+  try {
+    const result = await api('POST', `/characters/${characterId}/inventory`, { item_id: pendingInventoryAddItemId, quantity });
+    toast(result.message || 'Objeto agregado al inventario', 'ok');
+    const updated = await api('GET',`/characters/${characterId}`);
+    detailInventoryCache = updated.inventory_items || [];
+    characterData = { ...(characterData || {}), inventory_items: detailInventoryCache };
+    pendingInventoryAddItemId = null;
+    detailInventoryMode = 'backpack';
+    document.getElementById('detail-extra-panel').innerHTML = renderDetailInventory(characterData);
+  } catch(e) {
+    toast(e.message, 'err');
+  }
 }
 
 function isUiEquippable(item) {

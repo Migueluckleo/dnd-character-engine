@@ -11,6 +11,33 @@
 
 ## Últimos cambios realizados (2026-05-04)
 
+- Se agregó recomendación óptima de atributos en el wizard: usa clase como prioridad principal, trasfondo como ajuste secundario y raza para mostrar el resultado final.
+- La recomendación aplica valores base de Point Buy válidos y mantiene el contrato de no sumar bonos raciales al payload.
+- Se inspeccionó Figma sección `Inventario` (`2072:3743`) y se integró en el personaje abierto con tabs internos `Equipo`, `Mochila` y `Alijo`.
+- `Equipo` muestra slots equipados/vacíos como Figma; `Mochila` conserva inventario real y agrega flujo de búsqueda/filtros/cantidad para añadir objetos; `Alijo` agrupa objetos no equipados/no consumibles como solución temporal.
+- Se agregaron US-136 y US-137.
+- Pendiente: validar visualmente en navegador, modelar monedas (`PO`, `PP`, `PC`) y decidir si `Alijo` requiere persistencia real por ubicación.
+
+## Últimos cambios realizados (2026-05-04)
+
+- Se aplicó feedback de usuario avanzado al wizard de creación: razas agrupadas por familia/raza padre y atributos movidos a fase tardía.
+- Orden de elfos en selección: `Drow`, `Elfo Alto`, `Elfo del Bosque`; las variantes ya no dependen del orden alfabético del catálogo.
+- Tiefling queda preparado para agrupar futuras subrazas si el catálogo las contiene, pero no se inventaron subrazas ni mecánicas no validadas.
+- `Atributos del personaje` ahora aparece después de raza/trasfondo/clase/equipamiento y antes de habilidades/conjuros/PG para conservar cálculos dependientes.
+- Se agregó US-135.
+- Pendiente: validar visualmente en navegador que la lista agrupada y el nuevo orden de pasos se sientan correctos en mobile.
+
+## Últimos cambios realizados (2026-05-04)
+
+- Se endureció el almacenamiento de credenciales de perfiles: nuevas contraseñas usan `scrypt` con salt y pepper de servidor (`AUTH_SECRET`).
+- Se conserva compatibilidad de login para hashes PBKDF2 heredados.
+- En producción, el backend falla al iniciar si `AUTH_SECRET` conserva el fallback de desarrollo.
+- Los tokens de sesión ya no incluyen correo; solo `sub`, `iat` y `exp`.
+- La UI y backend requieren mínimo 10 caracteres de contraseña.
+- Pendiente: validar registro/login en Render después de redeploy con `AUTH_SECRET` real configurado.
+
+## Últimos cambios realizados (2026-05-04)
+
 - Se corrigió el upload de imágenes para producción: `express.json({ limit: '2mb' })` y `error-handler` ahora convierte `ZodError`/JSON inválido/payload grande a 422/400/413 en vez de 500 genérico.
 - Pendiente: redeploy en Render y probar `PATCH /characters/:id/image` desde GitHub Pages.
 
@@ -285,12 +312,25 @@
 - US-129: flujo Figma de lanzamiento de conjuro. Implementada, pendiente de validación visual en navegador.
 - US-130: animación de dados virtuales. Implementada, pendiente de validación visual en navegador.
 - US-131: competencia en ataques con arma y visibilidad de competencias en habilidades/equipo. Implementada, pendiente de validación visual en navegador.
+- US-132: perfiles/login/roster por dueño. Implementada con hashing `scrypt` + pepper y token mínimo, pendiente de validación E2E en Render.
+- US-133: publicación segura en GitHub/GitHub Pages. Implementada, pendiente de configuración real.
+- US-134: API pública para GitHub Pages. Implementada, pendiente de validación final de despliegue.
+- US-135: agrupación experta de razas y atributos tardíos. Implementada, pendiente de validación visual en navegador.
+- US-136: recomendación óptima de atributos por raza/clase/trasfondo. Implementada, pendiente de validación visual.
+- US-137: sección Inventario Figma con Equipo/Mochila/Alijo y agregar objeto. Implementada parcial, pendiente de monedas/alijo persistente y QA visual.
 
 ## Decisiones técnicas tomadas
 
 - El código actual es la fuente principal de verdad; la documentación debe reflejarlo, no sustituirlo.
 - Los valores de atributos persistidos son valores base de Point Buy. Los bonos raciales no se suman al payload ni a los campos `base_*`.
 - En la UI de atributos, el número principal debe ser `base_score + racial_bonus`, con explicación visible, por ejemplo `Base 8 + +2 raza = 10`.
+- Por feedback de usuario avanzado, `Atributos del personaje` ya no debe aparecer inmediatamente después de raza. Debe quedar en la fase tardía del wizard, después de raza/trasfondo/clase/equipamiento y antes de habilidades/conjuros/PG.
+- La selección de raza debe agruparse por familia/raza padre. Los elfos deben permanecer juntos en orden `Drow`, `Elfo Alto`, `Elfo del Bosque`; no regresar al orden alfabético del catálogo.
+- Tiefling puede agrupar subrazas futuras si existen datos validados en catálogo, pero no inventar subrazas ni mecánicas no sembradas.
+- La sugerencia de atributos debe seguir siendo una ayuda editable, no una imposición: aplicar la recomendación solo cambia Point Buy base y el usuario puede modificarla manualmente.
+- La arquitectura Figma de `Inventario` vive dentro del personaje abierto, no en la navegación inferior global: `Equipo`, `Mochila` y `Alijo` son subtabs internos del tab `Inventario`.
+- `Alijo` actualmente es inferido desde inventario no equipado/no consumible; no hay columna de ubicación en base de datos. Si se requiere alijo real, agregar primero historia/migración.
+- Monedas (`PO`, `PP`, `PC`) aparecen como affordance visual pendiente; no simular persistencia sin modelo backend.
 - Los valores derivados se calculan en hidratación o servicios, no se duplican como estado persistido.
 - La tirada inicial de PG sí se persiste como dato fuente (`Character.level_1_hp_roll`) porque es necesaria para recalcular max HP cuando cambia Constitución o nivel.
 - La API permite CORS amplio para que `ui.html` funcione desde `file://`.
