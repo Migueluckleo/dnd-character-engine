@@ -11,6 +11,11 @@
 
 ## Últimos cambios realizados (2026-05-04)
 
+- Se corrigió el build de TypeScript en Render agregando `ignoreDeprecations: "5.0"` en `tsconfig.json`; esto evita que la advertencia de `moduleResolution: node10` falle como error.
+- Validado con `npm run build` y `npm run prepublish:check`.
+
+## Últimos cambios realizados (2026-05-04)
+
 - Se ajustó deploy Render para fijar Node 20 LTS y separar build de migraciones.
 - `package.json` ahora declara `engines.node = 20.x`.
 - `render:build` ya no ejecuta migraciones; solo genera Prisma Client y compila TypeScript.

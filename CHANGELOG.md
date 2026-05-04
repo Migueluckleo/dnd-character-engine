@@ -1135,3 +1135,22 @@ Registro retroactivo del proyecto. El código actual es la fuente principal de v
 - Confirmado por captura de Render usando Node 24 por defecto
 - Basado en solicitud directa del usuario
 - Pendiente de validación: redeploy en Render
+
+## [2026-05-04] - Fix TypeScript build en Render
+
+### Cambios
+- Se agregó `ignoreDeprecations: "5.0"` en `tsconfig.json` para evitar que TypeScript falle el build por la advertencia de `moduleResolution: node10`.
+- Se conservó `module: commonjs` para no cambiar el runtime compilado del backend.
+
+### Archivos modificados
+- `tsconfig.json`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-134: Public Backend API Deployment
+
+### Fuente / certeza
+- Confirmado por logs de Render
+- Validado con `npm run build`
+- Validado con `npm run prepublish:check`
