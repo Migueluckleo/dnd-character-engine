@@ -11,6 +11,11 @@
 
 ## Últimos cambios realizados (2026-05-04)
 
+- Se corrigió el upload de imágenes para producción: `express.json({ limit: '2mb' })` y `error-handler` ahora convierte `ZodError`/JSON inválido/payload grande a 422/400/413 en vez de 500 genérico.
+- Pendiente: redeploy en Render y probar `PATCH /characters/:id/image` desde GitHub Pages.
+
+## Últimos cambios realizados (2026-05-04)
+
 - Se corrigió persistencia real de imágenes de personaje: `Character.image_data` en Prisma, migración `20260504131500_add_character_image`, endpoint `PATCH /characters/:id/image` y UI enviando imagen comprimida al backend.
 - `localStorage` queda solo como cache/fallback, ya no como fuente principal.
 - Pendiente: deploy en Render para aplicar migración y validar subida desde `https://www.migueleo.com`.

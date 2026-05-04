@@ -1240,3 +1240,23 @@ Registro retroactivo del proyecto. El código actual es la fuente principal de v
 - Confirmado por código actual
 - Basado en reporte del usuario en app publicada
 - Pendiente de validación: migración en Render/Supabase y subida real desde GitHub Pages
+
+## [2026-05-04] - Fix payload de imagen y errores API claros
+
+### Cambios
+- Se aumentó el límite JSON de Express a `2mb` para aceptar imágenes comprimidas del personaje.
+- El middleware global de errores ahora traduce `ZodError` a 422, JSON inválido a 400 y payload demasiado grande a 413 con mensaje en español.
+- Esto evita que errores esperados del upload aparezcan como 500 genérico.
+
+### Archivos modificados
+- `src/index.ts`
+- `src/api/middleware/error-handler.ts`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-118: Character Image Upload and Figma-Matched Detail Subflows
+
+### Fuente / certeza
+- Basado en error 500 reportado desde `PATCH /characters/:id/image`
+- Pendiente de validación: redeploy en Render y subida real
