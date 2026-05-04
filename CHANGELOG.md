@@ -1192,3 +1192,25 @@ Registro retroactivo del proyecto. El código actual es la fuente principal de v
 ### Fuente / certeza
 - Confirmado por captura del usuario de `GET /health`
 - Pendiente de validación: GitHub Pages consumiendo la API pública tras push
+
+## [2026-05-04] - Íconos locales para UI pública
+
+### Cambios
+- Se reemplazaron fallbacks de letras en navegación, placeholders y tarjeta de personaje por íconos SVG locales embebidos.
+- La UI pública ya no depende de assets privados/remotos de Figma para mostrar navegación e indicadores rápidos.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-117: Figma-Matched Character Detail Microflow and Bottom Navigation
+- US-119: Figma-Matched Created Character Card
+- US-133: Safe GitHub Repository and GitHub Pages Publication
+
+### Fuente / certeza
+- Confirmado por código actual
+- Basado en reporte del usuario en app publicada
+- Pendiente de validación visual en GitHub Pages

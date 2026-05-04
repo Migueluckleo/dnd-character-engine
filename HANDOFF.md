@@ -11,6 +11,11 @@
 
 ## Últimos cambios realizados (2026-05-04)
 
+- Se corrigieron los íconos de la app pública: `ui.html` ahora incluye un sprite SVG local para navegación, placeholders y quick stats; `style.css` define tamaños/colores.
+- Motivo: los assets originales de Figma MCP no son aptos para producción y los fallbacks de letras se veían incorrectos en GitHub Pages.
+
+## Últimos cambios realizados (2026-05-04)
+
 - API Render pública verificada: `https://dnd-character-engine-api.onrender.com/health` responde `{"status":"ok"}`.
 - `config.public.js` ahora apunta GitHub Pages a `https://dnd-character-engine-api.onrender.com`.
 - Pendiente: hacer commit/push y validar en `https://www.migueleo.com` que el estado cambie a conectado y permita login/registro.

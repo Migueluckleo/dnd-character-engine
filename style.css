@@ -42,19 +42,14 @@
   nav a:hover, nav a.active { color: var(--text); background: var(--surface2); border-left-color: var(--accent); }
   nav .nav-icon { margin-right: 8px; }
   nav .nav-icon-img { width: 22px; height: 22px; object-fit: contain; vertical-align: middle; margin-right: 8px; }
-  .nav-icon-symbol {
+  .nav-icon-svg {
     width: 22px;
     height: 22px;
-    display: inline-grid;
-    place-items: center;
     margin-right: 8px;
-    border: 1px solid currentColor;
-    border-radius: 50%;
-    font-size: 0.72rem;
-    font-weight: 700;
+    color: currentColor;
     vertical-align: middle;
+    flex: 0 0 auto;
   }
-
   /* ── Content panels ── */
   #content { padding: 24px; overflow-y: auto; }
   .panel { display: none; }
@@ -259,6 +254,17 @@
     font-family: Georgia, "Times New Roman", serif;
     font-size: 2rem;
     margin-bottom: 14px;
+  }
+  .placeholder-mark svg {
+    width: 34px;
+    height: 34px;
+  }
+  .inline-info-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--accent2);
+    vertical-align: -3px;
+    margin-right: 3px;
   }
 
   /* ── Edit character modal ── */
