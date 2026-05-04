@@ -1063,3 +1063,21 @@ Registro retroactivo del proyecto. El código actual es la fuente principal de v
 - Basado en solicitud directa del usuario
 - Validado con `npm run prepublish:check`
 - Pendiente de validación: activar GitHub Pages en el repositorio real
+
+## [2026-05-04] - Configuración de API pública para Pages
+
+### Cambios
+- Se actualizó `config.public.js` para apuntar `API_BASE_URL` a `https://www.migueleo.com`.
+- Se documentó que esa URL debe responder como backend API para que el estado de conexión funcione en GitHub Pages.
+
+### Archivos modificados
+- `config.public.js`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- US-133: Safe GitHub Repository and GitHub Pages Publication
+
+### Fuente / certeza
+- Basado en solicitud directa del usuario
+- Pendiente de validación: disponibilidad real de `/health` y endpoints API en `https://www.migueleo.com`

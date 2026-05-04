@@ -11,6 +11,11 @@
 
 ## Últimos cambios realizados (2026-05-04)
 
+- `config.public.js` ahora apunta la UI publicada a `https://www.migueleo.com` como URL pública de API.
+- Pendiente de validación: confirmar que `https://www.migueleo.com/health` responda desde un backend Express/Prisma. Si el dominio solo sirve GitHub Pages, la app seguirá marcando “Sin conexión”.
+
+## Últimos cambios realizados (2026-05-04)
+
 - Se preparó el proyecto para publicarse en GitHub sin exponer secretos: `.gitignore` endurecido, `.env.example` seguro, `README.md`, `SECURITY.md`, `config.public.js`, `index.html`, `.nojekyll` y workflow de GitHub Pages.
 - El workflow `.github/workflows/pages.yml` publica únicamente archivos estáticos permitidos (`index.html`, `ui.html`, `style.css`, `config.public.js`, `.nojekyll`), no backend, no `.env`, no `node_modules`.
 - Se eliminaron dependencias runtime a URLs privadas/remotas de Figma MCP y Google Fonts en UI/CSS.
