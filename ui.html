@@ -5208,7 +5208,7 @@ async function loadSheet(){
     document.getElementById('s-prof-visible').textContent  = fmt(h.proficiency_bonus);
     document.getElementById('s-speed').textContent  = h.speed;
     document.getElementById('s-hp').textContent     = `${c.current_hp} / ${h.max_hp}`;
-    document.getElementById('s-ac').textContent     = h.unarmored_ac;
+    document.getElementById('s-ac').textContent     = h.armor_class ?? h.unarmored_ac;
 
     // Ability scores
     document.getElementById('stats-grid').innerHTML = STATS.map(k=>`

@@ -8,6 +8,7 @@ import { pointBuyGuard, skillSelectionGuard, deadCharacterGuard } from '../middl
 import { AppError } from '../middleware/error-handler';
 import { validateMulticlassPrerequisites } from '../../services/multiclass.service';
 import { addXP, isLevelUpAvailable, getXPForLevel, XP_THRESHOLDS } from '../../services/xp.service';
+import { calculateAC } from '../../services/ac.service';
 import { findCharacterById, createCharacter, updateCharacter, prisma } from '../../repositories/character.repository';
 import { currentAuthUser } from '../middleware/auth';
 
@@ -852,6 +853,34 @@ characterRouter.get('/:id/hydrated', async (req, res, next) => {
       savingThrowBonuses[ability] = abilMod + (saveProfs.includes(ability) ? prof : 0);
     }
 
+    // Armor Class — use equipped armor/shield from inventory
+    const inventoryItems = (character as any).inventory_items ?? [];
+    const equippedBodyArmor = inventoryItems.find(
+      (inv: any) => inv.is_equipped && inv.item?.armor_category && inv.item.armor_category !== 'shield'
+    );
+    const shieldEquipped = inventoryItems.some(
+      (inv: any) => inv.is_equipped && inv.item?.armor_category === 'shield'
+    );
+    const primaryClassName = (character as any).character_classes
+      ?.find((cc: any) => cc.is_primary)?.class?.name?.toLowerCase() ?? '';
+    const unArmoredOverrideType =
+      primaryClassName === 'barbarian' ? 'barbarian' :
+      primaryClassName === 'monk'      ? 'monk'      : 'none';
+    const armorClass = calculateAC({
+      dexScore: scores['dex']!,
+      conScore: scores['con']!,
+      wisScore: scores['wis']!,
+      equippedArmor: equippedBodyArmor
+        ? {
+            armorCategory: equippedBodyArmor.item.armor_category,
+            acBase: equippedBodyArmor.item.ac_base ?? 10,
+            strengthRequirement: equippedBodyArmor.item.strength_requirement ?? undefined,
+          }
+        : null,
+      shieldEquipped,
+      unArmoredOverride: { type: unArmoredOverrideType },
+    });
+
     res.json({
       ...character,
       computed: {
@@ -859,6 +888,7 @@ characterRouter.get('/:id/hydrated', async (req, res, next) => {
         total_level:           totalLevel,
         proficiency_bonus:     prof,
         initiative:            dexMod,
+        armor_class:           armorClass,
         unarmored_ac:          10 + dexMod,
         speed:                 (character as any).race?.base_speed ?? 30,
         darkvision_radius:     (character as any).race?.darkvision_radius ?? 0,
