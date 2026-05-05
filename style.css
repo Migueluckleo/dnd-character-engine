@@ -3169,3 +3169,86 @@
       width: 100%;
     }
   }
+
+/* ── Resolución de historia ────────────────────────────────────────────────── */
+.story-skill-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0 16px 24px;
+}
+.story-skill-hint {
+  font-size: 0.82rem;
+  color: var(--muted);
+  text-align: center;
+  margin: 0 0 12px;
+  padding: 0 4px;
+  line-height: 1.45;
+}
+.story-skill-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 20px;
+  max-height: 52vh;
+  overflow-y: auto;
+}
+.story-skill-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--surface2);
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  width: 100%;
+  text-align: left;
+}
+.story-skill-row:hover {
+  background: var(--surface3, #4a3120);
+}
+.story-skill-row.selected {
+  background: rgba(201,146,26,0.18);
+  border-color: var(--accent2);
+}
+.story-skill-name {
+  font-size: 0.9rem;
+  color: var(--text);
+}
+.story-skill-bonus {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--accent2);
+  min-width: 32px;
+  text-align: right;
+}
+/* Dual dice layout */
+.story-dual-dice {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+.story-dual-dice .dice-art {
+  width: 88px;
+  height: 88px;
+  font-size: 1.6rem;
+}
+/* Dim the losing die */
+.story-dual-dice .dice-art:not(.story-die-winner) {
+  opacity: 0.45;
+}
+.story-bonus-note {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 2px 0 0;
+}
+.story-adv-note {
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-align: center;
+  padding: 0 20px;
+  line-height: 1.4;
+  margin: 4px 0 8px;
+}

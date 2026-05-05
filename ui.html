@@ -813,6 +813,10 @@ const diceFlow = {
   selectedDie: '',
   spellRoll: null,
   rolling: false,
+  // Resolución de historia
+  storySkillId: null,
+  storyRolls: [],      // [roll1, roll2?] d20 results
+  storyAdvantage: null, // 'advantage' | 'disadvantage' | null
 };
 
 function escapeText(value) {
@@ -881,6 +885,8 @@ function renderDiceFlow() {
     'spell-die': renderSpellDie,
     'spell-result': renderSpellDie,
     'generic-roll': renderGenericRoll,
+    'story-skills': renderStoryResolutionSkills,
+    'story-roll': renderStoryResolutionRoll,
   }[diceFlow.screen]?.() || renderDiceMenu();
   modal.innerHTML = `<div class="dice-flow-screen" role="dialog" aria-modal="true">
     <header class="dice-flow-header">
@@ -899,7 +905,7 @@ function renderDiceMenu() {
     <h1>Elige una tirada</h1>
     ${diceChoiceCard('Ataque', 'Lanza 1d20 para averiguar si tu ataque tendrá efecto o es un lanzamiento fallido.', "openDiceFlowScreen('attack-weapons')")}
     ${diceChoiceCard('Lanzamiento de conjuro', `Tienes (${spellCount}) conjuros y (${cantripCount}) trucos disponibles para usarse, ya sea de ataque, soporte o curación.`, "openSpellDiceFlow('cantrips')")}
-    ${diceChoiceCard('Resolución de historia', '¿Vas a robar un tesoro o a hacer un salto imposible? 1d20 para averiguar qué sucederá según la narrativa de tu Dungeon Master.', "openGenericDiceFlow('Resolución de historia')")}
+    ${diceChoiceCard('Resolución de historia', '¿Vas a robar un tesoro o a hacer un salto imposible? 1d20 para averiguar qué sucederá según la narrativa de tu Dungeon Master.', "openStoryResolutionFlow()")}
     ${diceChoiceCard('Tirada de salvación', '¿Te están atacando? Lanza 1d20 para resolver el efecto que causa el ataque o la situación específica que el Dungeon Master ha descrito.', "openGenericDiceFlow('Tirada de salvación')")}
     <div class="dice-divider"><span></span><em>o</em><span></span></div>
     <h1>Haz una tirada personalizada</h1>
@@ -1267,6 +1273,151 @@ async function rollSpellDie() {
     toast(e.message, 'err');
   }
 }
+
+// ── Resolución de historia ────────────────────────────────────────────────────
+
+function openStoryResolutionFlow() {
+  diceFlow.storySkillId = null;
+  diceFlow.storyRolls   = [];
+  diceFlow.storyAdvantage = null;
+  openDiceFlowScreen('story-skills', 'menu');
+}
+
+/** Returns 'disadvantage' | 'advantage' | null for a given skill */
+function storySkillAdvantage(skillId) {
+  if (skillId === 'stealth') {
+    const hasStealthDisadvantage = (characterData?.computed?.stealth_disadvantage) ||
+      (characterData?.inventory_items || []).some(inv =>
+        inv.is_equipped && inv.item?.stealth_disadvantage
+      );
+    if (hasStealthDisadvantage) return 'disadvantage';
+  }
+  // Conditions from active_state
+  const as = characterData?.active_state ?? {};
+  if (as.is_frightened || as.is_poisoned || as.is_restrained || as.is_exhaustion_level >= 3) {
+    return 'disadvantage';
+  }
+  return null;
+}
+
+function renderStoryResolutionSkills() {
+  const h = characterData?.computed ?? {};
+  const skillBonuses = h.skill_bonuses ?? {};
+  const selected = diceFlow.storySkillId;
+
+  const rows = SKILL_DEFS.map(sk => {
+    const bonus = skillBonuses[sk.id] ?? 0;
+    const isSelected = selected === sk.id;
+    return `<button class="story-skill-row${isSelected ? ' selected' : ''}"
+      onclick="selectStorySkill('${sk.id}')">
+      <span class="story-skill-name">${escapeText(sk.name)}</span>
+      <span class="story-skill-bonus">${fmt(bonus)}</span>
+    </button>`;
+  }).join('');
+
+  return `<section class="dice-card-list story-skill-picker">
+    <p class="story-skill-hint">La resolución de historia siempre compete a una habilidad en específico, elige la habilidad a usar.</p>
+    <div class="story-skill-list">${rows}</div>
+    <button class="dice-primary-btn" ${selected ? '' : 'disabled aria-disabled="true"'}
+      onclick="confirmStorySkill()">Lanzar dado</button>
+  </section>`;
+}
+
+function selectStorySkill(skillId) {
+  diceFlow.storySkillId = skillId;
+  renderDiceFlow();
+}
+
+function confirmStorySkill() {
+  if (!diceFlow.storySkillId) return;
+  diceFlow.storyAdvantage = storySkillAdvantage(diceFlow.storySkillId);
+  diceFlow.storyRolls = [];
+  openDiceFlowScreen('story-roll', 'story-skills');
+}
+
+function renderStoryResolutionRoll() {
+  const skillId  = diceFlow.storySkillId;
+  const skillDef = SKILL_DEFS.find(s => s.id === skillId) ?? { name: 'Habilidad', id: skillId };
+  const h        = characterData?.computed ?? {};
+  const bonus    = (h.skill_bonuses ?? {})[skillId] ?? 0;
+  const adv      = diceFlow.storyAdvantage;
+  const rolls    = diceFlow.storyRolls;
+  const rolled   = rolls.length > 0;
+  const needTwo  = adv !== null;
+
+  // Determine final result
+  let finalDie = null;
+  if (rolled) {
+    finalDie = needTwo
+      ? (adv === 'advantage' ? Math.max(...rolls) : Math.min(...rolls))
+      : rolls[0];
+  }
+  const finalTotal = finalDie !== null ? finalDie + bonus : null;
+
+  // Advantage/disadvantage note
+  let advNote = '';
+  if (adv === 'disadvantage' && skillId === 'stealth') {
+    advNote = 'Deberás arrojar 2 dados ya que tienes desventaja en sigilo por la armadura equipada — se usará el dado con número más bajo como el dado definitivo.';
+  } else if (adv === 'disadvantage') {
+    advNote = 'Tienes desventaja — se arrojan 2 dados y se usa el resultado más bajo.';
+  } else if (adv === 'advantage') {
+    advNote = 'Tienes ventaja — se arrojan 2 dados y se usa el resultado más alto.';
+  }
+
+  // Die display (one or two dice)
+  const die1Val = rolls[0] ?? 0;
+  const die2Val = rolls[1] ?? 0;
+  const diceHTML = needTwo
+    ? `<div class="dice-stage story-dual-dice">
+        <div class="dice-art d20${rolled && adv === 'disadvantage' && die1Val === finalDie ? ' story-die-winner' : ''}" id="story-die-1" aria-live="polite"><span>${die1Val}</span></div>
+        <div class="dice-art d20${rolled && adv === 'disadvantage' && die2Val === finalDie ? ' story-die-winner' : ''}" id="story-die-2" aria-live="polite"><span>${die2Val}</span></div>
+      </div>`
+    : `<div class="dice-stage"><div class="dice-art d20" id="story-die-1" aria-live="polite"><span>${die1Val}</span></div></div>`;
+
+  return `<section class="dice-roll-panel">
+    <div class="dice-copy">
+      <h1>${escapeText(skillDef.name)}</h1>
+      <p>Se usará un d20 para resolver la situación</p>
+      ${bonus !== 0 ? `<p class="story-bonus-note">Modificador de ${escapeText(skillDef.name)}: <strong>${fmt(bonus)}</strong></p>` : ''}
+    </div>
+    ${diceHTML}
+    ${advNote ? `<p class="story-adv-note">${escapeText(advNote)}</p>` : ''}
+    ${finalTotal !== null
+      ? `<div class="dice-result-row"><span>Resultado final</span><strong>${finalTotal}</strong></div>`
+      : ''}
+    ${!rolled
+      ? `<button class="dice-primary-btn" onclick="rollStoryDice()" ${diceFlow.rolling ? 'disabled aria-disabled="true"' : ''}>${diceFlow.rolling ? 'Lanzando...' : 'Lanzar dado'}</button>`
+      : `<button class="dice-primary-btn" onclick="closeDiceFlow()">Terminar</button>`}
+  </section>`;
+}
+
+async function rollStoryDice() {
+  const adv     = diceFlow.storyAdvantage;
+  const needTwo = adv !== null;
+  diceFlow.rolling = true;
+  renderDiceFlow();
+
+  if (needTwo) {
+    // Roll two dice sequentially
+    const r1 = Math.floor(Math.random() * 20) + 1;
+    const r2 = Math.floor(Math.random() * 20) + 1;
+    await animateDiceResult(r1, 20, 'story-die-1');
+    diceFlow.storyRolls = [r1];
+    renderDiceFlow();
+    await delay(160);
+    await animateDiceResult(r2, 20, 'story-die-2');
+    diceFlow.storyRolls = [r1, r2];
+  } else {
+    const r1 = Math.floor(Math.random() * 20) + 1;
+    await animateDiceResult(r1, 20, 'story-die-1');
+    diceFlow.storyRolls = [r1];
+  }
+
+  diceFlow.rolling = false;
+  renderDiceFlow();
+}
+
+// ── end Resolución de historia ────────────────────────────────────────────────
 
 function openGenericDiceFlow(title, formula = '1d20') {
   diceFlow.genericTitle = title;
