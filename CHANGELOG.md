@@ -2,6 +2,18 @@
 
 Registro retroactivo del proyecto. El código actual es la fuente principal de verdad; las fechas previas se basan en marcas de archivo y documentación disponible, por lo que algunas entradas se indican como estimadas.
 
+## [2026-05-05] - Dados 3D con Three.js (US-143)
+
+### Cambios
+- Se añadió `three.js r128` desde cdnjs CDN en el `<head>` de `ui.html`.
+- Se creó el módulo `dice3D` (IIFE) con inicialización automática al cargar la página.
+- Al lanzar cualquier dado aparece un overlay oscuro a pantalla completa con el dado 3D girando con la geometría correcta para cada tipo: tetraedro (d4), cubo (d6), octaedro (d8), pirámide pentagonal (d10), dodecaedro (d12), icosaedro (d20), esfera (d100).
+- Cada dado tiene su color temático y líneas de aristas para definición visual.
+- `animateDiceResult()` usa Three.js cuando está disponible; cae al CSS si no carga.
+- Se agregaron estilos CSS para `#dice-3d-overlay` y `#dice-3d-canvas`.
+- Se añadió helper `sidesToDieClass(sides)` que mapea número de caras a clase CSS.
+- Toda la lógica DnD (modificadores, proficiencia, ventaja/desventaja) sin cambios.
+
 ## [2026-05-05] - Integración rpg-dice-roller (US-142)
 
 ### Cambios

@@ -1766,4 +1766,21 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 - If the CDN script fails to load, the page degrades silently to the manual fallback.
 - `parseDiceFormula()` unchanged — still used by `diceFormulaSides()`.
 
-*End of requirements.md — Total User Stories: US-01 through US-142.*
+### US-143: Dados 3D con Three.js
+
+**Goal:** Reemplazar la animación CSS de dados con dados 3D reales renderizados en WebGL usando Three.js, mostrando la geometría correcta para cada tipo (d4–d100) al momento de lanzar.
+
+**Acceptance criteria:**
+- Three.js r128 cargado desde cdnjs CDN; sin dependencias npm adicionales.
+- Al lanzar cualquier dado aparece overlay a pantalla completa con el dado 3D girando ~1.1s.
+- Cada tipo de dado usa su geometría correcta: tetraedro, cubo, octaedro, pirámide pentagonal, dodecaedro, icosaedro, esfera.
+- Cada dado tiene color y líneas de aristas diferenciados por tipo.
+- Si Three.js no carga (sin conexión), `animateDiceResult` cae automáticamente al CSS sin errores.
+- Toda la lógica DnD (modificadores, proficiencia, ventaja/desventaja) permanece sin cambios.
+- `sidesToDieClass(sides)` mapea número de caras a clase CSS correcta en toda la UI.
+
+| US | Estado | Notas |
+|----|--------|-------|
+| US-143 | Implementada / pendiente de validación visual en navegador | Three.js r128 desde cdnjs. `dice3D` IIFE con `setup()` + `rollDie(sides)`. Overlay `#dice-3d-overlay` z-index 10000. Fallback CSS automático. |
+
+*End of requirements.md — Total User Stories: US-01 through US-143.*

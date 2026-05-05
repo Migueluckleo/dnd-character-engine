@@ -1606,6 +1606,14 @@
     background: linear-gradient(145deg, #efe9cd, #bfb797);
     color: #494949;
   }
+  .dice-art.d4 {
+    width: 160px;
+    height: 140px;
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    background: radial-gradient(circle at 50% 70%, #4a1060 0 26%, #200030 27% 100%);
+    border: 2px solid #c87eff;
+    color: #f5d6ff;
+  }
   .dice-art.d6 {
     width: 150px;
     height: 150px;
@@ -1613,6 +1621,30 @@
     background: linear-gradient(145deg, #f7f7f7, #cfcfcf);
     box-shadow: 8px 8px 0 rgba(0,0,0,.25);
     color: #000;
+  }
+  .dice-art.d8 {
+    width: 168px;
+    height: 168px;
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    background: radial-gradient(circle at 50% 50%, #0a2e60 0 26%, #011838 27% 100%);
+    border: 2px solid #6ab0ff;
+    color: #cce4ff;
+  }
+  .dice-art.d10 {
+    width: 172px;
+    height: 168px;
+    clip-path: polygon(50% 0%, 100% 36%, 82% 100%, 18% 100%, 0% 36%);
+    background: radial-gradient(circle at 50% 46%, #60200a 0 26%, #380801 27% 100%);
+    border: 2px solid #ffa06a;
+    color: #ffe4d6;
+  }
+  .dice-art.d100 {
+    width: 168px;
+    height: 168px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 42% 38%, #1a1a2e 0 30%, #0a0a1a 31% 100%);
+    border: 2px solid #a0a0d0;
+    color: #e0e0ff;
   }
   .dice-art.rolling {
     animation: diceBounce .98s cubic-bezier(.2,.7,.2,1) both;
@@ -3251,4 +3283,24 @@
   padding: 0 20px;
   line-height: 1.4;
   margin: 4px 0 8px;
+}
+
+/* ── Three.js Dice Overlay ─────────────────────────────────────────────────── */
+#dice-3d-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+#dice-3d-canvas {
+  width: 280px;
+  height: 280px;
+  display: block;
+  border-radius: 50%;
+  filter: drop-shadow(0 0 32px rgba(255,255,255,0.12));
 }

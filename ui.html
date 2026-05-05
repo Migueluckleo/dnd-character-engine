@@ -7,8 +7,12 @@
 <link rel="stylesheet" href="style.css">
 <script src="config.public.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@dice-roller/rpg-dice-roller@5/lib/umd/bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
+<div id="dice-3d-overlay" aria-hidden="true">
+  <canvas id="dice-3d-canvas" width="560" height="560"></canvas>
+</div>
 <svg width="0" height="0" style="position:absolute;visibility:hidden" aria-hidden="true" focusable="false">
   <symbol id="icon-book" viewBox="0 0 24 24">
     <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H7a3 3 0 0 0-3 3V5.5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
@@ -1023,6 +1027,17 @@ function renderAttackCheck() {
   </section>`;
 }
 
+function sidesToDieClass(sides) {
+  const s = Number(sides);
+  if (s === 4)   return 'd4';
+  if (s === 6)   return 'd6';
+  if (s === 8)   return 'd8';
+  if (s === 10)  return 'd10';
+  if (s === 12)  return 'd12';
+  if (s === 100) return 'd100';
+  return 'd20'; // default: d20, d20 (also for sides=20)
+}
+
 function diceDieView(value, type = 'd20') {
   return `<div class="dice-stage"><div class="dice-art ${type}" id="dice-flow-active-die" aria-live="polite"><span>${value}</span></div></div>`;
 }
@@ -1038,7 +1053,23 @@ function delay(ms) {
 async function animateDiceResult(finalValue, sides = 20, targetId = 'dice-flow-active-die') {
   const die = document.getElementById(targetId);
   if (!die) return;
+  // Swap shape class to match die type
+  const dieClass = sidesToDieClass(sides);
+  ['d4','d6','d8','d10','d12','d20','d100'].forEach(c => die.classList.remove(c));
+  die.classList.add(dieClass);
   const number = die.querySelector('strong') || die.querySelector('span') || die;
+
+  if (dice3D.ready) {
+    // 3D path: show '?' while Three.js animates, then reveal result
+    number.textContent = '?';
+    await dice3D.rollDie(sides);
+    number.textContent = finalValue;
+    die.classList.add('settled');
+    setTimeout(() => die.classList.remove('settled'), 520);
+    return;
+  }
+
+  // CSS fallback
   die.classList.add('rolling');
   const duration = 980;
   const interval = 64;
@@ -1125,7 +1156,7 @@ function renderAttackDamage() {
   const resultText = rolled ? (diceFlow.isCritical ? `${rolled.total} + crítico= ${total} Puntos de Golpe` : `${total} Puntos de Golpe`) : '';
   return `<section class="dice-roll-panel">
     <div class="dice-copy"><h1>Cálculo de daño</h1><p>No olvides describirle a tu DM como realizas tu ataque sin perder la esencia del Rol</p></div>
-    ${diceDieView(rolled?.total ?? 0, 'd6')}
+    ${diceDieView(rolled?.total ?? 0, sidesToDieClass(diceFormulaSides(formula)))}
     ${rolled ? `<div class="dice-result-row"><span>Daño total inflingido</span><strong>${escapeText(resultText)}</strong></div>` : ''}
     <button class="dice-primary-btn" ${rolled || diceFlow.rolling ? 'disabled aria-disabled="true"' : ''} onclick="rollAttackDamage('${formula}')">${diceFlow.rolling ? 'Lanzando...' : 'Lanzar dado'}</button>
     <button class="dice-primary-btn" ${rolled ? '' : 'disabled aria-disabled="true"'} onclick="finishDiceFlowAfterChange()">Terminar</button>
@@ -1247,7 +1278,7 @@ function renderSpellDie() {
       ${options.map(o => `<option value="${o.formula}" ${o.formula === diceFlow.selectedDie ? 'selected' : ''}>${o.label}</option>`).join('')}
     </select>
     <p class="dice-select-help">${escapeText(options.find(o => o.formula === diceFlow.selectedDie)?.note || ' ')}</p>
-    ${diceDieView(rolled?.total ?? 0, diceFlow.selectedDie?.match(/d(\d+)/i)?.[1] === '12' ? 'd12' : 'd20')}
+    ${diceDieView(rolled?.total ?? 0, sidesToDieClass(diceFormulaSides(diceFlow.selectedDie || '1d20')))}
     ${rolled ? `<div class="dice-result-row"><span>${resultLabel}</span><strong>${rolled.total} ${resultUnit}</strong></div>
       ${save ? `<p class="dice-dm-note">Pide a tu DM que la criatura haga una tirada de salvación de ${escapeText(save)} que supere tu CD de conjuros (${dc ?? '—'}) si la criatura no lo supera aplica daño ${escapeText(damageType || 'del conjuro')}.</p>` : ''}` : ''}
     <button class="dice-primary-btn" onclick="rollSpellDie()" ${rolled || diceFlow.rolling ? 'disabled aria-disabled="true"' : ''}>${diceFlow.rolling ? 'Lanzando...' : 'Lanzar dado'}</button>
@@ -1432,7 +1463,7 @@ function renderGenericRoll() {
   const formula = diceFlow.genericFormula || '1d20';
   return `<section class="dice-roll-panel">
     <div class="dice-copy"><h1>${escapeText(title)}</h1><p>Lanza ${escapeText(formula)} y comparte el resultado con tu Dungeon Master.</p></div>
-    ${diceDieView(diceFlow.genericRoll?.total ?? 0, 'd20')}
+    ${diceDieView(diceFlow.genericRoll?.total ?? 0, sidesToDieClass(diceFormulaSides(formula)))}
     ${diceFlow.genericRoll ? `<div class="dice-result-row"><span>Resultado</span><strong>${diceFlow.genericRoll.total}</strong></div>` : ''}
     <button class="dice-primary-btn" onclick="rollGenericDice()" ${diceFlow.genericRoll || diceFlow.rolling ? 'disabled aria-disabled="true"' : ''}>${diceFlow.rolling ? 'Lanzando...' : 'Lanzar dado'}</button>
     ${diceFlow.genericRoll ? `<button class="dice-primary-btn" onclick="closeDiceFlow()">Terminar</button>` : ''}
@@ -6152,6 +6183,117 @@ async function addItem(){
     await loadInventory();
   }catch(e){ toast(e.message,'err'); }
 }
+
+// ─── Three.js Dice Renderer ───────────────────────────────────────────────────
+const dice3D = (() => {
+  let _renderer = null, _scene = null, _camera = null, _animId = null;
+  let _ready = false;
+
+  const GEOM = {
+    4:   () => new THREE.TetrahedronGeometry(1.5),
+    6:   () => new THREE.BoxGeometry(2.0, 2.0, 2.0),
+    8:   () => new THREE.OctahedronGeometry(1.7),
+    10:  () => new THREE.CylinderGeometry(0, 1.2, 2.4, 5, 1),
+    12:  () => new THREE.DodecahedronGeometry(1.5),
+    20:  () => new THREE.IcosahedronGeometry(1.6),
+    100: () => new THREE.SphereGeometry(1.5, 32, 16),
+  };
+
+  const MATS = {
+    4:   { color: 0x4a1060, emissive: 0x1a0030 },
+    6:   { color: 0xe0e0e0, emissive: 0x888888, emissiveIntensity: 0.06 },
+    8:   { color: 0x0a2e60, emissive: 0x041228 },
+    10:  { color: 0x60200a, emissive: 0x280801 },
+    12:  { color: 0xa09468, emissive: 0x40381c },
+    20:  { color: 0x0b4114, emissive: 0x021008 },
+    100: { color: 0x14142e, emissive: 0x080810 },
+  };
+
+  function setup() {
+    if (_renderer || !window.THREE) return;
+    const canvas = document.getElementById('dice-3d-canvas');
+    if (!canvas) return;
+    try {
+      _renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+      _renderer.setSize(280, 280);
+      _renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      _scene = new THREE.Scene();
+      _camera = new THREE.PerspectiveCamera(45, 1, 0.1, 50);
+      _camera.position.z = 7;
+      const sun = new THREE.DirectionalLight(0xffffff, 1.6);
+      sun.position.set(4, 6, 5);
+      _scene.add(sun);
+      _scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+      _ready = true;
+    } catch(e) {
+      console.warn('[dice3D] init failed, using CSS fallback:', e.message);
+    }
+  }
+
+  async function rollDie(sides) {
+    if (!_ready) return;
+    const overlay = document.getElementById('dice-3d-overlay');
+    if (overlay) overlay.style.display = 'flex';
+    if (_animId) { cancelAnimationFrame(_animId); _animId = null; }
+
+    // Remove any old mesh (keep lights)
+    for (let i = _scene.children.length - 1; i >= 0; i--) {
+      if (_scene.children[i].isMesh || _scene.children[i].isLineSegments) {
+        _scene.remove(_scene.children[i]);
+      }
+    }
+
+    const geoFn = GEOM[sides] || GEOM[20];
+    const matOpts = MATS[sides] || MATS[20];
+    const geo = geoFn();
+    const mat = new THREE.MeshPhongMaterial({
+      color: matOpts.color,
+      emissive: matOpts.emissive || 0x000000,
+      emissiveIntensity: matOpts.emissiveIntensity ?? 0.18,
+      shininess: 70,
+      specular: 0x555555,
+      flatShading: sides !== 100,
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+
+    // Edge lines for definition
+    const edges = new THREE.EdgesGeometry(geo);
+    const lineMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.22 });
+    mesh.add(new THREE.LineSegments(edges, lineMat));
+
+    mesh.rotation.set(Math.random() * Math.PI * 2, Math.random() * Math.PI * 2, Math.random() * Math.PI * 2);
+    _scene.add(mesh);
+
+    const vx = (Math.random() - 0.5) * 14;
+    const vy = (Math.random() - 0.5) * 20;
+    const vz = (Math.random() - 0.5) * 10;
+    const duration = 1100;
+    const start = performance.now();
+
+    await new Promise(resolve => {
+      function frame(now) {
+        const t = Math.min((now - start) / duration, 1);
+        const s = Math.pow(1 - t, 2); // quadratic ease-out
+        mesh.rotation.x += vx * s * 0.016;
+        mesh.rotation.y += vy * s * 0.016;
+        mesh.rotation.z += vz * s * 0.016;
+        _renderer.render(_scene, _camera);
+        if (t < 1) { _animId = requestAnimationFrame(frame); }
+        else { resolve(); }
+      }
+      _animId = requestAnimationFrame(frame);
+    });
+
+    await new Promise(r => setTimeout(r, 280));
+    if (overlay) overlay.style.display = 'none';
+    geo.dispose(); mat.dispose(); edges.dispose(); lineMat.dispose();
+  }
+
+  // Auto-init (DOM + THREE.js already available at this point in the script)
+  setup();
+
+  return { get ready() { return _ready; }, rollDie };
+})();
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 initAuth();

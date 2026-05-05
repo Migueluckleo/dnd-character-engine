@@ -9,6 +9,18 @@
 - El wizard de creación está orientado a mobile-first y debe seguir `docs/Create Character.pdf` y el Figma `DM-Dnd-App--Copy-`.
 - La documentación viva principal está en `docs/requirements.md`, `docs/plan.md`, `docs/tasks.md`, `.claude.md`, `CHANGELOG.md` y este archivo.
 
+## Últimos cambios realizados (2026-05-05) — Dados 3D con Three.js (US-143)
+
+- Se integró Three.js r128 desde cdnjs CDN en el `<head>` de `ui.html`.
+- Se creó el módulo `dice3D` (IIFE) que inicializa automáticamente al cargar la página. Detecta si Three.js cargó y hace fallback al CSS si no.
+- Al lanzar cualquier dado aparece un overlay oscuro a pantalla completa (`#dice-3d-overlay`, z-index 10000) con el dado 3D animado por ~1.1s, luego desaparece y el panel muestra el resultado.
+- Cada tipo de dado tiene su geometría Three.js real: TetrahedronGeometry(d4), BoxGeometry(d6), OctahedronGeometry(d8), CylinderGeometry pentagonal(d10), DodecahedronGeometry(d12), IcosahedronGeometry(d20), SphereGeometry(d100).
+- Cada dado tiene color temático + líneas de aristas (EdgesGeometry) para definición.
+- Se agregó `sidesToDieClass(sides)` que convierte número de caras a clase CSS (`d4`, `d6`...). Usado en `animateDiceResult` y en todas las llamadas a `diceDieView`.
+- `animateDiceResult` actualizado: usa Three.js cuando está disponible, cae al CSS si no.
+- Toda la lógica DnD (modificadores, proficiencia, ventaja/desventaja, skill bonuses) sin cambios.
+- Pendiente: validar visualmente en navegador con todos los tipos de dado.
+
 ## Últimos cambios realizados (2026-05-05) — Integración rpg-dice-roller (US-142)
 
 - Se integró `@dice-roller/rpg-dice-roller@5` (jsDelivr CDN) en el `<head>` de `ui.html`.
