@@ -9,6 +9,29 @@
 - El wizard de creación está orientado a mobile-first y debe seguir `docs/Create Character.pdf` y el Figma `DM-Dnd-App--Copy-`.
 - La documentación viva principal está en `docs/requirements.md`, `docs/plan.md`, `docs/tasks.md`, `.claude.md`, `CHANGELOG.md` y este archivo.
 
+## Últimos cambios realizados (2026-05-05) — Integración rpg-dice-roller (US-142)
+
+- Se integró `@dice-roller/rpg-dice-roller@5` (jsDelivr CDN) en el `<head>` de `ui.html`.
+- `rollDiceFormula(formula)` ahora usa la librería como motor RNG/parser (estándar de la industria para notaciones como `2d6+3`, `4d6kh3`, etc.).
+- El contrato de retorno `{ rolls, bonus, total }` no cambió: toda la capa de modificadores DnD (ability_mod, proficiency, skill_bonuses, penalizaciones) queda exactamente igual en `rollAttackD20`, `rollStoryDice`, `rollAttackDamage`, `rollSpellDie`, `rollUseItemDice`, `rollGenericDice`.
+- Fallback robusto al RNG manual si la librería no carga (sin red, CDN caído).
+- `parseDiceFormula()` se mantiene sin cambios.
+- No hay cambios en backend, Prisma o tests.
+- US-142 agregada en requirements.md.
+
+## Últimos cambios realizados (2026-05-04) — Resolución de historia y localización ES
+
+- Se implementó el flujo completo "Resolución de historia" en el modal de dados (4 pantallas, exactas al Figma PDF entregado por el usuario).
+- Pantalla 1 (menú): botón ahora llama `openStoryResolutionFlow()` en vez del genérico.
+- Pantalla 2 (selector): 18 habilidades con bono calculado; habilidad seleccionada resaltada en ámbar; CTA deshabilitado hasta elegir.
+- Pantalla 3 (tirada): detecta ventaja/desventaja automáticamente — sigilo con `stealth_disadvantage`, condiciones activas. Muestra 1 o 2 dados según corresponda.
+- Pantalla 4 (resultado): dado perdedor al 45% de opacidad, ganador nítido. Resultado final = dado ganador + modificador de habilidad.
+- `ITEM_NAME_ES` expandido de ~30 a **257 items** completos. `SPELL_NAME_ES` expandido de ~100 a los **410 conjuros SRD** (niveles 0-9).
+- Se corrigieron 4 puntos de render en la hoja de personaje que mostraban conjuros en inglés.
+- Sintaxis JS verificada: 0 errores. Backend sin cambios.
+- Se agregaron US-140 y US-141.
+- Pendiente: validar visualmente en navegador el flujo completo con un personaje que tenga armadura con `stealth_disadvantage`.
+
 ## Últimos cambios realizados (2026-05-04) — Motor de hidratación completo
 
 - Se cableó el endpoint `/hydrated` con el motor `hydrate.ts` usando el nuevo adaptador `buildRawCharacter()` en `character.repository.ts`.
@@ -333,6 +356,8 @@
 - US-137: sección Inventario Figma con Equipo/Mochila/Alijo y agregar objeto. Implementada parcial, pendiente de monedas/alijo persistente y QA visual.
 - US-138: card Carga/Monedas en Mochila con barra de progreso y columnas PO/PP/PC. Implementada, pendiente de validación visual en navegador.
 - US-139: hidratación completa de stats desde ítems equipados (CA, velocidad, sigilo, PG, encumbrance). Implementada vía `buildRawCharacter` + `hydrate()`, pendiente de validación visual con personaje armado.
+- US-140: flujo Figma "Resolución de historia" con selector de habilidad, ventaja/desventaja automática y resultado final. Implementada, pendiente de validación visual en navegador.
+- US-141: localización completa ES de 257 items y 410 conjuros SRD. Implementada, pendiente de validación visual en navegador.
 
 ## Decisiones técnicas tomadas
 

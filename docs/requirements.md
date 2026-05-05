@@ -1683,6 +1683,32 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 
 ---
 
+### US-140: Story Resolution Dice Flow
+
+**As a** player rolling dice for a narrative action, **I want** to pick a skill and roll a d20 with automatic advantage/disadvantage detection **so that** I can share a clear, rule-compliant result with my Dungeon Master.
+
+- **AC 140.1:** The "Resolución de historia" option in the dice menu must open a dedicated skill-picker screen, not the generic roll flow.
+- **AC 140.2:** The skill-picker must list all 18 skills with their computed bonuses from the hydrated character; the selected skill must be visually highlighted.
+- **AC 140.3:** The "Lanzar dado" CTA must remain disabled until a skill is selected.
+- **AC 140.4:** If the selected skill is Stealth and any equipped item has `stealth_disadvantage = true`, two dice must be shown and the lower result used; an explanatory note must appear.
+- **AC 140.5:** Active conditions (frightened, poisoned, restrained, exhaustion ≥ 3) must also trigger disadvantage with two dice.
+- **AC 140.6:** The result screen must show the winning die nítido and the losing die dimmed (opacity ≤ 0.45).
+- **AC 140.7:** The final result shown must equal the winning die value plus the skill modifier.
+- **AC 140.8:** A "Terminar" button must close the flow after the result is displayed.
+
+---
+
+### US-141: Full Spanish Localisation of Items and Spells
+
+**As a** Spanish-speaking player, **I want** all item and spell names to appear in Spanish throughout the UI **so that** the experience is fully localised without affecting backend data integrity.
+
+- **AC 141.1:** `ITEM_NAME_ES` must cover all 257 SRD items including armor, weapons, ammunition, gear, tools, instruments, packs, potions, arcane/druidic focuses, and magic items.
+- **AC 141.2:** `SPELL_NAME_ES` must cover all 410 SRD spells across levels 0–9.
+- **AC 141.3:** All UI render sites that display item or spell names must pass through the translation map with English fallback.
+- **AC 141.4:** Backend lookup fields (item `name`, spell `name`) must remain in English; translations are UI-only.
+
+---
+
 ## Implementation Status Addendum — 2026-04-30
 
 > Source priority: current code first, existing documentation second, available chat context third. Items marked `Pendiente de validación` require a full runtime/database verification before being treated as complete.
@@ -1725,5 +1751,19 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 | US-137 | Implementada parcial / pendiente de validación visual y modelo de monedas/alijo | Current `ui.html` and `style.css` add Figma-style `Equipo`, `Mochila`, `Alijo`, equipped-slot cards, dashed empty states, add-object search/filter/list flow, and quantity confirmation. Coin persistence and true storage locations remain pending backend modeling. |
 | US-138 | Implementada / pendiente de validación visual en navegador | Current `ui.html` adds `renderInventoryCarryCard()` with SVG bag/coin icons, progress bar, and PO/PP/PC columns in the Mochila tab. Weight is derived from the hydration engine (`h.carriedWeight`, `h.carryingCapacity`). Coin values read directly from the character record (`gp`, `sp`, `cp`). |
 | US-139 | Implementada / pendiente de validación visual con personaje armado | Current `character.repository.ts` adds `buildRawCharacter()` translating Prisma output to `RawCharacter`; current `character.controller.ts` `/hydrated` endpoint replaces ~120 lines of manual calculation with `buildRawCharacter()` + `hydrate()`. AC now uses equipped armor category, speed includes heavy-armor penalty, stealth disadvantage badge is shown, HP uses `level_1_hp_roll`, and encumbrance is included in the response. TypeCheck: 0 errors. Tests: 77/77 passing. |
+| US-140 | Implementada / pendiente de validación visual en navegador | Current `ui.html` and `style.css` add the full Figma-matched "Resolución de historia" dice flow: skill picker with all 18 skills and computed bonuses, automatic advantage/disadvantage detection (stealth + armor, active conditions), dual-die display with loser dimmed, and final result = winning die + skill modifier. `openStoryResolutionFlow`, `renderStoryResolutionSkills`, `renderStoryResolutionRoll`, `rollStoryDice` added. Verified with `node --check`. |
+| US-141 | Implementada / pendiente de validación visual en navegador | Current `ui.html` expands `ITEM_NAME_ES` to 257 items and `SPELL_NAME_ES` to cover all 410 SRD spells across levels 0-9. Four spell render sites in the character sheet now pass names through the translation map before display. Backend names unchanged — all lookups continue to work in English. |
+| US-142 | Implementada | Current `ui.html` loads `@dice-roller/rpg-dice-roller@5` from jsDelivr CDN and uses it as the RNG/parser engine inside `rollDiceFormula()`. Return contract `{ rolls, bonus, total }` is preserved; all DnD modifier stacking (ability mod, proficiency, skill bonuses, penalties) is unchanged. Automatic fallback to manual RNG if CDN unavailable. |
 
-*End of requirements.md — Total User Stories: US-01 through US-139.*
+### US-142: rpg-dice-roller Integration
+
+**Goal:** Replace the custom regex RNG in `rollDiceFormula()` with the industry-standard `@dice-roller/rpg-dice-roller` library, enabling richer dice notation and a reproducible, well-tested engine — without touching any of the DnD modifier layers.
+
+**Acceptance criteria:**
+- Library loaded from CDN in `<head>`; no npm build step required for the UI.
+- `rollDiceFormula('2d6+3')` returns `{ rolls: [n1, n2], bonus: 3, total: n1+n2+3 }`.
+- All existing call sites (`rollAttackDamage`, `rollSpellDie`, `rollGenericDice`, `rollUseItemDice`) behave identically from the consumer's perspective.
+- If the CDN script fails to load, the page degrades silently to the manual fallback.
+- `parseDiceFormula()` unchanged — still used by `diceFormulaSides()`.
+
+*End of requirements.md — Total User Stories: US-01 through US-142.*

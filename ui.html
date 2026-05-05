@@ -6,6 +6,7 @@
 <title>⚔️ DnD Character Engine</title>
 <link rel="stylesheet" href="style.css">
 <script src="config.public.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@dice-roller/rpg-dice-roller@5/lib/umd/bundle.min.js"></script>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute;visibility:hidden" aria-hidden="true" focusable="false">
@@ -5115,8 +5116,33 @@ function parseDiceFormula(formula) {
   return { count: Number(m[1]), sides: Number(m[2]), bonus: Number(m[3] || 0) };
 }
 
+// _diceRoller is the shared rpg-dice-roller instance (loaded from CDN).
+// Falls back to the manual RNG if the library hasn't loaded yet.
+const _diceRoller = (() => {
+  try { return new rpgDiceRoller.DiceRoller(); } catch(e) { return null; }
+})();
+
 function rollDiceFormula(formula) {
-  const parsed = parseDiceFormula(formula);
+  const str = String(formula || '').trim();
+  // --- rpg-dice-roller path ---
+  if (_diceRoller) {
+    try {
+      const result = _diceRoller.roll(str);
+      // result.rolls is an array of RollResults; each has .rolls (DieResult[]) and .value
+      const dieGroup = result.rolls[0];
+      const indivRolls = dieGroup && dieGroup.rolls
+        ? dieGroup.rolls.map(r => r.value ?? r.initialValue ?? r)
+        : [];
+      // Bonus is whatever total minus the sum of dice
+      const diceSum = indivRolls.reduce((s, v) => s + v, 0);
+      const bonus = result.total - diceSum;
+      return { rolls: indivRolls, bonus, total: result.total };
+    } catch(e) {
+      // Fall through to manual path if formula is unrecognised
+    }
+  }
+  // --- fallback manual path ---
+  const parsed = parseDiceFormula(str);
   if (!parsed) return { rolls: [], bonus: 0, total: 0 };
   const rolls = Array.from({ length: parsed.count }, () => Math.floor(Math.random() * parsed.sides) + 1);
   return { rolls, bonus: parsed.bonus, total: rolls.reduce((sum, n) => sum + n, 0) + parsed.bonus };

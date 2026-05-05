@@ -2,6 +2,48 @@
 
 Registro retroactivo del proyecto. El código actual es la fuente principal de verdad; las fechas previas se basan en marcas de archivo y documentación disponible, por lo que algunas entradas se indican como estimadas.
 
+## [2026-05-05] - Integración rpg-dice-roller (US-142)
+
+### Cambios
+- Se añadió `@dice-roller/rpg-dice-roller@5` desde CDN (jsDelivr) en el `<head>` de `ui.html`.
+- Se reemplazó el RNG manual de `rollDiceFormula()` con el motor de la librería, preservando el contrato de retorno `{ rolls, bonus, total }` que usa toda la capa de modificadores DnD.
+- Se mantiene la lógica de modificadores (ability mod, proficiency, penalizaciones) intacta — el resultado de la librería se usa solo para los dados crudos; el bonus se recalcula como `total − suma_de_dados`.
+- Fallback automático al RNG manual si la librería no carga (sin conexión, CDN caído).
+- `parseDiceFormula()` se conserva sin cambios para `diceFormulaSides()` y otros helpers.
+
+## [2026-05-04] - Resolución de historia y localización completa ES
+
+### Cambios
+- Se implementó el flujo "Resolución de historia" en el modal de dados, reemplazando el genérico anterior.
+- El flujo tiene 4 pantallas exactas al Figma: menú → selector de habilidad → tirada → resultado.
+- Pantalla de selector: lista las 18 habilidades con modificador calculado (`+2`, `-1`, etc.); la habilidad seleccionada se resalta; el CTA queda deshabilitado hasta elegir.
+- Pantalla de tirada: detecta ventaja/desventaja automáticamente. Sigilo con armadura de desventaja de sigilo → 2 dados, toma el menor. Condiciones activas (asustado, envenenado, restringido) → también 2 dados con desventaja. Caso normal → 1 dado.
+- Pantalla de resultado: muestra ambos dados cuando aplica (el dado perdedor se desvanece, el ganador queda nítido). Resultado final = dado ganador + modificador de habilidad.
+- Se tradujo `ITEM_NAME_ES` de ~30 entradas parciales a **257 items completos**: armaduras, armas, munición, equipo de aventurero, ropa, herramientas, instrumentos, packs, pociones, focos arcanos/druídicos y objetos mágicos.
+- Se tradujo `SPELL_NAME_ES` de ~100 entradas (niveles 0-2) a **todos los niveles 0-9** cubriendo los 410 conjuros del SRD, incluyendo nombres con apóstrofos.
+- Se corrigieron 4 puntos de render en la hoja de personaje que mostraban nombres de conjuros en inglés sin pasar por el mapa: card del flujo de dados, header del selector, lista de conjuros conocidos y `<select>` de lanzamiento.
+- Los nombres en inglés se mantienen en la base de datos — todos los lookups del backend siguen funcionando sin cambios.
+
+### Archivos modificados
+- `ui.html` — nuevas funciones: `openStoryResolutionFlow`, `storySkillAdvantage`, `renderStoryResolutionSkills`, `renderStoryResolutionRoll`, `rollStoryDice`, `selectStorySkill`, `confirmStorySkill`; expansión de `ITEM_NAME_ES` y `SPELL_NAME_ES`; corrección de 4 render sites de conjuros
+- `style.css` — estilos de `.story-skill-picker`, `.story-skill-row`, `.story-dual-dice`, `.story-die-winner`, `.story-adv-note`
+
+### Historias de usuario relacionadas
+- US-140: Resolución de historia con selección de habilidad y ventaja/desventaja automática (nueva)
+- US-141: Localización completa ES de items y conjuros (nueva)
+
+### Notas técnicas
+- El dado perdedor en modo desventaja usa `.story-die-winner` para distinguir al ganador; si hay empate ambos quedan nítidos.
+- `storySkillAdvantage()` es extensible: actualmente cubre sigilo+armadura y condiciones activas; en el futuro puede absorber ventaja por hechizos o rasgos.
+- Sintaxis JS verificada con `node --check`: 0 errores.
+
+### Fuente / certeza
+- Basado en PDF Figma "Resolución de historia" proporcionado por el usuario
+- Confirmado por `node --check` (0 errores)
+- Pendiente de validación visual en navegador
+
+---
+
 ## [2026-05-04] - Motor de hidratación completo + CA desde armadura equipada
 
 ### Cambios
