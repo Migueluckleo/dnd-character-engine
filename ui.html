@@ -801,9 +801,10 @@ const diceFlow = {
   screen: 'menu',
   previous: 'menu',
   weaponId: null,
-  attackMode: null,   // 'melee' | 'thrown' | null (null = no aplica)
+  attackMode: null,    // 'melee' | 'thrown' | null (null = no aplica)
   ammoId: null,
   ammoConsumed: false,
+  weaponConsumed: false, // true tras descontar 1 unidad de arma arrojada
   attackRoll: null,
   attackOutcome: null,
   damageRoll: null,
@@ -835,7 +836,7 @@ async function rollCharacterDie() {
   }
   Object.assign(diceFlow, {
     open: true, screen: 'menu', previous: 'menu', weaponId: null, attackMode: null,
-    ammoId: null, ammoConsumed: false, attackRoll: null, attackOutcome: null, damageRoll: null,
+    ammoId: null, ammoConsumed: false, weaponConsumed: false, attackRoll: null, attackOutcome: null, damageRoll: null,
     isCritical: false, selectedSpellId: null, selectedDie: '', spellRoll: null, rolling: false,
   });
   renderDiceFlow();
@@ -979,6 +980,7 @@ function selectAttackWeapon(itemId) {
   diceFlow.attackMode = null;
   diceFlow.ammoId = compatibleAmmoForWeapon(selectedAttackWeapon())?.item_id || null;
   diceFlow.ammoConsumed = false;
+  diceFlow.weaponConsumed = false;
   diceFlow.attackRoll = null;
   diceFlow.attackOutcome = null;
   diceFlow.damageRoll = null;
@@ -1076,6 +1078,11 @@ function renderAttackCheck() {
       <div><span>${escapeText(itemLabel(ammo.item?.name))}</span><span>${inventoryDisplayQuantity(ammo, ammo.item || {})}</span></div>
       <p>Se descontará un ${ammoSingularName(ammo.item)} de tu inventario falles o aciertes el tiro</p>
     </div>` : ''}
+    ${isThrown && mode === 'thrown' ? `<div class="dice-ammo-block">
+      <strong>Arma arrojadiza</strong>
+      <div><span>${escapeText(itemLabel(item.name))}</span><span>x${weapon.quantity ?? 1}</span></div>
+      <p>Se descontará 1 unidad de tu inventario al lanzarla</p>
+    </div>` : ''}
     <button class="dice-primary-btn" ${isRolled || diceFlow.rolling ? 'disabled aria-disabled="true"' : ''} onclick="rollAttackD20()">${diceFlow.rolling ? 'Lanzando...' : 'Lanzar dado'}</button>
     ${diceFlow.attackRoll === 20 ? `<button class="dice-primary-btn" onclick="startAttackDamage(true)">Calcular daño</button>` : ''}
     ${diceFlow.attackRoll === 1 ? `<button class="dice-primary-btn" onclick="openDiceFlowScreen('attack-weapons')">Terminar</button>` : ''}
@@ -1149,6 +1156,7 @@ async function rollAttackD20() {
   diceFlow.isCritical = roll === 20;
   diceFlow.rolling = false;
   try { await consumeAttackAmmoOnce(); } catch(e) { toast(e.message, 'err'); }
+  try { await consumeThrownWeaponOnce(); } catch(e) { toast(e.message, 'err'); }
   renderDiceFlow();
 }
 
@@ -1168,6 +1176,22 @@ async function consumeAttackAmmoOnce() {
   else await api('PATCH', `/characters/${characterId}/inventory/${ammo.item_id}`, { quantity: nextQty });
   localStorage.setItem(key, 'true');
   diceFlow.ammoConsumed = true;
+  const updated = await api('GET', `/characters/${characterId}/hydrated`);
+  characterData = updated;
+}
+
+async function consumeThrownWeaponOnce() {
+  if (diceFlow.weaponConsumed || diceFlow.attackMode !== 'thrown' || !diceFlow.weaponId || !characterId) return;
+  const weapon = equippedInventoryItems().find(inv => inv.item_id === diceFlow.weaponId);
+  if (!weapon) return;
+  const currentQty = weapon.quantity ?? 1;
+  const nextQty = currentQty - 1;
+  if (nextQty <= 0) {
+    await api('DELETE', `/characters/${characterId}/inventory/${diceFlow.weaponId}`);
+  } else {
+    await api('PATCH', `/characters/${characterId}/inventory/${diceFlow.weaponId}`, { quantity: nextQty });
+  }
+  diceFlow.weaponConsumed = true;
   const updated = await api('GET', `/characters/${characterId}/hydrated`);
   characterData = updated;
 }
