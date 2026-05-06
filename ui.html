@@ -6314,7 +6314,8 @@ const dice3D = (() => {
   }
 
   // Instant display (no spin) — used after DOM rebuilds to restore settled die
-  function showResult(id, sides, value) {
+  // Show die with optional number — if value is null, die rotates without number
+  function showResult(id, sides, value = null) {
     if (!_ready) return;
     const el = document.getElementById(id);
     if (!el) return;
@@ -6323,31 +6324,39 @@ const dice3D = (() => {
     _state[id] = ctx;
     const mesh = _buildMesh(ctx.scene, sides);
     ctx.mesh = mesh;
-    mesh.rotation.set(0.5, 0.7, 0.2); // nice display angle
+    mesh.rotation.set(0.5, 0.7, 0.2);
     ctx.renderer.render(ctx.scene, ctx.camera);
     _startIdle(id, ctx);
-    _showNumber(el, value);
+    if (value !== null) _showNumber(el, value);
   }
 
-  // Called by renderDiceFlow after innerHTML rebuild to re-instantiate settled dice
+  // Called by renderDiceFlow after innerHTML rebuild
+  // Shows 3D die always — with number if rolled, empty if not yet rolled
   function restoreResults() {
     if (!_ready) return;
     setTimeout(() => {
       const sc = diceFlow.screen;
-      if ((sc === 'attack-check' || sc === 'attack-result') && diceFlow.attackRoll !== null) {
-        showResult('dice-flow-active-die', 20, diceFlow.attackRoll);
-      } else if (sc === 'attack-damage' && diceFlow.damageRoll) {
+      if (sc === 'attack-check' || sc === 'attack-result') {
+        showResult('dice-flow-active-die', 20,
+          diceFlow.attackRoll !== null ? diceFlow.attackRoll : null);
+      } else if (sc === 'attack-damage') {
         const weapon = selectedAttackWeapon();
         const formula = weapon?.item?.damage_dice || '1d6';
-        showResult('dice-flow-active-die', diceFormulaSides(formula), diceFlow.damageRoll.total);
-      } else if ((sc === 'spell-die' || sc === 'spell-result') && diceFlow.spellRoll) {
-        showResult('dice-flow-active-die', diceFormulaSides(diceFlow.selectedDie || '1d20'), diceFlow.spellRoll.total);
-      } else if (sc === 'generic-roll' && diceFlow.genericRoll) {
-        showResult('dice-flow-active-die', diceFormulaSides(diceFlow.genericFormula || '1d20'), diceFlow.genericRoll.total);
-      } else if (sc === 'story-roll' && diceFlow.storyRolls.length > 0) {
-        showResult('story-die-1', 20, diceFlow.storyRolls[0]);
-        if (diceFlow.storyAdvantage !== null && diceFlow.storyRolls.length > 1) {
-          showResult('story-die-2', 20, diceFlow.storyRolls[1]);
+        showResult('dice-flow-active-die', diceFormulaSides(formula),
+          diceFlow.damageRoll ? diceFlow.damageRoll.total : null);
+      } else if (sc === 'spell-die' || sc === 'spell-result') {
+        showResult('dice-flow-active-die', diceFormulaSides(diceFlow.selectedDie || '1d20'),
+          diceFlow.spellRoll ? diceFlow.spellRoll.total : null);
+      } else if (sc === 'generic-roll') {
+        showResult('dice-flow-active-die', diceFormulaSides(diceFlow.genericFormula || '1d20'),
+          diceFlow.genericRoll ? diceFlow.genericRoll.total : null);
+      } else if (sc === 'story-roll') {
+        const needTwo = diceFlow.storyAdvantage !== null;
+        showResult('story-die-1', 20,
+          diceFlow.storyRolls.length > 0 ? diceFlow.storyRolls[0] : null);
+        if (needTwo) {
+          showResult('story-die-2', 20,
+            diceFlow.storyRolls.length > 1 ? diceFlow.storyRolls[1] : null);
         }
       }
     }, 0);
