@@ -9,27 +9,27 @@
 - El wizard de creación está orientado a mobile-first y debe seguir `docs/Create Character.pdf` y el Figma `DM-Dnd-App--Copy-`.
 - La documentación viva principal está en `docs/requirements.md`, `docs/plan.md`, `docs/tasks.md`, `.claude.md`, `CHANGELOG.md` y este archivo.
 
-## Últimos cambios realizados (2026-05-05) — Dados 3D con Three.js (US-143)
+## Últimos cambios realizados (2026-05-05) — Fix dados 3D estabilizados (US-143)
 
-- Se integró Three.js r128 desde cdnjs CDN en el `<head>` de `ui.html`.
-- Se creó el módulo `dice3D` (IIFE) que inicializa automáticamente al cargar la página. Detecta si Three.js cargó y hace fallback al CSS si no.
-- Al lanzar cualquier dado aparece un overlay oscuro a pantalla completa (`#dice-3d-overlay`, z-index 10000) con el dado 3D animado por ~1.1s, luego desaparece y el panel muestra el resultado.
-- Cada tipo de dado tiene su geometría Three.js real: TetrahedronGeometry(d4), BoxGeometry(d6), OctahedronGeometry(d8), CylinderGeometry pentagonal(d10), DodecahedronGeometry(d12), IcosahedronGeometry(d20), SphereGeometry(d100).
-- Cada dado tiene color temático + líneas de aristas (EdgesGeometry) para definición.
-- Se agregó `sidesToDieClass(sides)` que convierte número de caras a clase CSS (`d4`, `d6`...). Usado en `animateDiceResult` y en todas las llamadas a `diceDieView`.
-- `animateDiceResult` actualizado: usa Three.js cuando está disponible, cae al CSS si no.
-- Toda la lógica DnD (modificadores, proficiencia, ventaja/desventaja, skill bonuses) sin cambios.
-- Pendiente: validar visualmente en navegador con todos los tipos de dado.
+**Tres bugs críticos corregidos en esta sesión:**
 
-## Últimos cambios realizados (2026-05-05) — Integración rpg-dice-roller (US-142)
+### 1. Dado desaparece al pulsar "Lanzar dado" (condición de carrera)
+- **Causa**: `renderDiceFlow()` llama `restoreResults()` vía `setTimeout(..., 0)`. Cuando se pulsaba "Lanzar dado", `renderDiceFlow()` + `rollInElement()` se ejecutaban en secuencia. El setTimeout de `restoreResults()` disparaba justo mientras `rollInElement()` estaba animando, llamando `showResult()` que destruía el renderer activo.
+- **Fix**: `restoreResults()` ahora comprueba `if (diceFlow.rolling) return;` al inicio. Como `diceFlow.rolling = true` se establece antes de `renderDiceFlow()`, el guard es efectivo.
 
-- Se integró `@dice-roller/rpg-dice-roller@5` (jsDelivr CDN) en el `<head>` de `ui.html`.
-- `rollDiceFormula(formula)` ahora usa la librería como motor RNG/parser (estándar de la industria para notaciones como `2d6+3`, `4d6kh3`, etc.).
-- El contrato de retorno `{ rolls, bonus, total }` no cambió: toda la capa de modificadores DnD (ability_mod, proficiency, skill_bonuses, penalizaciones) queda exactamente igual en `rollAttackD20`, `rollStoryDice`, `rollAttackDamage`, `rollSpellDie`, `rollUseItemDice`, `rollGenericDice`.
-- Fallback robusto al RNG manual si la librería no carga (sin red, CDN caído).
-- `parseDiceFormula()` se mantiene sin cambios.
-- No hay cambios en backend, Prisma o tests.
-- US-142 agregada en requirements.md.
+### 2. THREE.WebGLRenderer: Context Lost
+- **Causa**: `_disposeCtx` llamaba `forceContextLoss()` pero no eliminaba el canvas del DOM. `_createCtx` reutilizaba ese canvas (existente), creando un nuevo `WebGLRenderer` sobre un canvas cuyo contexto ya había sido descartado.
+- **Fix**: `_disposeCtx` ahora elimina el canvas con `canvas.parentNode.removeChild(canvas)`. `_createCtx` siempre crea un canvas nuevo.
+
+### 3. Error browserCrypto / rpg-dice-roller eliminado
+- La librería `@dice-roller/rpg-dice-roller@5` accede a `globalThis.crypto.browserCrypto` internamente y no funciona en este entorno. Se retiró el script CDN completamente. `rollDiceFormula()` usa `Math.random()` como implementación definitiva.
+
+### Estado del flujo de dados ahora
+1. Panel abre → dado 3D gira sin número (pre-roll)
+2. "Lanzar dado" → spin 1.1 s con renderer fresco → dado estático con número centrado
+3. `renderDiceFlow()` post-roll → `restoreResults()` reinstancia dado con número visible
+
+**Pendiente**: validar visualmente en navegador que los tres puntos anteriores funcionan en todos los flujos (ataque, daño, conjuro, historia, genérico).
 
 ## Últimos cambios realizados (2026-05-04) — Resolución de historia y localización ES
 

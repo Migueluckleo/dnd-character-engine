@@ -1700,6 +1700,66 @@
     padding: 8px;
     color: var(--accent2);
   }
+  /* Attack mode selector (thrown weapons) */
+  .attack-mode-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .attack-mode-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 20px;
+    border: 2px solid var(--field-border, #bbb);
+    border-radius: 10px;
+    background: var(--surface2);
+    color: #fff;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .attack-mode-btn:hover {
+    border-color: var(--accent2);
+    background: var(--surface);
+  }
+  .attack-mode-icon {
+    font-size: 28px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .attack-mode-btn strong {
+    display: block;
+    font-size: 16px;
+    color: var(--accent2);
+    margin-bottom: 2px;
+  }
+  .attack-mode-btn small {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .attack-mode-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin: 4px 0 6px;
+  }
+  .attack-mode-badge.melee {
+    background: rgba(180,80,80,0.18);
+    color: #ff9999;
+    border: 1px solid rgba(180,80,80,0.4);
+  }
+  .attack-mode-badge.thrown {
+    background: rgba(80,140,180,0.18);
+    color: #99ccff;
+    border: 1px solid rgba(80,140,180,0.4);
+  }
+
   .dice-attack-total {
     display: grid;
     grid-template-columns: 1fr auto;

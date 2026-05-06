@@ -2,26 +2,69 @@
 
 Registro retroactivo del proyecto. El código actual es la fuente principal de verdad; las fechas previas se basan en marcas de archivo y documentación disponible, por lo que algunas entradas se indican como estimadas.
 
-## [2026-05-05] - Dados 3D con Three.js (US-143)
+## [2026-05-05] - Fix dados 3D: contexto WebGL perdido y condición de carrera (US-143)
 
 ### Cambios
-- Se añadió `three.js r128` desde cdnjs CDN en el `<head>` de `ui.html`.
-- Se creó el módulo `dice3D` (IIFE) con inicialización automática al cargar la página.
-- Al lanzar cualquier dado aparece un overlay oscuro a pantalla completa con el dado 3D girando con la geometría correcta para cada tipo: tetraedro (d4), cubo (d6), octaedro (d8), pirámide pentagonal (d10), dodecaedro (d12), icosaedro (d20), esfera (d100).
-- Cada dado tiene su color temático y líneas de aristas para definición visual.
-- `animateDiceResult()` usa Three.js cuando está disponible; cae al CSS si no carga.
-- Se agregaron estilos CSS para `#dice-3d-overlay` y `#dice-3d-canvas`.
-- Se añadió helper `sidesToDieClass(sides)` que mapea número de caras a clase CSS.
-- Toda la lógica DnD (modificadores, proficiencia, ventaja/desventaja) sin cambios.
+- **Condición de carrera corregida**: `restoreResults()` ahora comprueba `diceFlow.rolling` y sale inmediatamente si hay una animación activa. Antes, el `setTimeout(..., 0)` disparaba `showResult()` justo mientras `rollInElement()` animaba el dado, destruyendo el renderer en medio de la animación (dado que desaparecía al pulsar "Lanzar dado").
+- **Context Lost corregido**: `_disposeCtx` ahora elimina el canvas del DOM antes de llamar `forceContextLoss()`. `_createCtx` siempre crea un canvas nuevo en lugar de reutilizar el existente. Crear un `WebGLRenderer` sobre un canvas cuyo contexto ya fue descartado generaba el error `THREE.WebGLRenderer: Context Lost`.
+- **Error browserCrypto eliminado**: Se retiró el script CDN de `@dice-roller/rpg-dice-roller` porque la librería no funciona en este entorno (accede a `globalThis.crypto.browserCrypto` internamente y falla). El fallback con `Math.random()` cubre el 100% de los casos de uso.
+- **Dado 3D visible antes de pulsar "Lanzar dado"**: `showResult()` acepta `value = null` para mostrar el dado girando sin número. `restoreResults()` llama `showResult` siempre al reconstruir el DOM, incluso cuando aún no se ha tirado. Antes se mostraba el template CSS de hexágono en lugar del dado 3D.
 
-## [2026-05-05] - Integración rpg-dice-roller (US-142)
+### Flujo final estabilizado
+1. Panel de dados se abre → `renderDiceFlow()` → `restoreResults()` → dado 3D gira sin número
+2. Usuario pulsa "Lanzar dado" → `diceFlow.rolling = true` → `renderDiceFlow()` (sin restoreResults activo) → `rollInElement()` anima spin 1.1 s con renderer fresco
+3. Spin termina → `diceFlow.rolling = false` → `renderDiceFlow()` → `restoreResults()` → dado 3D estático con número centrado
+
+### Archivos modificados
+- `ui.html` — `restoreResults`, `_disposeCtx`, `_createCtx`, `showResult`, head CDN scripts
+
+### Historias de usuario relacionadas
+- US-143: Three.js Inline 3D Dice (correcciones de estabilidad)
+
+### Fuente / certeza
+- Confirmado por errores de consola reportados por el usuario (`Context Lost`, `browserCrypto`)
+- Confirmado por análisis de condición de carrera en `rollAttackD20` / `restoreResults`
+- Pendiente de validación visual en navegador
+
+---
+
+## [2026-05-05] - Dados 3D inline por elemento (US-143 refactor)
 
 ### Cambios
-- Se añadió `@dice-roller/rpg-dice-roller@5` desde CDN (jsDelivr) en el `<head>` de `ui.html`.
-- Se reemplazó el RNG manual de `rollDiceFormula()` con el motor de la librería, preservando el contrato de retorno `{ rolls, bonus, total }` que usa toda la capa de modificadores DnD.
-- Se mantiene la lógica de modificadores (ability mod, proficiency, penalizaciones) intacta — el resultado de la librería se usa solo para los dados crudos; el bonus se recalcula como `total − suma_de_dados`.
-- Fallback automático al RNG manual si la librería no carga (sin conexión, CDN caído).
-- `parseDiceFormula()` se conserva sin cambios para `diceFormulaSides()` y otros helpers.
+- Se eliminó el overlay a pantalla completa (`#dice-3d-overlay`). El dado 3D ahora se renderiza **dentro del elemento `.dice-art`** que ya existe en el flujo de dados.
+- Se creó el módulo `dice3D` (IIFE) con mapa de estado por elemento: `_state[elementId] → { renderer, scene, camera, mesh, canvas, idleId }`.
+- `showResult(id, sides, value)` — instancia el dado en el elemento dado, inicia idle loop y opcionalmente muestra número si `value !== null`.
+- `rollInElement(id, sides, finalValue)` — spin de 1.1 s con deceleración física, luego idle con número centrado.
+- `restoreResults()` — llamada por `renderDiceFlow()` tras cada reconstrucción de innerHTML; detecta la pantalla activa y reinstancia todos los dados necesarios (incluyendo los dos dados de historia).
+- Idle loop usa `canvas.isConnected` para auto-detenerse si el elemento es eliminado del DOM.
+- `renderer.forceContextLoss()` en disposal para evitar fuga de contextos WebGL.
+- Estilos CSS nuevos: `.dice-art.has-3d` elimina clip-path/background/border; `canvas.die-canvas` ocupa todo el elemento; `span.visible` overlay con opacidad para número.
+- Se añadieron CSS para nuevos tipos de dado: `.d4`, `.d8`, `.d10`, `.d100` (`.d6`, `.d12`, `.d20` ya existían).
+
+### Archivos modificados
+- `ui.html` — módulo `dice3D` completo, `animateDiceResult`, `renderDiceFlow`
+- `style.css` — `.dice-art.has-3d`, nuevos tipos de dado
+
+### Historias de usuario relacionadas
+- US-143: Three.js Inline 3D Dice
+
+### Notas técnicas
+- El dado de historia usa dos elementos distintos (`story-die-1`, `story-die-2`), cada uno con su propio renderer; ambos se instancian desde `restoreResults()`.
+- Three.js r128 no requiere web workers ni WASM, funciona desde CDN en archivos estáticos.
+
+### Fuente / certeza
+- Basado en solicitud directa del usuario ("no quiero overlay, renderiza ahí mismo")
+- Pendiente de validación visual en navegador
+
+---
+
+## [2026-05-05] - Integración rpg-dice-roller (US-142) — retirada
+
+### Cambios
+- Se integró inicialmente `@dice-roller/rpg-dice-roller@5` (jsDelivr CDN) y se delegó `rollDiceFormula()` a su motor.
+- La librería falla en este entorno con `Cannot read properties of undefined (reading 'browserCrypto')` por acceso interno a `globalThis.crypto.browserCrypto`.
+- Se retiró el script CDN en la misma sesión. `rollDiceFormula()` usa `Math.random()` como implementación definitiva con el mismo contrato `{ rolls, bonus, total }`.
+- `parseDiceFormula()` se mantiene sin cambios para `diceFormulaSides()` y helpers.
 
 ## [2026-05-04] - Resolución de historia y localización completa ES
 
