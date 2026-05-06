@@ -6,6 +6,7 @@
 <title>⚔️ DnD Character Engine</title>
 <link rel="stylesheet" href="style.css">
 <script src="config.public.js"></script>
+<script>if(typeof globalThis.crypto==='undefined')globalThis.crypto=window.crypto||{};</script>
 <script src="https://cdn.jsdelivr.net/npm/@dice-roller/rpg-dice-roller@5/lib/umd/bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
@@ -6207,6 +6208,7 @@ const dice3D = (() => {
     if (s.idleId) cancelAnimationFrame(s.idleId);
     if (s.mesh) { s.scene.remove(s.mesh); s.mesh.geometry.dispose(); s.mesh.material.dispose(); }
     try { s.renderer.dispose(); s.renderer.forceContextLoss(); } catch(e) {}
+    if (s.canvas && s.canvas.parentNode) s.canvas.parentNode.removeChild(s.canvas);
     delete _state[id];
   }
 
@@ -6227,13 +6229,10 @@ const dice3D = (() => {
   }
 
   function _createCtx(el) {
-    // Reuse or create canvas inside the element
-    let canvas = el.querySelector('canvas.die-canvas');
-    if (!canvas) {
-      canvas = document.createElement('canvas');
-      canvas.className = 'die-canvas';
-      el.insertBefore(canvas, el.firstChild);
-    }
+    // Always create a fresh canvas — never reuse (reuse causes WebGL context loss)
+    const canvas = document.createElement('canvas');
+    canvas.className = 'die-canvas';
+    el.insertBefore(canvas, el.firstChild);
     el.classList.add('has-3d');
 
     const size = Math.max(el.offsetWidth, 160);
@@ -6335,6 +6334,7 @@ const dice3D = (() => {
   function restoreResults() {
     if (!_ready) return;
     setTimeout(() => {
+      if (diceFlow.rolling) return; // skip while roll animation is active
       const sc = diceFlow.screen;
       if (sc === 'attack-check' || sc === 'attack-result') {
         showResult('dice-flow-active-die', 20,
