@@ -3285,22 +3285,45 @@
   margin: 4px 0 8px;
 }
 
-/* ── Three.js Dice Overlay ─────────────────────────────────────────────────── */
-#dice-3d-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 10000;
+/* ── Three.js Dice — inline per-element ────────────────────────────────────── */
+.dice-art.has-3d {
+  clip-path: none !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  width: 180px !important;
+  height: 180px !important;
+  position: relative;
+  display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.72);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
 }
-#dice-3d-canvas {
-  width: 280px;
-  height: 280px;
-  display: block;
-  border-radius: 50%;
-  filter: drop-shadow(0 0 32px rgba(255,255,255,0.12));
+.dice-art.has-3d::before,
+.dice-art.has-3d::after { display: none; }
+.dice-art.has-3d canvas.die-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
 }
+.dice-art.has-3d span,
+.dice-art.has-3d strong {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Prata", Georgia, serif;
+  font-size: 52px;
+  color: #ffffff;
+  text-shadow: 0 0 20px rgba(255,255,255,0.85), 0 2px 10px rgba(0,0,0,1);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+}
+.dice-art.has-3d span.visible,
+.dice-art.has-3d strong.visible { opacity: 1; }

@@ -10,9 +10,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
-<div id="dice-3d-overlay" aria-hidden="true">
-  <canvas id="dice-3d-canvas" width="560" height="560"></canvas>
-</div>
 <svg width="0" height="0" style="position:absolute;visibility:hidden" aria-hidden="true" focusable="false">
   <symbol id="icon-book" viewBox="0 0 24 24">
     <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H7a3 3 0 0 0-3 3V5.5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
@@ -901,6 +898,7 @@ function renderDiceFlow() {
     </header>
     ${body}
   </div>`;
+  dice3D.restoreResults();
 }
 
 function renderDiceMenu() {
@@ -1060,12 +1058,7 @@ async function animateDiceResult(finalValue, sides = 20, targetId = 'dice-flow-a
   const number = die.querySelector('strong') || die.querySelector('span') || die;
 
   if (dice3D.ready) {
-    // 3D path: show '?' while Three.js animates, then reveal result
-    number.textContent = '?';
-    await dice3D.rollDie(sides);
-    number.textContent = finalValue;
-    die.classList.add('settled');
-    setTimeout(() => die.classList.remove('settled'), 520);
+    await dice3D.rollInElement(targetId, sides, finalValue);
     return;
   }
 
@@ -6184,10 +6177,10 @@ async function addItem(){
   }catch(e){ toast(e.message,'err'); }
 }
 
-// ─── Three.js Dice Renderer ───────────────────────────────────────────────────
+// ─── Three.js Dice Renderer (inline, per-element) ────────────────────────────
 const dice3D = (() => {
-  let _renderer = null, _scene = null, _camera = null, _animId = null;
   let _ready = false;
+  const _state = {}; // elementId → { renderer, scene, camera, idleId, mesh, canvas }
 
   const GEOM = {
     4:   () => new THREE.TetrahedronGeometry(1.5),
@@ -6198,10 +6191,9 @@ const dice3D = (() => {
     20:  () => new THREE.IcosahedronGeometry(1.6),
     100: () => new THREE.SphereGeometry(1.5, 32, 16),
   };
-
   const MATS = {
     4:   { color: 0x4a1060, emissive: 0x1a0030 },
-    6:   { color: 0xe0e0e0, emissive: 0x888888, emissiveIntensity: 0.06 },
+    6:   { color: 0xdcdcdc, emissive: 0x888888, emissiveIntensity: 0.05 },
     8:   { color: 0x0a2e60, emissive: 0x041228 },
     10:  { color: 0x60200a, emissive: 0x280801 },
     12:  { color: 0xa09468, emissive: 0x40381c },
@@ -6209,90 +6201,161 @@ const dice3D = (() => {
     100: { color: 0x14142e, emissive: 0x080810 },
   };
 
-  function setup() {
-    if (_renderer || !window.THREE) return;
-    const canvas = document.getElementById('dice-3d-canvas');
-    if (!canvas) return;
-    try {
-      _renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-      _renderer.setSize(280, 280);
-      _renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-      _scene = new THREE.Scene();
-      _camera = new THREE.PerspectiveCamera(45, 1, 0.1, 50);
-      _camera.position.z = 7;
-      const sun = new THREE.DirectionalLight(0xffffff, 1.6);
-      sun.position.set(4, 6, 5);
-      _scene.add(sun);
-      _scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-      _ready = true;
-    } catch(e) {
-      console.warn('[dice3D] init failed, using CSS fallback:', e.message);
-    }
+  function _disposeCtx(id) {
+    const s = _state[id];
+    if (!s) return;
+    if (s.idleId) cancelAnimationFrame(s.idleId);
+    if (s.mesh) { s.scene.remove(s.mesh); s.mesh.geometry.dispose(); s.mesh.material.dispose(); }
+    try { s.renderer.dispose(); s.renderer.forceContextLoss(); } catch(e) {}
+    delete _state[id];
   }
 
-  async function rollDie(sides) {
-    if (!_ready) return;
-    const overlay = document.getElementById('dice-3d-overlay');
-    if (overlay) overlay.style.display = 'flex';
-    if (_animId) { cancelAnimationFrame(_animId); _animId = null; }
-
-    // Remove any old mesh (keep lights)
-    for (let i = _scene.children.length - 1; i >= 0; i--) {
-      if (_scene.children[i].isMesh || _scene.children[i].isLineSegments) {
-        _scene.remove(_scene.children[i]);
-      }
-    }
-
-    const geoFn = GEOM[sides] || GEOM[20];
-    const matOpts = MATS[sides] || MATS[20];
-    const geo = geoFn();
-    const mat = new THREE.MeshPhongMaterial({
-      color: matOpts.color,
-      emissive: matOpts.emissive || 0x000000,
-      emissiveIntensity: matOpts.emissiveIntensity ?? 0.18,
-      shininess: 70,
-      specular: 0x555555,
-      flatShading: sides !== 100,
+  function _buildMesh(scene, sides) {
+    const geo     = (GEOM[sides] || GEOM[20])();
+    const mo      = MATS[sides] || MATS[20];
+    const mat     = new THREE.MeshPhongMaterial({
+      color: mo.color, emissive: mo.emissive || 0,
+      emissiveIntensity: mo.emissiveIntensity ?? 0.18,
+      shininess: 70, specular: 0x555555, flatShading: sides !== 100,
     });
-    const mesh = new THREE.Mesh(geo, mat);
+    const mesh    = new THREE.Mesh(geo, mat);
+    const edges   = new THREE.EdgesGeometry(geo);
+    mesh.add(new THREE.LineSegments(edges,
+      new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.22 })));
+    scene.add(mesh);
+    return mesh;
+  }
 
-    // Edge lines for definition
-    const edges = new THREE.EdgesGeometry(geo);
-    const lineMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.22 });
-    mesh.add(new THREE.LineSegments(edges, lineMat));
+  function _createCtx(el) {
+    // Reuse or create canvas inside the element
+    let canvas = el.querySelector('canvas.die-canvas');
+    if (!canvas) {
+      canvas = document.createElement('canvas');
+      canvas.className = 'die-canvas';
+      el.insertBefore(canvas, el.firstChild);
+    }
+    el.classList.add('has-3d');
 
+    const size = Math.max(el.offsetWidth, 160);
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setSize(size, size);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 50);
+    camera.position.z = 7;
+    const sun = new THREE.DirectionalLight(0xffffff, 1.6);
+    sun.position.set(4, 6, 5);
+    scene.add(sun);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+
+    return { renderer, scene, camera, canvas, idleId: null, mesh: null };
+  }
+
+  function _startIdle(id, ctx) {
+    const { renderer, scene, camera, canvas } = ctx;
+    function idle() {
+      if (!canvas.isConnected || _state[id] !== ctx) return; // detached or superseded
+      ctx.mesh.rotation.y += 0.007;
+      ctx.mesh.rotation.x += 0.002;
+      renderer.render(scene, camera);
+      ctx.idleId = requestAnimationFrame(idle);
+    }
+    ctx.idleId = requestAnimationFrame(idle);
+  }
+
+  function _showNumber(el, value) {
+    const span = el.querySelector('span');
+    if (!span) return;
+    span.textContent = value;
+    span.classList.add('visible');
+  }
+
+  // Full spin animation, settles with idle + number
+  async function rollInElement(id, sides, finalValue) {
+    if (!_ready) return;
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    _disposeCtx(id);
+    const ctx = _createCtx(el);
+    _state[id] = ctx;
+
+    // Hide number while spinning
+    const span = el.querySelector('span');
+    if (span) { span.textContent = ''; span.classList.remove('visible'); }
+
+    const mesh = _buildMesh(ctx.scene, sides);
+    ctx.mesh = mesh;
     mesh.rotation.set(Math.random() * Math.PI * 2, Math.random() * Math.PI * 2, Math.random() * Math.PI * 2);
-    _scene.add(mesh);
 
     const vx = (Math.random() - 0.5) * 14;
     const vy = (Math.random() - 0.5) * 20;
     const vz = (Math.random() - 0.5) * 10;
-    const duration = 1100;
-    const start = performance.now();
+    const dur = 1100, t0 = performance.now();
 
     await new Promise(resolve => {
+      let spinId;
       function frame(now) {
-        const t = Math.min((now - start) / duration, 1);
-        const s = Math.pow(1 - t, 2); // quadratic ease-out
-        mesh.rotation.x += vx * s * 0.016;
-        mesh.rotation.y += vy * s * 0.016;
-        mesh.rotation.z += vz * s * 0.016;
-        _renderer.render(_scene, _camera);
-        if (t < 1) { _animId = requestAnimationFrame(frame); }
-        else { resolve(); }
+        if (_state[id] !== ctx) return; // superseded by another call
+        const t = Math.min((now - t0) / dur, 1);
+        const spd = Math.pow(1 - t, 2);
+        mesh.rotation.x += vx * spd * 0.016;
+        mesh.rotation.y += vy * spd * 0.016;
+        mesh.rotation.z += vz * spd * 0.016;
+        ctx.renderer.render(ctx.scene, ctx.camera);
+        if (t < 1) { spinId = requestAnimationFrame(frame); } else { resolve(); }
       }
-      _animId = requestAnimationFrame(frame);
+      spinId = requestAnimationFrame(frame);
     });
 
-    await new Promise(r => setTimeout(r, 280));
-    if (overlay) overlay.style.display = 'none';
-    geo.dispose(); mat.dispose(); edges.dispose(); lineMat.dispose();
+    _startIdle(id, ctx);
+    _showNumber(el, finalValue);
   }
 
-  // Auto-init (DOM + THREE.js already available at this point in the script)
-  setup();
+  // Instant display (no spin) — used after DOM rebuilds to restore settled die
+  function showResult(id, sides, value) {
+    if (!_ready) return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    _disposeCtx(id);
+    const ctx = _createCtx(el);
+    _state[id] = ctx;
+    const mesh = _buildMesh(ctx.scene, sides);
+    ctx.mesh = mesh;
+    mesh.rotation.set(0.5, 0.7, 0.2); // nice display angle
+    ctx.renderer.render(ctx.scene, ctx.camera);
+    _startIdle(id, ctx);
+    _showNumber(el, value);
+  }
 
-  return { get ready() { return _ready; }, rollDie };
+  // Called by renderDiceFlow after innerHTML rebuild to re-instantiate settled dice
+  function restoreResults() {
+    if (!_ready) return;
+    setTimeout(() => {
+      const sc = diceFlow.screen;
+      if ((sc === 'attack-check' || sc === 'attack-result') && diceFlow.attackRoll !== null) {
+        showResult('dice-flow-active-die', 20, diceFlow.attackRoll);
+      } else if (sc === 'attack-damage' && diceFlow.damageRoll) {
+        const weapon = selectedAttackWeapon();
+        const formula = weapon?.item?.damage_dice || '1d6';
+        showResult('dice-flow-active-die', diceFormulaSides(formula), diceFlow.damageRoll.total);
+      } else if ((sc === 'spell-die' || sc === 'spell-result') && diceFlow.spellRoll) {
+        showResult('dice-flow-active-die', diceFormulaSides(diceFlow.selectedDie || '1d20'), diceFlow.spellRoll.total);
+      } else if (sc === 'generic-roll' && diceFlow.genericRoll) {
+        showResult('dice-flow-active-die', diceFormulaSides(diceFlow.genericFormula || '1d20'), diceFlow.genericRoll.total);
+      } else if (sc === 'story-roll' && diceFlow.storyRolls.length > 0) {
+        showResult('story-die-1', 20, diceFlow.storyRolls[0]);
+        if (diceFlow.storyAdvantage !== null && diceFlow.storyRolls.length > 1) {
+          showResult('story-die-2', 20, diceFlow.storyRolls[1]);
+        }
+      }
+    }, 0);
+  }
+
+  _ready = !!window.THREE;
+
+  return { get ready() { return _ready; }, rollInElement, showResult, restoreResults };
 })();
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
