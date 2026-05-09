@@ -203,6 +203,10 @@ model Item {
   /// JSONB: pack contents array for equipment packs (US-69.1)
   pack_contents         Json?
   requires_attunement   Boolean        @default(false)
+  /// Flavor description shown in item detail modal (US-127)
+  description           String?
+  /// Source: 'srd' | 'homebrew_magic40' | 'homebrew_infernal' | 'homebrew_gremio' | 'homebrew_todasarmas'
+  source                String         @default("srd")
 
   inventory_items       InventoryItem[]
 }

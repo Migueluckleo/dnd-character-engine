@@ -2,6 +2,202 @@
 
 Registro retroactivo del proyecto. El código actual es la fuente principal de verdad; las fechas previas se basan en marcas de archivo y documentación disponible, por lo que algunas entradas se indican como estimadas.
 
+## [2026-05-09] - New Style UI desde Figma pantallas template
+
+### Cambios
+- Se inició la migración visual del UI móvil al Figma `New-style`, sección `pantallas template`.
+- La pantalla Home/Personajes ahora usa fondo de pergamino, encabezado rojo, orden de navegación inferior del template, cards de personaje tipo parchment y CTA rojo de agregar personaje.
+- La ficha de personaje abierto se reestructuró para mostrar CA, Velocidad y B. Competencia, bloque de nivel/XP, imagen del personaje, atributos, estadísticas mágicas y PG con el layout base del template.
+- La navegación del personaje abierto se alineó al flujo inferior de Figma: Personaje, Inventario, Habilidades, Conjuros y Diario.
+- Inventario recibió estilos de template para tabs Equipo/Mochila/Alijo, card de Carga/monedas, slots vacíos punteados y cards de objetos en parchment.
+- Se reutilizaron los assets locales `src/images/page bg.png`, `src/images/ficha bg.png` y `src/images/dnd_card_bg.png`.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `docs/requirements.md`
+- `docs/tasks.md`
+- `docs/behavioral_design.md`
+- `HANDOFF.md`
+- `CHANGELOG.md`
+
+### Historias de usuario relacionadas
+- US-117: Apertura de personaje y ficha principal
+- US-119: Figma-Matched Created Character Card
+- US-120: Figma-Matched Add Character CTA
+- US-137: Figma Inventory Section
+- US-138: Mochila Carry and Currency Summary
+- US-145: Visual Identity for Inventory Items
+- US-146: New Style Template UI from Figma
+
+### Fuente / certeza
+- Confirmado por código actual
+- Confirmado por Figma `New-style` node `2086:824`
+- Confirmado por validación `node --check` del JS inline
+- Confirmado por `npx tsc --noEmit`
+- Pendiente de validación visual en navegador contra Figma
+
+---
+
+## [2026-05-09] - Game-icons como fallback visual por rareza (US-145)
+
+### Cambios
+- Se integró Game-icons vía Iconify como fallback visual dirigido para ítems sin imagen local exacta.
+- Se agregó mapeo por categoría/subtipo (`GAME_ICON_BY_KIND`) para armas, armaduras, municiones, pociones, objetos mágicos, herramientas, instrumentos, bolsas, libros, pergaminos y equipo.
+- Las imágenes locales siguen teniendo prioridad; Game-icons cubre los huecos del catálogo sin requerir assets manuales para cada ítem.
+- Se agregó `ITEM_RARITY_THEME` para colorear iconos y fondos por rareza:
+  - Común: gris
+  - Poco común: verde
+  - Raro: azul
+  - Muy raro: morado
+  - Legendario: dorado
+  - Artefacto: rojo/rosa
+- Se añadió atribución en `README.md` por la licencia CC BY 3.0 de Game-icons.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `README.md`
+
+### Historias de usuario relacionadas
+- US-145: Identidad visual de ítems con fallback de librería y código de color por rareza
+
+### Fuente / certeza
+- Confirmado por código actual
+- Confirmado por validación de sintaxis del JS inline con `node --check`
+- Pendiente de validación visual en navegador y conexión externa a Iconify en producción
+
+---
+
+## [2026-05-09] - Fix seed Prisma Client desactualizado
+
+### Cambios
+- `npm run db:seed` ahora ejecuta `prisma generate` antes de correr `ts-node prisma/seed.ts`.
+- `npm run db:reset` reutiliza `npm run db:seed` para evitar que el seed use un Prisma Client viejo cuando cambia `schema.prisma`.
+- Esto corrige el error local donde el seed rechazaba `Item.description` y `Item.source` aunque el schema/migración ya los tuviera.
+
+### Archivos modificados
+- `package.json`
+
+### Historias de usuario relacionadas
+- US-127: Catálogo de ítems con descripciones y fuente
+
+### Fuente / certeza
+- Confirmado por código actual
+- Confirmado: `prisma generate` elimina el error de cliente desactualizado
+- Pendiente de validación en entorno del usuario: correr `npm run db:seed` con acceso real a Supabase
+
+---
+
+## [2026-05-09] - Imágenes locales progresivas para ítems de inventario (US-145 parcial)
+
+### Cambios
+- US-145 retomada sin volver al sistema SVG genérico: se agregó un mapping de imágenes locales desde `src/images/items`.
+- `ui.html` ahora asigna imagen exacta a ítems SRD con asset disponible (por ejemplo Leather Armor, Chain Mail, Shield, Longsword, Scimitar, Dagger, Potion of Healing, Backpack, Pouch, etc.).
+- Se agregó fallback por subtipo para armas y objetos mágicos homebrew (`weapon_subtype`), usando variantes visuales disponibles para espadas, dagas, picas, martillos, cimitarras, estoques, tridentes, ballestas, arcos y otros.
+- Las tarjetas de inventario, catálogo de agregar objeto y pantalla de cantidad muestran imagen cuando existe asset local; si no existe, la card conserva el layout textual sin romperse.
+- `style.css` agrega `.item-art` para contener imágenes con proporción estable y estilo acorde a la plataforma.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `docs/requirements.md`
+- `docs/behavioral_design.md`
+- `docs/tasks.md`
+
+### Historias de usuario relacionadas
+- US-145: En progreso / implementación parcial con imágenes locales
+
+### Fuente / certeza
+- Confirmado por código actual
+- Confirmado por validación de sintaxis del JS inline con `node --check`
+- Pendiente de validación visual en navegador
+
+---
+
+## [2026-05-09] - Rollback íconos SVG + regeneración XLS catálogo (US-145 revertido)
+
+### Cambios
+- **ROLLBACK US-145**: Se eliminaron los 34 símbolos SVG del sprite inline de `ui.html` por decisión del usuario (preferencia por imágenes únicas en lugar de íconos vectoriales genéricos).
+- Eliminadas las funciones JS: `getItemIconId`, `getItemIconStyle`, `itemIconHtml`.
+- Eliminadas las llamadas `itemIconHtml(item, n)` en `renderInventoryItemCard`, `renderInventoryCatalogCard` y `openInventoryQuantityScreen`.
+- Eliminado el bloque CSS `.item-icon-wrap` de `style.css`.
+- **XLS regenerado** — `Catálogo Completo DnD.xlsx` actualizado con 855 ítems (287 SRD + 568 homebrew), 4 hojas: Resumen, Catálogo Completo, SRD 5.1, Homebrew.
+- Documentación de continuidad alineada: `behavioral_design.md` marca US-145 como pendiente/revertida, `tasks.md` registra T-073/T-074 y `requirements.md` agrega US-144/US-145 para cerrar la trazabilidad.
+
+### Archivos modificados
+- `ui.html` — rollback completo de íconos SVG (23 139 chars eliminados); sintaxis JS verificada limpia
+- `style.css` — bloque `.item-icon-wrap` eliminado
+- `Catálogo Completo DnD.xlsx` — regenerado con código de colores por rareza y fuente
+- `docs/behavioral_design.md` — US-145 marcada como pendiente/revertida y XLS regenerado registrado en historial
+- `docs/tasks.md` — T-071 actualizada; T-073 rollback y T-074 rediseño visual añadidas
+- `docs/requirements.md` — US-144 y US-145 agregadas para continuidad
+
+### Historias de usuario relacionadas
+- US-145: revertida a ❌ Pendiente (rediseño pendiente con imágenes únicas por ítem)
+- US-127: XLS de catálogo regenerado como fuente de QA
+- US-144: registrada retroactivamente en `requirements.md` para cerrar el hueco documental
+
+### Fuente / certeza
+- Confirmado: `node --check` 0 errores tras rollback
+- Confirmado por documentación actualizada: `CHANGELOG.md`, `HANDOFF.md`, `docs/behavioral_design.md`, `docs/tasks.md`, `docs/requirements.md`
+- Pendiente: definir approach de imágenes únicas (US-145 requiere nueva spec)
+
+---
+
+## [2026-05-09] - Íconos SVG para todos los ítems del inventario (US-145)
+
+### Cambios
+- 34 símbolos SVG nuevos añadidos al sprite inline de `ui.html` con el prefijo `icon-item-*`.
+- `getItemIconId(item)` — mapea `item_type` + patrones de nombre al id de símbolo correcto (espada, daga, hacha, martillo, lanza, arco, ballesta, armadura ligera/media/pesada, poción, pergamino, orbe, herramienta, etc.).
+- `getItemIconStyle(item)` — devuelve `{ color, bg }` según rareza: gris (común), verde (poco común), azul (raro), morado (muy raro), naranja (legendario), rojo (artefacto). Ítems SRD usan color temático marrón.
+- `itemIconHtml(item, size)` — helper unificado que genera `<div class="item-icon-wrap">` con el SVG correspondiente.
+- `renderInventoryItemCard` y `renderInventoryCatalogCard` actualizados con ícono.
+- `openInventoryQuantityScreen` muestra ícono + descripción del ítem antes de confirmar.
+- `itemDescription()` ahora prioriza `item.description` (campo BD) sobre las descripciones generadas en código.
+- CSS `.item-icon-wrap` añadido a `style.css`.
+
+### Archivos modificados
+- `ui.html` — 34 símbolos SVG, 3 funciones JS, 2 render functions actualizadas, openInventoryQuantityScreen mejorada
+- `style.css` — `.item-icon-wrap` y reglas de layout
+
+### Historias de usuario relacionadas
+- US-145: Íconos visuales para todos los ítems del catálogo
+
+### Fuente / certeza
+- Confirmado: JS syntax check 0 errores
+- Pendiente: validar visualmente en navegador que los íconos aparecen en mochila, catálogo y pantalla de cantidad
+
+---
+
+## [2026-05-09] - Catálogo de ítems completo: descripciones SRD + 568 ítems homebrew (US-127)
+
+### Cambios
+- Agregados campos `description String?` y `source String @default("srd")` al modelo `Item` en `prisma/schema.prisma`.
+- Creada migración `20260509120000_add_item_description_source` con `ALTER TABLE "Item" ADD COLUMN`.
+- Los 287 ítems SRD existentes (armaduras, armas, equipo, herramientas, objetos mágicos, etc.) recibieron descripciones de sabor en español con tono DnD clásico.
+- Integrados 568 ítems homebrew extraídos de 4 PDFs del proyecto: 40 Magic Items (64 ítems), Infernal Machine Rebuild (95), Homebrew del Gremio (254), Todas las Armas (155).
+- Todos los ítems homebrew incluyen rareza, requiere sintonía, tipo de ítem y descripción en inglés del PDF fuente.
+- Catálogo total: **855 ítems** (287 SRD + 568 homebrew).
+- Generado `Catálogo Completo DnD.xlsx` con 4 hojas: Resumen, Catálogo SRD, Homebrew, Objetos Mágicos.
+
+### Archivos modificados
+- `prisma/schema.prisma` — campos `description` y `source` en model Item
+- `prisma/migrations/20260509120000_add_item_description_source/migration.sql` — migración nueva
+- `prisma/seeds/item.ts` — 287 SRD items con description+source, 568 homebrew items añadidos
+- `Catálogo Completo DnD.xlsx` — XLS actualizado con catálogo completo
+- `docs/behavioral_design.md` — US-127 marcada ✅ Implementado
+
+### Historias de usuario relacionadas
+- US-127: Descripciones ricas de ítems
+
+### Fuente / certeza
+- Confirmado por scripts de extracción de PDFs: magic40.txt, infernal.txt, gremio.txt, todasarmas.txt
+- Confirmado por gen_seed_descriptions.py: 238 descripciones SRD escritas
+- Pendiente de validar: ejecutar migración en producción + re-seed + confirmar que la UI muestra descriptions en modal de ítem
+
+---
+
 ## [2026-05-05] - Fix dados 3D: contexto WebGL perdido y condición de carrera (US-143)
 
 ### Cambios

@@ -9,6 +9,132 @@
 - El wizard de creación está orientado a mobile-first y debe seguir `docs/Create Character.pdf` y el Figma `DM-Dnd-App--Copy-`.
 - La documentación viva principal está en `docs/requirements.md`, `docs/plan.md`, `docs/tasks.md`, `.claude.md`, `CHANGELOG.md` y este archivo.
 
+## Últimos cambios realizados (2026-05-09) — New Style UI desde Figma (US-146)
+
+### Qué se implementó
+- Se inició el gran cambio visual solicitado desde Figma `New-style`, sección `pantallas template`.
+- Home/Personajes adopta fondo `page bg`, encabezado rojo, navegación inferior en orden Figma, cards de personaje tipo parchment y botón rojo de agregar personaje.
+- Personaje abierto adopta fondo `ficha bg`, header Figma, navegación inferior de personaje, bloque parchment para stats, XP/nivel, imagen, atributos, magia y PG.
+- Inventario adopta tabs `Equipo`, `Mochila`, `Alijo`, card de Carga/monedas, slots vacíos punteados y cards parchment para objetos.
+- Se conserva la lógica existente: API, autenticación, apertura de personaje, imagen, inventario, dados, conjuros y habilidades.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `docs/requirements.md`
+- `docs/tasks.md`
+- `docs/behavioral_design.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Validación realizada
+- `node --check` sobre el script inline de `ui.html`: correcto.
+- `npx tsc --noEmit`: correcto.
+
+### Pendientes inmediatos
+1. Validar visualmente en navegador contra Figma node `2086:824`.
+2. Ajustar medidas finas de las cards y navegación si el screenshot no empata.
+3. Extender el New Style a modales secundarios como descripción de objeto, dados, HP y pantallas internas que aún conserven trazos del estilo anterior.
+
+---
+
+## Últimos cambios realizados (2026-05-09) — Imágenes locales progresivas para ítems (US-145 parcial)
+
+### Extensión Game-icons / Iconify
+- Game-icons vía Iconify se usa como fallback visual para ítems sin imagen local.
+- Prioridad actual: imagen local exacta → imagen local por subtipo → Game-icons por categoría/subtipo → card textual.
+- Los iconos de librería usan color por rareza:
+  - común gris, poco común verde, raro azul, muy raro morado, legendario dorado, artefacto rojo/rosa.
+- `README.md` contiene la atribución requerida por CC BY 3.0.
+- Pendiente: validar visualmente en producción que Iconify carga desde GitHub Pages y no hay bloqueo de red/CSP.
+
+### Fix operativo de seed
+- `npm run db:seed` ahora corre `prisma generate` antes del seed para evitar Prisma Client desactualizado.
+- Motivo: el seed usa `Item.description` y `Item.source`; si el cliente generado no está actualizado, Prisma lanza `Unknown argument description`.
+- Validación pendiente en máquina del usuario/entorno con red: correr `npm run db:seed` después del cambio. En este entorno Codex la conexión directa a Supabase no está disponible.
+
+### Qué se implementó
+- US-145 se retomó con assets reales, sin volver al sistema SVG genérico revertido.
+- `ui.html` contiene un mapping de imágenes locales desde `src/images/items`:
+  - exacto por nombre para ítems SRD con imagen disponible;
+  - fallback por subtipo para armas y magic items homebrew (`weapon_subtype`).
+- Las imágenes aparecen en tarjetas de inventario, catálogo de agregar objeto y pantalla de cantidad.
+- Si un ítem no tiene imagen, la card sigue funcionando con texto y atributos.
+
+### Qué queda pendiente
+- Agregar más assets y ampliar el mapping progresivamente.
+- Validar visualmente en navegador con personajes que tengan mochila y catálogo cargados.
+- Definir si a futuro las imágenes vivirán en repo, CDN controlado o almacenamiento propio.
+
+---
+
+## Últimos cambios realizados (2026-05-09) — Rollback íconos SVG + XLS regenerado
+
+### Qué se implementó / revirtió
+- **ROLLBACK COMPLETO de US-145** a petición del usuario: los 34 símbolos SVG, las 3 funciones JS (`getItemIconId`, `getItemIconStyle`, `itemIconHtml`) y el CSS `.item-icon-wrap` fueron eliminados de `ui.html` y `style.css`.
+- El usuario prefiere imágenes únicas por ítem en lugar de íconos vectoriales genéricos.
+- **XLS regenerado** — `Catálogo Completo DnD.xlsx` reconstruido desde `prisma/seeds/item.ts` con los 855 ítems, color por rareza y 4 hojas.
+- **Documentación alineada** — `docs/behavioral_design.md`, `docs/tasks.md` y `docs/requirements.md` ya registran el rollback de US-145, la regeneración del XLS y el estado pendiente del rediseño visual de ítems.
+
+### Estado actual de `ui.html`
+- Sin íconos de ítem. Las cards de inventario y catálogo muestran solo texto (tipo + nombre + chips).
+- `itemDescription()` sigue priorizando `item.description` del campo BD antes del fallback generado.
+
+### Qué queda pendiente
+- **US-145 rediseño**: definir approach de imágenes únicas (URL externa, blob en BD, sprite de imágenes, etc.) antes de re-implementar.
+- **T-072**: conectar `item.description` al modal de detalle de ítem (un `<p>` adicional en el template).
+- **T-074**: definir arquitectura visual de ítems sin volver al sistema de SVG genéricos revertido.
+- Ejecutar migración local + seed para poblar los 855 ítems con descripciones en BD.
+
+---
+
+## Últimos cambios realizados (2026-05-09) — Íconos SVG para todos los ítems (US-145)
+
+### Qué se implementó
+- **34 íconos SVG** añadidos como `<symbol>` al sprite inline de `ui.html`. Cubren: espada, daga, espadón, hacha, martillo, lanza, arco, ballesta, garrote, armadura ligera/media/pesada, yelmo, escudo, anillo, amuleto, varita, bastón, capa, botas, guantes, poción, pergamino, orbe, flecha, antorcha, cuerda, herramienta, laúd, símbolo sagrado, foco arcano, ropa, estrella mágica, comida, engranaje, bolsa.
+- **Sistema de colores por rareza**: los ítems homebrew y mágicos muestran el ícono en el color de su rareza. Los SRD usan el marrón temático del proyecto.
+- **Un solo helper `itemIconHtml(item, size)`** utilizado en todas las vistas de inventario.
+- **`itemDescription()`** ahora prioriza el campo `item.description` de la BD (llenado con 287 descripciones SRD en la tarea anterior).
+- La pantalla de confirmación de cantidad ahora muestra el ícono + descripción completa del ítem antes de agregar.
+
+### Por qué
+- US-145: los jugadores necesitan reconocer ítems de un vistazo sin leer el nombre completo, especialmente en el inventario móvil.
+- Los 855 ítems del catálogo (287 SRD + 568 homebrew) ahora tienen representación visual distintiva.
+
+### Qué queda pendiente de validar
+1. **Visualizar en navegador**: abrir el inventario de un personaje y confirmar que los íconos aparecen en mochila, stash, slots de equipo, catálogo de agregar y pantalla de cantidad.
+2. **Migración de BD**: ejecutar `npx prisma migrate deploy` + `npx prisma db seed` para que los 855 ítems con descripción estén en la BD y los íconos usen el campo `description` real.
+3. **Ítems mágicos**: verificar que las raresas de homebrew (very_rare, legendary) muestran los colores morado/naranja correctamente.
+
+---
+
+## Últimos cambios realizados (2026-05-09) — Catálogo completo: descripciones SRD + 568 ítems homebrew (US-127)
+
+### Qué se implementó
+- **Schema extendido**: dos nuevos campos en `model Item`: `description String?` (flavor text del ítem) y `source String @default("srd")` (trazabilidad de origen).
+- **Migración lista**: `prisma/migrations/20260509120000_add_item_description_source/migration.sql` — solo requiere `npx prisma migrate deploy` en el servidor.
+- **287 ítems SRD con descripción**: Armaduras, armas simples/marciales, equipo de aventurero, herramientas, instrumentos, packs, pociones, focos y objetos mágicos SRD. Todas las descripciones están en español con tono de fantasía DnD clásico.
+- **568 ítems homebrew integrados** desde los 4 PDFs en `docs/`:
+  - `magic40`: 64 objetos mágicos únicos (nivel common–legendary)
+  - `infernal`: 95 ítems del Infernal Machine Rebuild (muy raros y legendarios)
+  - `gremio`: 254 ítems del Homebrew del Gremio (variedad completa de rareza)
+  - `todasarmas`: 155 armas mágicas (magic_weapon → magic_item en el seed)
+- **Catálogo total: 855 ítems** en `prisma/seeds/item.ts`.
+- **XLS actualizado**: `Catálogo Completo DnD.xlsx` — 4 hojas: Resumen, Catálogo SRD, Homebrew, Objetos Mágicos (624 en total).
+
+### Por qué
+- US-127 requiere que las tarjetas de ítem muestren descripción de sabor. El campo `description` en BD es el prerequisito para poblar la UI.
+- Los PDFs de homebrew existían en `docs/` sin integrar. Su incorporación al seed permite que cualquier DM los asigne a personajes.
+- El campo `source` permite filtrar por origen (SRD vs. homebrew específico) en la UI futura.
+
+### Qué queda pendiente de validar
+1. **Ejecutar migración en local**: `npx prisma migrate deploy` (o `dev` si se prefiere) para añadir las columnas a la BD.
+2. **Re-seed**: `npx prisma db seed` para poblar los 855 ítems con sus descripciones.
+3. **UI**: conectar el campo `description` al modal de detalle de ítem. Actualmente el campo existe en BD pero la UI todavía no lo muestra.
+4. **Calidad de homebrew**: algunas descripciones extraídas del PDF tienen texto de bleed (artefacto del parser). Revisar spot-checks en la hoja `Homebrew` del XLS antes de usar en producción.
+
+---
+
 ## Últimos cambios realizados (2026-05-05) — Fix dados 3D estabilizados (US-143)
 
 **Tres bugs críticos corregidos en esta sesión:**

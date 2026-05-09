@@ -1783,4 +1783,51 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 |----|--------|-------|
 | US-143 | Implementada / pendiente de validación visual en navegador | Three.js r128 desde cdnjs. `dice3D` IIFE con `setup()` + `rollDie(sides)`. Overlay `#dice-3d-overlay` z-index 10000. Fallback CSS automático. |
 
-*End of requirements.md — Total User Stories: US-01 through US-143.*
+### US-144: Thrown Weapon Mode Selection
+
+**Goal:** Let players choose whether a thrown weapon is used in melee or thrown before rolling, so range, context and inventory quantity are handled correctly.
+
+**Acceptance criteria:**
+- A thrown weapon selected in the attack flow must show an intermediate choice between melee use and thrown use.
+- Melee mode must use standard 5 ft melee context.
+- Thrown mode must show the weapon's short and long range when available.
+- The attack roll screen must show the chosen mode.
+- If the player chooses thrown mode, one unit of that weapon must be deducted from inventory when the d20 is rolled.
+- The attack roll screen must show remaining quantity before the throw.
+- Back navigation from the roll screen must return to the mode selection step.
+
+| US | Estado | Notas |
+|----|--------|-------|
+| US-144 | Implementada / pendiente de validación visual en navegador | Documentado en `docs/behavioral_design.md`; el flujo descuenta una unidad solo cuando el arma se lanza. |
+
+### US-145: Visual Identity for Inventory Items
+
+**Goal:** Give each inventory item a recognizable visual identity without relying on generic SVG category icons, so players can identify items quickly while preserving clean textual attributes.
+
+**Acceptance criteria:**
+- The inventory, add-item catalog and quantity confirmation screen must use the same approved visual identity system once reimplemented.
+- The solution must not use the reverted generic inline SVG icon set.
+- The selected approach must support unique item images or another user-approved visual system.
+- Item rarity, source and item type must remain visible as clean textual attributes without decorative emojis in tags.
+- Item descriptions must continue to prefer the database `description` field when available.
+
+| US | Estado | Notas |
+|----|--------|-------|
+| US-145 | En progreso / implementación parcial con assets locales + Game-icons | A temporary implementation with 34 inline SVG symbols was added and then rolled back on 2026-05-09 by product decision. Current `ui.html` uses local image assets from `src/images/items` first, then Game-icons via Iconify as category/subtype fallback, with rarity-based colors. Pending: validate visual QA in browser and external Iconify loading in production. |
+
+### US-146: New Style Template UI from Figma
+
+**Goal:** Re-skin the main player-facing mobile UI using the Figma `New-style` / `pantallas template` section, applying the parchment fantasy visual system without breaking existing character, inventory, dice, auth, and API flows.
+
+**Acceptance criteria:**
+- The roster/home screen uses the new parchment page background, red welcome heading, Figma bottom navigation order, Figma character card hierarchy, and full-width red add-character CTA.
+- The opened-character screen uses the `ficha bg` background, Figma header, bottom character navigation, parchment detail card, visible CA, Velocidad and Bonificador de competencia, XP/level block, character image, attributes, magic stats, and HP adjustment block.
+- The inventory screen uses Figma tabs (`Equipo`, `Mochila`, `Alijo`), the `Carga`/coin card, parchment item cards, dashed empty equipment slots, and the established local-image/Game-icons visual identity for item art.
+- Existing data flows must remain intact: character opening, image upload, inventory equip/use, dice flows, spell/skill tabs, and API calls.
+- Any visual approximation or missing Figma screen must be marked as pending visual QA rather than treated as a 100% match.
+
+| US | Estado | Notas |
+|----|--------|-------|
+| US-146 | En progreso / pendiente de validación visual en navegador | Current `ui.html` and `style.css` add the first New Style template pass for home, opened character, and inventory templates using `src/images/page bg.png`, `src/images/ficha bg.png`, and `src/images/dnd_card_bg.png`. JS syntax and TypeScript validation pass. Pending: browser QA against Figma node `2086:824` and remaining modal/detail screens. |
+
+*End of requirements.md — Total User Stories: US-01 through US-146.*

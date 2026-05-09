@@ -32,8 +32,7 @@
   </symbol>
   <symbol id="icon-heart" viewBox="0 0 24 24">
     <path d="M12 20s-7.5-4.4-9-9.2C1.8 7 4.2 4 7.5 4c1.9 0 3.4 1 4.5 2.5C13.1 5 14.6 4 16.5 4 19.8 4 22.2 7 21 10.8 19.5 15.6 12 20 12 20Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-  </symbol>
-</svg>
+  </symbol></svg>
 <div id="app">
   <header>
     <div>⚔️</div>
@@ -56,17 +55,17 @@
         </div>
       </div>
       <nav class="bottom-nav-figma">
-        <a onclick="showPanel('glossary')" id="nav-glossary">
-          <svg class="nav-icon-svg" aria-hidden="true"><use href="#icon-book"></use></svg>
-          <span>Glosario y reglas</span>
-        </a>
         <a class="active" onclick="showPanel('roster')" id="nav-roster">
           <svg class="nav-icon-svg" aria-hidden="true"><use href="#icon-character"></use></svg>
           <span>Personajes</span>
         </a>
         <a onclick="showPanel('shop')" id="nav-shop">
           <svg class="nav-icon-svg" aria-hidden="true"><use href="#icon-bag"></use></svg>
-          <span>Objetos y tienda</span>
+          <span>Tienda</span>
+        </a>
+        <a onclick="showPanel('glossary')" id="nav-glossary">
+          <svg class="nav-icon-svg" aria-hidden="true"><use href="#icon-book"></use></svg>
+          <span>Glosario</span>
         </a>
         <a onclick="showPanel('races')" id="nav-races">
           <svg class="nav-icon-svg" aria-hidden="true"><use href="#icon-shield"></use></svg>
@@ -104,21 +103,44 @@
         </div>
 
         <div class="detail-tabs" role="tablist" aria-label="Detalle del personaje">
-          <button class="active wide" id="detail-tab-sheet" onclick="switchCharacterTab('sheet')">Ficha</button>
+          <button class="active wide" id="detail-tab-sheet" onclick="switchCharacterTab('sheet')">Personaje</button>
+          <button id="detail-tab-inventory" onclick="switchCharacterTab('inventory')">Inventario</button>
           <button id="detail-tab-skills" onclick="switchCharacterTab('skills')">Habilidades</button>
           <button id="detail-tab-spells" onclick="switchCharacterTab('spells')">Conjuros</button>
           <button id="detail-tab-journal" onclick="switchCharacterTab('journal')">Diario</button>
-          <button id="detail-tab-inventory" onclick="switchCharacterTab('inventory')">Inventario</button>
         </div>
 
         <div id="detail-main-sheet">
-          <div class="detail-hero" id="detail-hero">
-            <input id="character-image-input" type="file" accept="image/*" onchange="uploadCharacterImage(event)" hidden>
-            <button class="detail-image-upload" onclick="document.getElementById('character-image-input').click()">Subir imagen</button>
+          <div class="detail-combat-grid">
+            <div class="combat-box"><div class="lbl">CA</div><div class="val" id="s-ac">—</div></div>
+            <div class="combat-box"><div class="lbl">Velocidad</div><div class="val" id="s-speed">—</div></div>
+            <div class="combat-box" title="Bonificador de competencia" aria-label="Bonificador de competencia"><div class="lbl">B. Comp.</div><div class="val" id="s-prof-visible">—</div></div>
           </div>
-          <section class="detail-bio">
-            <div class="detail-section-title">Biografía <span>⌄</span></div>
-            <p id="detail-bio-text">Selecciona un personaje para ver su historia.</p>
+          <section class="detail-xp-card">
+            <div class="detail-level-badge"><span>Lvl</span><strong id="s-level-visible">—</strong></div>
+            <div class="detail-xp-content">
+              <div class="xp-label">Experiencia</div>
+              <div class="xp-track"><div id="detail-xp-fill"></div></div>
+              <div class="xp-row"><span id="detail-xp-current">0</span><span id="detail-xp-next">300</span></div>
+              <button class="btn btn-accent btn-full" onclick="toast('Agregar experiencia pendiente de conectar al flujo', 'info')">Agregar experiencia</button>
+            </div>
+          </section>
+          <section class="detail-profile-grid">
+            <div class="detail-hero" id="detail-hero">
+              <input id="character-image-input" type="file" accept="image/*" onchange="uploadCharacterImage(event)" hidden>
+              <button class="detail-image-upload" onclick="document.getElementById('character-image-input').click()">Cambiar imagen</button>
+            </div>
+            <div class="detail-stat-wrap">
+              <div class="stats-grid detail-stat-grid" id="stats-grid"></div>
+            </div>
+          </section>
+          <section id="spell-stats-row" style="display:none">
+            <div class="detail-small-heading">Estadísticas de magia</div>
+            <div class="detail-combat-grid detail-magic-grid">
+              <div class="combat-box"><div class="lbl">CD Conjuros</div><div class="val" id="s-spelldc">—</div></div>
+              <div class="combat-box"><div class="lbl">Ataque Mágico</div><div class="val" id="s-spellatk">—</div></div>
+              <div class="combat-box"><div class="lbl">Car. Mágica</div><div class="val" id="s-spellabil">—</div></div>
+            </div>
           </section>
           <section class="detail-hp-section">
             <div class="detail-hp-grid">
@@ -134,29 +156,9 @@
             </div>
             <button class="detail-hp-adjust-btn" onclick="openHpAdjustModal()">Ajustar puntos de golpe</button>
           </section>
-          <div class="detail-combat-grid">
-            <div class="combat-box"><div class="lbl">CA</div><div class="val" id="s-ac">—</div></div>
-            <div class="combat-box"><div class="lbl">Velocidad</div><div class="val" id="s-speed">—</div></div>
-            <div class="combat-box"><div class="lbl">Nivel</div><div class="val" id="s-level-visible">—</div></div>
-            <div class="combat-box" title="Bonificador de competencia" aria-label="Bonificador de competencia"><div class="lbl">B. Comp.</div><div class="val" id="s-prof-visible">—</div></div>
-          </div>
-          <section class="detail-xp-card">
-            <div class="xp-label">Experiencia</div>
-            <div class="xp-track"><div id="detail-xp-fill"></div></div>
-            <div class="xp-row"><span id="detail-xp-current">0</span><span id="detail-xp-next">300</span></div>
-            <button class="btn btn-accent btn-full" onclick="toast('Agregar experiencia pendiente de conectar al flujo', 'info')">Agregar experiencia</button>
-          </section>
-          <section>
-            <div class="detail-small-heading">Puntos de característica</div>
-            <div class="stats-grid detail-stat-grid" id="stats-grid"></div>
-          </section>
-          <section id="spell-stats-row" style="display:none">
-            <div class="detail-small-heading">Estadísticas de magia</div>
-            <div class="detail-combat-grid detail-magic-grid">
-              <div class="combat-box"><div class="lbl">CD Conjuros</div><div class="val" id="s-spelldc">—</div></div>
-              <div class="combat-box"><div class="lbl">Ataque Mágico</div><div class="val" id="s-spellatk">—</div></div>
-              <div class="combat-box"><div class="lbl">Car. Mágica</div><div class="val" id="s-spellabil">—</div></div>
-            </div>
+          <section class="detail-bio">
+            <div class="detail-section-title">Biografía <span>⌄</span></div>
+            <p id="detail-bio-text">Selecciona un personaje para ver su historia.</p>
           </section>
           <div class="detail-hidden-values" aria-hidden="true">
             <span id="s-level">—</span><span id="s-prof">—</span><span id="s-init">—</span><span id="s-hp">—</span>
@@ -3699,6 +3701,174 @@ function itemChips(item) {
   return itemRuleChips(item).slice(0, 7).map(chip => `<span class="equip-chip">${chip}</span>`).join('');
 }
 
+const ITEM_IMAGE_BASE = 'src/images/items/';
+const ITEM_IMAGE_BY_NAME = {
+  'Backpack': 'mochila 1.png',
+  'Battleaxe': 'hacha de guerra 1.png',
+  'Chain Mail': 'cota de malla 1.png',
+  'Club': 'garrote 2 1.png',
+  'Dagger': 'daga 1.png',
+  'Dart': 'dardo 1.png',
+  'Flail': 'mayal  1.png',
+  'Glaive': 'guadaña 1.png',
+  'Greataxe': 'gran hacha 1.png',
+  'Halberd': 'alabarda 1.png',
+  'Handaxe': 'hacha de mano 1.png',
+  'Javelin': 'Jabalina 1.png',
+  'Leather Armor': 'Armadura de cuero 1.png',
+  'Light Crossbow': 'ballesta 1.png',
+  'Longsword': 'Espada Larga 1.png',
+  'Mace': 'maza 1.png',
+  'Morningstar': 'estrella del alba 2 1.png',
+  'Pike': 'Pica 1.png',
+  'Potion of Healing': 'poción curativa 1.png',
+  'Pouch': 'bolsa 1.png',
+  'Quarterstaff': 'báculo 1.png',
+  'Rapier': 'estoque 2 1.png',
+  'Scimitar': 'Cimitarra 1.png',
+  'Shield': 'Escudo 1.png',
+  'Shortbow': 'arco corto 1.png',
+  'Shortsword': 'espada corta 1.png',
+  'Sling': 'honda  1.png',
+  'Trident': 'tridente 2 1.png',
+  'War Pick': 'pico de guerra 2 1.png',
+  'Warhammer': 'Martillo de guerra 1.png',
+};
+
+const ITEM_IMAGE_BY_KIND = [
+  { keys: ['longsword', 'long sword'], files: ['Espada Larga 1.png', 'espada larga 2 1.png', 'Espada larga 4 1.png'] },
+  { keys: ['shortsword', 'short sword'], files: ['espada corta 1.png'] },
+  { keys: ['scimitar'], files: ['Cimitarra 1.png', 'cimitarra 2 1.png', 'cimitarra 3 1.png'] },
+  { keys: ['rapier'], files: ['estoque 2 1.png', 'estoque 3.png'] },
+  { keys: ['dagger'], files: ['daga 1.png', 'daga 2 1.png', 'daga 3 1.png'] },
+  { keys: ['warhammer', 'hammer'], files: ['Martillo de guerra 1.png', 'martillo de guerra 2 1.png', 'Martillo de guerra 3 1.png'] },
+  { keys: ['pike'], files: ['Pica 1.png', 'pica 2 1.png', 'pica 3 1.png', 'pica 5 1.png'] },
+  { keys: ['war pick', 'pick'], files: ['pico de guerra 2 1.png', 'pico de guerra 3.png'] },
+  { keys: ['morningstar', 'morning star'], files: ['estrella del alba 2 1.png', 'estrella del alba 3.png'] },
+  { keys: ['trident'], files: ['tridente 2 1.png', 'tridente  3.png'] },
+  { keys: ['crossbow'], files: ['ballesta 1.png'] },
+  { keys: ['shortbow', 'bow'], files: ['arco corto 1.png'] },
+  { keys: ['glaive', 'sickle', 'scythe'], files: ['guadaña 1.png'] },
+  { keys: ['halberd'], files: ['alabarda 1.png'] },
+  { keys: ['handaxe'], files: ['hacha de mano 1.png'] },
+  { keys: ['battleaxe'], files: ['hacha de guerra 1.png'] },
+  { keys: ['greataxe'], files: ['gran hacha 1.png'] },
+  { keys: ['club'], files: ['garrote 2 1.png', 'garrote 3.png'] },
+  { keys: ['amulet', 'medallion', 'medallón'], files: ['medallón 2 1.png', 'medallón 3.png'] },
+];
+
+const GAME_ICON_BY_KIND = [
+  { keys: ['longsword', 'long sword', 'greatsword', 'great sword', 'shortsword', 'short sword', 'sword'], icon: 'crossed-swords' },
+  { keys: ['rapier'], icon: 'spiral-thrust' },
+  { keys: ['scimitar'], icon: 'curved-sword' },
+  { keys: ['dagger', 'knife'], icon: 'plain-dagger' },
+  { keys: ['battleaxe', 'handaxe', 'greataxe', 'axe'], icon: 'battle-axe' },
+  { keys: ['warhammer', 'hammer', 'mace', 'maul'], icon: 'warhammer' },
+  { keys: ['morningstar', 'flail'], icon: 'spiked-mace' },
+  { keys: ['pike', 'spear', 'javelin', 'lance', 'trident'], icon: 'spear-hook' },
+  { keys: ['halberd', 'glaive', 'polearm'], icon: 'halberd' },
+  { keys: ['bow', 'longbow', 'shortbow'], icon: 'bow-arrow' },
+  { keys: ['crossbow'], icon: 'crossbow' },
+  { keys: ['sling'], icon: 'sling' },
+  { keys: ['shield'], icon: 'round-shield' },
+  { keys: ['armor', 'mail', 'plate', 'leather armor'], icon: 'breastplate' },
+  { keys: ['arrow', 'arrows'], icon: 'arrow-flights' },
+  { keys: ['bolt', 'bolts'], icon: 'crossbow' },
+  { keys: ['potion', 'vial', 'elixir'], icon: 'potion-ball' },
+  { keys: ['scroll', 'spellbook', 'book'], icon: 'scroll-unfurled' },
+  { keys: ['wand'], icon: 'crystal-wand' },
+  { keys: ['staff', 'quarterstaff'], icon: 'wood-stick' },
+  { keys: ['ring'], icon: 'ring' },
+  { keys: ['amulet', 'medallion', 'brooch', 'necklace'], icon: 'emerald-necklace' },
+  { keys: ['boots'], icon: 'boots' },
+  { keys: ['cloak', 'cape'], icon: 'cloak' },
+  { keys: ['gloves', 'gauntlets'], icon: 'gloves' },
+  { keys: ['backpack', 'pack'], icon: 'knapsack' },
+  { keys: ['pouch', 'bag', 'sack'], icon: 'swap-bag' },
+  { keys: ['rope'], icon: 'rope-coil' },
+  { keys: ['torch', 'lantern'], icon: 'torch' },
+  { keys: ['tool', 'tools', 'hammer'], icon: 'hammer-nails' },
+  { keys: ['instrument', 'lute', 'flute', 'drum'], icon: 'lyre' },
+  { keys: ['food', 'rations'], icon: 'meal' },
+  { keys: ['coin', 'gold'], icon: 'two-coins' },
+];
+
+const ITEM_RARITY_THEME = {
+  common: { color: '#D8D8D8', bg: '#F5F5F2', label: 'Común' },
+  uncommon: { color: '#6FBF73', bg: '#EAF7EA', label: 'Poco común' },
+  rare: { color: '#62B6E8', bg: '#E7F5FF', label: 'Raro' },
+  very_rare: { color: '#9B7BEA', bg: '#F0EAFE', label: 'Muy raro' },
+  legendary: { color: '#E2A241', bg: '#FFF2D9', label: 'Legendario' },
+  artifact: { color: '#D75B74', bg: '#FFE9EE', label: 'Artefacto' },
+};
+const ITEM_DEFAULT_THEME = { color: '#EED3B1', bg: '#4D2C1C', label: '' };
+
+function itemImageKey(value) {
+  return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+function pickItemImage(files, seed) {
+  if (!Array.isArray(files)) return files;
+  if (!files.length) return '';
+  const text = itemImageKey(seed);
+  const hash = [...text].reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+  return files[hash % files.length];
+}
+
+function itemImagePath(item) {
+  if (!item?.name) return '';
+  const exact = ITEM_IMAGE_BY_NAME[item.name];
+  if (exact) return `${ITEM_IMAGE_BASE}${exact}`;
+  const props = item.properties || {};
+  const haystack = itemImageKey(`${item.name} ${props.weapon_subtype || ''} ${item.item_type || ''}`);
+  const match = ITEM_IMAGE_BY_KIND.find(group => group.keys.some(key => haystack.includes(key)));
+  if (!match) return '';
+  return `${ITEM_IMAGE_BASE}${pickItemImage(match.files, item.name)}`;
+}
+
+function itemRarity(item) {
+  const raw = item?.properties?.rarity || item?.rarity || '';
+  return String(raw).toLowerCase().replace(/[\s-]+/g, '_');
+}
+
+function itemArtTheme(item) {
+  return ITEM_RARITY_THEME[itemRarity(item)] || ITEM_DEFAULT_THEME;
+}
+
+function gameIconSlug(item) {
+  if (!item) return 'swap-bag';
+  const props = item.properties || {};
+  const haystack = itemImageKey(`${item.name || ''} ${props.weapon_subtype || ''} ${item.item_type || ''} ${item.armor_category || ''}`);
+  const match = GAME_ICON_BY_KIND.find(group => group.keys.some(key => haystack.includes(key)));
+  if (match) return match.icon;
+  if (item.item_type === 'weapon') return 'crossed-swords';
+  if (item.item_type === 'armor') return item.armor_category === 'shield' ? 'round-shield' : 'breastplate';
+  if (item.item_type === 'ammunition') return 'arrow-flights';
+  if (item.item_type === 'potion') return 'potion-ball';
+  if (item.item_type === 'magic_item') return 'magic-swirl';
+  if (item.item_type === 'tool') return 'hammer-nails';
+  if (item.item_type === 'instrument') return 'lyre';
+  return 'swap-bag';
+}
+
+function gameIconPath(item) {
+  const theme = itemArtTheme(item);
+  const color = encodeURIComponent(theme.color);
+  return `https://api.iconify.design/game-icons:${gameIconSlug(item)}.svg?color=${color}`;
+}
+
+function itemImageHtml(item, altText) {
+  if (!item) return '';
+  const theme = itemArtTheme(item);
+  const localPath = itemImagePath(item);
+  const path = localPath ? encodeURI(localPath) : gameIconPath(item);
+  const sourceClass = localPath ? 'local' : 'library';
+  const rarity = itemRarity(item);
+  const label = rarity && theme.label ? `<span>${escapeText(theme.label)}</span>` : '';
+  return `<figure class="item-art ${sourceClass}" style="--item-art-color:${theme.color};--item-art-bg:${theme.bg}" title="${escapeText(theme.label || 'Objeto')}"><img src="${escapeText(path)}" alt="${escapeText(altText || itemLabel(item.name))}" loading="lazy" onerror="this.closest('.item-art')?.remove()">${label}</figure>`;
+}
+
+
 function itemDescription(item) {
   if (!item) return 'Objeto de equipo inicial.';
   const props = item.properties || {};
@@ -3708,6 +3878,7 @@ function itemDescription(item) {
       ? `Incluye: ${contents.join(', ')}.`
       : 'Paquete de aventurero que se desglosa en objetos y cantidades al agregarse.';
   }
+  if (item.description) return item.description;
   if (props.description) return props.description;
   if (item.item_type === 'weapon') {
     const range = props.range_normal ? ` Tiene alcance ${props.range_normal}/${props.range_long ?? props.range_normal} pies.` : '';
@@ -5031,6 +5202,7 @@ function renderInventoryItemCard(inv, options = {}) {
   return `
     <article class="inventory-item-card ${options.compact ? 'inventory-slot-card' : ''}">
       <div class="inventory-item-head">
+        ${itemImageHtml(item, name)}
         <div class="inventory-item-title">
           <small>${item.item_type ? itemTypeLabel(item) : 'Objeto'}</small>
           <strong>${name}</strong>
@@ -5142,6 +5314,7 @@ function inventoryCatalogResultsHTML() {
 function renderInventoryCatalogCard(item) {
   return `<article class="inventory-item-card inventory-catalog-card">
     <div class="inventory-item-head">
+      ${itemImageHtml(item, itemLabel(item.name))}
       <div class="inventory-item-title">
         <small>${itemTypeLabel(item)}</small>
         <strong>${itemLabel(item.name)}</strong>
@@ -5169,8 +5342,10 @@ function openInventoryQuantityScreen(itemId) {
       <span></span>
     </div>
     <div class="inventory-qty-copy">
+      ${itemImageHtml(item, itemLabel(item.name))}
       <h2>${itemLabel(item.name)}</h2>
-      <p>Agrega la cantidad de objetos de este tipo que vas a agregar a tu inventario</p>
+      <p style="margin-top:6px">${itemDescription(item)}</p>
+      <p style="margin-top:4px;opacity:0.7;font-size:0.85em">Agrega la cantidad de objetos de este tipo que vas a agregar a tu inventario</p>
     </div>
     <input id="inventory-add-qty" class="inventory-qty-input" type="number" min="1" value="${ammunitionBundleSize(item) || 1}" placeholder="Cantidad">
     <button class="inventory-add-submit" onclick="confirmInventoryAddObject()">Agregar</button>
@@ -5716,7 +5891,7 @@ async function loadSheet(){
     document.getElementById('s-init').textContent   = fmt(h.initiative);
     document.getElementById('s-level-visible').textContent = h.total_level;
     document.getElementById('s-prof-visible').textContent  = fmt(h.proficiency_bonus);
-    document.getElementById('s-speed').textContent  = h.speed + ' ft';
+    document.getElementById('s-speed').textContent  = h.speed + ' pies';
     document.getElementById('s-hp').textContent     = `${c.current_hp} / ${h.max_hp}`;
     document.getElementById('s-ac').textContent     = h.armor_class ?? h.unarmored_ac;
     // Stealth disadvantage indicator from equipped armor

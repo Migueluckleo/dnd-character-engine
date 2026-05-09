@@ -538,6 +538,76 @@
 
 ---
 
+---
+
+## Phase 2.10 — Catálogo completo: descripciones SRD + homebrew (US-127)
+
+### T-068: Agregar campos description y source al modelo Item
+- **Spec:** US-127
+- **Action:** Agregar `description String?` y `source String @default("srd")` a `model Item` en `prisma/schema.prisma`. Crear migración `20260509120000_add_item_description_source`.
+- **Done when:** `npx prisma migrate deploy` corre sin errores y las columnas existen en BD.
+- **Status:** `[x]`
+
+### T-069: Escribir descripciones de sabor para los 287 ítems SRD
+- **Spec:** US-127
+- **Action:** Crear `SRD_DESC` dict con descripciones en español, tono DnD clásico, para todas las categorías: armaduras, armas, equipo, herramientas, instrumentos, packs, pociones, focos y objetos mágicos.
+- **Done when:** Todos los ítems SRD en `item.ts` tienen `description` no vacío y `source: 'srd'`.
+- **Status:** `[x]`
+
+### T-070: Extraer e integrar 568 ítems homebrew desde PDFs
+- **Spec:** US-127
+- **Action:** Parsear los 4 PDFs en `docs/` (magic40, infernal, gremio, todasarmas) con scripts Python. Deduplicar y agregar al array de items en `prisma/seeds/item.ts` con `source`, `rarity`, `requires_attunement` y `description`.
+- **Done when:** 568 ítems homebrew presentes en `item.ts` con source tag correcto.
+- **Status:** `[x]`
+
+### T-071: Generar XLS catálogo completo
+- **Spec:** US-127
+- **Action:** Generar y regenerar `Catálogo Completo DnD.xlsx` desde `prisma/seeds/item.ts` con 855 ítems (287 SRD + 568 homebrew), color por rareza/fuente y hojas de revisión: Resumen, Catálogo Completo, SRD 5.1, Homebrew.
+- **Done when:** Archivo existe, contiene 855 ítems y sirve como fuente de QA para revisar descripciones, rarezas, fuentes y origen SRD/homebrew.
+- **Notas 2026-05-09:** XLS regenerado después del rollback de US-145 para mantener una fuente limpia de revisión de catálogo sin depender de íconos SVG.
+- **Status:** `[x]`
+
+### T-072: Conectar description a la UI del modal de ítem (pendiente)
+- **Spec:** US-127 AC 127.1–127.4
+- **Action:** En `ui.html`, leer el campo `description` del ítem hidratado y mostrarlo en el modal de detalle. Solo necesita un `<p>` adicional en el template del modal.
+- **Done when:** El modal de ítem muestra la descripción de sabor debajo de los stats.
+- **Status:** `[ ]`
+
+### T-073: Rollback de íconos SVG genéricos de ítems
+- **Spec:** US-145
+- **Action:** Revertir la implementación temporal de íconos SVG genéricos en inventario: eliminar sprite inline, helpers JS (`getItemIconId`, `getItemIconStyle`, `itemIconHtml`), llamadas de render y CSS `.item-icon-wrap`.
+- **Done when:** `ui.html` y `style.css` ya no contienen el sistema de íconos SVG genéricos y la UI queda lista para una futura solución basada en imágenes únicas o un sistema visual aprobado.
+- **Notas 2026-05-09:** Rollback realizado por decisión de producto. US-145 queda pendiente/revertida.
+- **Status:** `[x]`
+
+### T-074: Rediseñar identidad visual de ítems sin SVG genéricos
+- **Spec:** US-145
+- **Action:** Definir la arquitectura visual para ítems del catálogo (por ejemplo: imágenes únicas por ítem, assets por fuente, CDN controlado o almacenamiento propio) antes de volver a implementarla en la UI.
+- **Done when:** Existe una decisión documentada y validada con el usuario sobre cómo se representará visualmente cada ítem sin usar íconos vectoriales genéricos.
+- **Notas 2026-05-09:** Primer enfoque validado en código: assets locales en `src/images/items`, mapping exacto por nombre SRD y fallback por subtipo para armas/magic items.
+- **Status:** `[~]`
+
+### T-075: Expandir cobertura progresiva de imágenes de ítems
+- **Spec:** US-145
+- **Action:** Agregar nuevas imágenes locales al mapping de `ui.html` usando prioridad: ítem exacto → subtipo de arma/objeto → sin imagen. Evitar íconos SVG genéricos.
+- **Done when:** Cada lote nuevo de imágenes queda asignado a ítems concretos o a subtipos con fallback documentado, sin romper cards existentes de inventario/catálogo/cantidad.
+- **Status:** `[~]`
+
+### T-076: Integrar librería visual Game-icons con color por rareza
+- **Spec:** US-145
+- **Action:** Usar Game-icons vía Iconify como fallback para ítems sin imagen local, con mapeo por categoría/subtipo y tema cromático por rareza.
+- **Done when:** Las cards muestran imagen local si existe; si no, icono de Game-icons con color de rareza para objetos mágicos. La atribución CC BY 3.0 queda documentada en `README.md`.
+- **Status:** `[x]`
+
+### T-077: Migrar UI móvil al New Style de Figma
+- **Spec:** US-146
+- **Action:** Aplicar la sección `pantallas template` del Figma `New-style` a Home/Personajes, personaje abierto e Inventario usando los fondos locales de `src/images`.
+- **Done when:** Home usa navegación inferior y card de personaje del template; personaje abierto muestra resumen, XP, imagen, atributos, magia y PG en parchment; inventario muestra tabs Equipo/Mochila/Alijo, card de Carga/monedas, slots vacíos y cards de objetos del template.
+- **Notas 2026-05-09:** Primera pasada implementada en `ui.html` y `style.css`. Falta QA visual en navegador para ajustar medidas finas, modales y pantallas secundarias.
+- **Status:** `[~]`
+
+---
+
 ## Summary
 
 | Phase | Tasks | Total |
@@ -551,4 +621,6 @@
 | 2.7 Wizard UX — Selección de Habilidades | US-108, US-109 | 2 |
 | 2.8 Edición de Personajes y Nivel Inicial | US-110, US-111 | 2 |
 | 2.9 Wizard Mobile-First PDF | US-112, US-113 | 2 |
-| **TOTAL** | | **69 tasks** |
+| 2.10 Catálogo completo SRD + Homebrew | T-068 → T-076 | 9 |
+| 2.11 New Style UI templates | T-077 | 1 |
+| **TOTAL** | | **79 tasks** |

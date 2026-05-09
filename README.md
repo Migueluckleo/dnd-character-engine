@@ -1,5 +1,9 @@
 # DnD Character Engine
 
+## Credits
+
+- Inventory fallback icons use the Game-icons icon set via Iconify. Game-icons is licensed under CC BY 3.0 and created by Lorc, Delapouite and contributors: https://game-icons.net/
+
 Aplicación para crear y gestionar personajes DnD 5e SRD.
 
 ## Importante para GitHub Pages
