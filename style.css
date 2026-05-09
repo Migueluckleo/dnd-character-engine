@@ -3534,14 +3534,18 @@
   --figma-card-width: 358px;
   --figma-card-strip-height: 5px;
   --figma-control-height: 44px;
+  --figma-button-mini-width: 80px;
+  --figma-button-mini-height: 32px;
+  --figma-button-regular-height: 48px;
+  --figma-button-close-size: 64px;
   --figma-nav-item-height: 31px;
   --figma-tab-height: 49px;
   --figma-avatar-width: 139px;
   --figma-avatar-height: 144px;
   --figma-stat-height: 69px;
   --figma-item-art-sm: 64px;
-  --figma-item-art-md: 98px;
-  --figma-drawer-top: 84px;
+  --figma-item-art-md: 118px;
+  --figma-description-modal-height: 844px;
 
   /* Figma New Style radius/effect tokens */
   --figma-radius-control: 4px;
@@ -4531,6 +4535,66 @@
     font-size: var(--figma-font-size-sm);
     font-weight: 700;
   }
+
+  .figma-btn,
+  .roster-add-btn,
+  .detail-hp-adjust-btn,
+  .auth-submit,
+  .inventory-equip-btn,
+  .inventory-remove-btn,
+  .inventory-sell-btn,
+  .inventory-add-object-btn,
+  .inventory-apply-btn,
+  .detail-xp-card .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--figma-button-regular-height);
+    border-radius: var(--figma-radius-card);
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-family: var(--figma-font-serif);
+    font-size: var(--figma-font-size-md);
+    font-weight: 400;
+    line-height: 1;
+    text-align: center;
+  }
+
+  .figma-btn--mini,
+  .detail-roll {
+    min-width: var(--figma-button-mini-width);
+    min-height: var(--figma-button-mini-height);
+    border-radius: var(--figma-radius-control);
+    font-family: var(--figma-font-primary);
+    font-size: var(--figma-font-size-xxs);
+  }
+
+  .figma-btn--primary,
+  .roster-add-btn,
+  .detail-roll,
+  .detail-hp-adjust-btn,
+  .auth-submit,
+  .inventory-equip-btn:not(.equipped),
+  .inventory-add-object-btn,
+  .inventory-apply-btn,
+  .detail-xp-card .btn {
+    border-color: var(--figma-color-accent-gold);
+    background: var(--figma-color-brand-primary);
+    color: var(--figma-color-text-inverse);
+  }
+
+  .figma-btn--secondary,
+  .inventory-remove-btn {
+    background: var(--figma-color-surface-brown);
+    color: var(--figma-color-text-inverse);
+  }
+
+  .figma-btn--ghost,
+  .inventory-sell-btn,
+  .inventory-equip-btn.equipped {
+    background: transparent;
+    color: var(--figma-color-brand-primary);
+  }
 }
 
 .item-description-drawer {
@@ -4543,7 +4607,7 @@
 
 .item-description-drawer.open {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
 }
 
@@ -4667,7 +4731,7 @@
   .inventory-equip-btn,
   .detail-xp-card .btn,
   .inventory-apply-btn {
-    min-height: var(--figma-control-height);
+    min-height: var(--figma-button-regular-height);
     border-radius: var(--figma-radius-control);
     border-color: var(--figma-color-accent-gold);
     background: var(--figma-color-brand-primary);
@@ -4707,11 +4771,11 @@
   .item-description-sheet {
     position: relative;
     width: min(var(--figma-screen-width), 100vw);
-    min-height: calc(100svh - var(--figma-drawer-top));
-    max-height: calc(100svh - var(--figma-space-md));
+    min-height: min(var(--figma-description-modal-height), 100svh);
+    max-height: 100svh;
     overflow-y: auto;
     padding: var(--figma-space-xl) var(--figma-space-md) var(--figma-space-2xl);
-    border-radius: var(--figma-radius-drawer) var(--figma-radius-drawer) 0 0;
+    border-radius: var(--figma-radius-drawer);
     background:
       linear-gradient(0deg, var(--figma-color-paper-drawer), var(--figma-color-paper-drawer)),
       var(--ns-page-bg) center bottom / cover no-repeat,
@@ -4737,10 +4801,10 @@
   }
 
   .item-description-close {
-    width: 40px;
-    height: 40px;
+    width: var(--figma-button-close-size);
+    height: var(--figma-button-close-size);
     border: 0;
-    border-radius: var(--figma-radius-control);
+    border-radius: var(--figma-radius-card);
     background: var(--figma-color-brand-primary);
     color: var(--figma-color-text-inverse);
     cursor: pointer;
@@ -4753,15 +4817,18 @@
   .item-description-hero {
     display: grid;
     grid-template-columns: var(--figma-item-art-md) 1fr auto;
-    gap: var(--figma-space-sm);
+    gap: var(--figma-space-md);
     align-items: center;
-    margin-bottom: var(--figma-space-lg);
+    margin-bottom: var(--figma-space-2xl);
   }
 
   .item-description-art .item-art {
     width: var(--figma-item-art-md);
     height: var(--figma-item-art-md);
     flex-basis: var(--figma-item-art-md);
+    border: 0;
+    background: transparent;
+    box-shadow: none;
   }
 
   .item-description-copy {
@@ -4775,7 +4842,7 @@
     overflow: hidden;
     color: var(--figma-color-brand-primary);
     font-family: var(--figma-font-serif);
-    font-size: var(--figma-font-size-lg);
+    font-size: var(--figma-font-size-display);
     font-weight: 400;
     line-height: 1.1;
     text-overflow: ellipsis;
@@ -4784,7 +4851,7 @@
   .item-description-copy p {
     color: var(--figma-color-text-primary);
     font-family: var(--figma-font-serif);
-    font-size: var(--figma-font-size-xs);
+    font-size: var(--figma-font-size-md);
     font-style: italic;
     line-height: 1.1;
   }
@@ -4794,8 +4861,8 @@
     gap: var(--figma-space-xs);
     align-items: baseline;
     overflow: hidden;
-    border-top: 1px solid var(--figma-color-line-brown);
-    padding-top: var(--figma-space-xs);
+    border-top: 4px solid var(--figma-color-brand-primary);
+    padding-top: var(--figma-space-lg);
     color: var(--figma-color-brand-primary);
     font-size: var(--figma-font-size-sm);
     white-space: nowrap;
@@ -4826,33 +4893,6 @@
 
   .item-description-price strong {
     font-size: var(--figma-font-size-md);
-  }
-
-  .item-description-metadata {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--figma-space-xs);
-    margin-bottom: var(--figma-space-xl);
-  }
-
-  .item-description-metadata div {
-    display: flex;
-    min-height: 38px;
-    flex-direction: column;
-    justify-content: center;
-    border-radius: var(--figma-radius-control);
-    background: var(--figma-color-brown-metadata);
-    padding: var(--figma-space-xs);
-  }
-
-  .item-description-metadata span {
-    color: var(--figma-color-text-muted);
-    font-size: var(--figma-font-size-xxs);
-  }
-
-  .item-description-metadata strong {
-    color: var(--figma-color-brand-primary);
-    font-size: var(--figma-font-size-xs);
   }
 
   .item-description-body {

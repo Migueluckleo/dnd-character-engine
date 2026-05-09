@@ -13,7 +13,8 @@ Registro retroactivo del proyecto. El código actual es la fuente principal de v
 - Inventario recibió estilos de template para tabs Equipo/Mochila/Alijo, card de Carga/monedas, slots vacíos punteados y cards de objetos en parchment.
 - Las cards de inventario ahora siguen la guía anotada: cantidad como pill, nombre/tipo, control colapsable, atributos/daños separados por comas, precio/peso, descripción y acciones.
 - El CTA de la card cambia por tipo de objeto: consumibles muestran `Usar`, equipables muestran `Equipar`/`Desequipar`; también se agregaron acciones `Eliminar` y `Vender` visuales.
-- Las tarjetas de inventario ahora abren un drawer `Descripción` al tocarlas, con arte del objeto, nombre, tipo/rareza, valor, highlights de reglas, metadata y descripción completa.
+- Las tarjetas de inventario ahora abren el modal `Descripción` al tocarlas, respetando la arquitectura de Figma: título, botón cerrar mini, bloque principal de item, regla destacada y cuerpo de descripción. Se retiró el bloque intermedio de metadata.
+- Se inició la homologación de botones con clases/tokens de base para mini, regular, primary, secondary y ghost.
 - Se reutilizaron los assets locales `src/images/page bg.png`, `src/images/ficha bg.png` y `src/images/dnd_card_bg.png`.
 
 ### Archivos modificados

@@ -5320,7 +5320,6 @@ function openItemDescriptionDrawer(encodedItemId) {
     return;
   }
   const name = itemLabel(item.name ?? itemId);
-  const metaRows = itemDrawerMetaRows(item);
   const chips = itemRuleChips(item).slice(0, 4);
   const drawer = document.getElementById('item-description-drawer');
   drawer.setAttribute('aria-hidden', 'false');
@@ -5345,9 +5344,6 @@ function openItemDescriptionDrawer(encodedItemId) {
           <strong>${itemDrawerPrice(item)}</strong>
         </div>
       </section>
-      ${metaRows.length ? `<section class="item-description-metadata">
-        ${metaRows.map(([label, value]) => `<div><span>${escapeText(label)}</span><strong>${escapeText(value)}</strong></div>`).join('')}
-      </section>` : ''}
       <section class="item-description-body">
         <h3>Descripción</h3>
         <p>${escapeText(itemDescription(item))}</p>

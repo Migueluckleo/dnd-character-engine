@@ -19,7 +19,8 @@
 - Inventario adopta tabs `Equipo`, `Mochila`, `Alijo`, card de Carga/monedas, slots vacíos punteados y cards parchment para objetos.
 - Las cards de inventario usan el patrón anotado por producto: pill de cantidad, nombre/tipo, colapsable, filas de daño/atributos y precio/peso, descripción y acciones.
 - Regla de CTA en inventario: consumible = `Usar`; equipable = `Equipar`/`Desequipar`; packs = `Abrir kit`.
-- Las cards de inventario abren el drawer `Descripción` al tocarlas; los botones internos de Usar/Equipar/Abrir kit conservan su comportamiento sin abrir el drawer.
+- Las cards de inventario abren el modal `Descripción` al tocarlas; debe respetar la arquitectura de Figma y no comportarse como drawer inferior. Los botones internos de Usar/Equipar/Abrir kit conservan su comportamiento sin abrir el modal.
+- Los botones New Style deben usar los tokens/clases base de mini/regular/primary/secondary/ghost antes de crear reglas nuevas.
 - Se conserva la lógica existente: API, autenticación, apertura de personaje, imagen, inventario, dados, conjuros y habilidades.
 
 ### Archivos modificados

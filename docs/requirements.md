@@ -1826,7 +1826,8 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 - The New Style UI layer must expose Figma-derived CSS tokens for colors, typography, spacing, sizing, radii, shadows, and image/background assets instead of scattering raw values across components.
 - Inventory item cards must follow the annotated card spec: quantity pill, item name, item type, collapsible affordance, attributes/damage separated by commas, price/weight row, description, and actions.
 - Consumable items must show `Usar` instead of `Equipar`; equipable items must show equip/desequip action; cards must expose delete/sell actions without breaking inventory flows.
-- Tapping an inventory item card must open the Figma-style `Descripción` drawer with item art, name, type/rarity, value, rule highlights, metadata, and full description.
+- Tapping an inventory item card must open the Figma-style `Descripción` modal with the exact information architecture: modal title, mini close button, main item block, item art, name, type/rarity, value, highlighted rule row, and full description body. It must not render as a bottom drawer or add unrelated metadata between the item block and description.
+- Buttons in New Style screens must be standardized as mini, regular, primary, secondary, and ghost variants via shared tokens/classes before local overrides are added.
 - Existing data flows must remain intact: character opening, image upload, inventory equip/use, dice flows, spell/skill tabs, and API calls.
 - Any visual approximation or missing Figma screen must be marked as pending visual QA rather than treated as a 100% match.
 
