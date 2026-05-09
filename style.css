@@ -3491,6 +3491,11 @@
   --figma-color-brown-track: rgba(70,47,32,.20);
   --figma-color-brown-button: rgba(70,47,32,.78);
   --figma-color-brown-metadata: rgba(118,83,46,.10);
+  --figma-color-auth-overlay-top: rgba(70,47,32,.92);
+  --figma-color-auth-overlay-mid: rgba(70,47,32,.58);
+  --figma-color-auth-overlay-bottom: rgba(255,255,255,.08);
+  --figma-color-input-dark: #1b120c;
+  --figma-color-input-placeholder: #b8b8b8;
   --figma-color-gold-glow-start: rgba(255,220,112,.62);
   --figma-color-gold-glow-mid: rgba(255,238,184,.38);
   --figma-color-gold-glow-end: rgba(255,255,255,0);
@@ -3508,6 +3513,7 @@
   --figma-font-size-lg: 20px;
   --figma-font-size-xl: 24px;
   --figma-font-size-display: 32px;
+  --figma-font-size-auth-title: 44px;
   --figma-line-height-tight: 1.05;
   --figma-line-height-body: 1.22;
   --figma-letter-spacing-none: 0;
@@ -4429,6 +4435,101 @@
       var(--ns-card-bg) center / cover;
     color: var(--ns-text);
     border-color: var(--ns-brown);
+  }
+
+  .auth-screen {
+    min-height: 100svh;
+    align-items: center;
+    justify-content: center;
+    padding: var(--figma-safe-top) var(--figma-space-lg) var(--figma-space-xl);
+    background:
+      linear-gradient(180deg, var(--figma-color-auth-overlay-top), var(--figma-color-auth-overlay-mid) 42%, var(--figma-color-auth-overlay-bottom)),
+      var(--ns-page-bg) center bottom / cover no-repeat,
+      var(--figma-color-paper-shadow);
+  }
+
+  .auth-card {
+    width: min(var(--figma-card-width), 100%);
+    padding: var(--figma-space-xl) var(--figma-space-lg);
+    border: 2px solid var(--figma-color-border-brown);
+    border-radius: var(--figma-radius-image);
+    background:
+      linear-gradient(0deg, var(--figma-color-paper-drawer), var(--figma-color-paper-drawer)),
+      var(--ns-card-bg) center / cover;
+    color: var(--figma-color-text-primary);
+    box-shadow: var(--figma-shadow-card);
+  }
+
+  .auth-kicker {
+    color: var(--figma-color-border-brown);
+    font-family: var(--figma-font-primary);
+    font-size: var(--figma-font-size-md);
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+
+  .auth-card h2 {
+    margin: var(--figma-space-xs) 0 var(--figma-space-md);
+    color: var(--figma-color-brand-primary);
+    font-family: var(--figma-font-serif);
+    font-size: var(--figma-font-size-auth-title);
+    font-weight: 400;
+    line-height: 1;
+  }
+
+  .auth-card p {
+    margin-bottom: var(--figma-space-lg);
+    color: var(--figma-color-text-primary);
+    font-family: var(--figma-font-primary);
+    font-size: var(--figma-font-size-md);
+    line-height: 1.45;
+  }
+
+  .auth-form {
+    gap: var(--figma-space-md);
+  }
+
+  .auth-form label {
+    color: var(--figma-color-brand-primary);
+    font-family: var(--figma-font-primary);
+    font-size: var(--figma-font-size-sm);
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .auth-form input {
+    min-height: 56px;
+    margin-top: var(--figma-space-xs);
+    border: 1px solid var(--figma-color-border-brown);
+    border-radius: var(--figma-radius-card);
+    background: var(--figma-color-input-dark);
+    color: var(--figma-color-text-inverse);
+    font-family: var(--figma-font-primary);
+    font-size: var(--figma-font-size-md);
+  }
+
+  .auth-form input::placeholder {
+    color: var(--figma-color-input-placeholder);
+    opacity: 1;
+  }
+
+  .auth-submit {
+    margin-top: var(--figma-space-md);
+    background: var(--figma-color-brand-primary);
+    color: var(--figma-color-text-inverse);
+    font-family: var(--figma-font-primary);
+    font-size: var(--figma-font-size-md);
+    font-weight: 700;
+  }
+
+  .auth-switch {
+    margin-top: var(--figma-space-lg);
+    color: var(--figma-color-brand-primary);
+    font-family: var(--figma-font-primary);
+    font-size: var(--figma-font-size-sm);
+    font-weight: 700;
   }
 }
 
