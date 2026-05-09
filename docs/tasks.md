@@ -601,9 +601,9 @@
 
 ### T-077: Migrar UI móvil al New Style de Figma
 - **Spec:** US-146
-- **Action:** Aplicar la sección `pantallas template` del Figma `New-style` a Home/Personajes, personaje abierto e Inventario usando los fondos locales de `src/images`.
-- **Done when:** Home usa navegación inferior y card de personaje del template; personaje abierto muestra resumen, XP, imagen, atributos, magia y PG en parchment; inventario muestra tabs Equipo/Mochila/Alijo, card de Carga/monedas, slots vacíos y cards de objetos del template.
-- **Notas 2026-05-09:** Primera pasada implementada en `ui.html` y `style.css`. Falta QA visual en navegador para ajustar medidas finas, modales y pantallas secundarias.
+- **Action:** Aplicar la sección `pantallas template` del Figma `New-style` a Home/Personajes, personaje abierto e Inventario usando los fondos locales de `src/images`, tokens CSS derivados del Figma y drawer de descripción de objeto.
+- **Done when:** Home usa navegación inferior y card de personaje del template; personaje abierto muestra resumen, XP, imagen, atributos, magia y PG en parchment; inventario muestra tabs Equipo/Mochila/Alijo, card de Carga/monedas, slots vacíos, cards de objetos del template, patrón colapsable anotado y drawer `Descripción` al tocar un objeto.
+- **Notas 2026-05-09:** Primera pasada implementada en `ui.html` y `style.css`. Se agregaron tokens `--figma-*` para colores, tipografías, espaciados, tamaños, radios, sombras y assets. La card de inventario ya separa daño/atributos por comas, precio/peso, acciones y CTA por tipo de objeto. Falta QA visual en navegador para ajustar medidas finas, modales y pantallas secundarias.
 - **Status:** `[~]`
 
 ---

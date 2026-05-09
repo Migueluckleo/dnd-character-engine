@@ -3455,17 +3455,111 @@
    New Style / Pantallas template (Figma 2026-05-09)
    ────────────────────────────────────────────────────────────── */
 :root {
-  --ns-red: #720000;
-  --ns-red-dark: #4f0000;
-  --ns-brown: #76532e;
-  --ns-brown-dark: #462f20;
-  --ns-brown-soft: #64422b;
-  --ns-gold: #92752b;
-  --ns-parchment: #fff8e8;
-  --ns-paper: rgba(255, 255, 255, .72);
-  --ns-text: #090604;
-  --ns-muted: #6f5d4e;
-  --ns-line: rgba(118, 83, 46, .55);
+  /* Figma New Style color tokens */
+  --figma-color-brand-primary: #720000;
+  --figma-color-brand-primary-dark: #4f0000;
+  --figma-color-border-brown: #76532e;
+  --figma-color-surface-brown: #64422b;
+  --figma-color-surface-brown-dark: #462f20;
+  --figma-color-accent-gold: #92752b;
+  --figma-color-accent-cream: #ffd7ad;
+  --figma-color-text-primary: #090604;
+  --figma-color-text-muted: #6f5d4e;
+  --figma-color-text-inverse: #fff4dc;
+  --figma-color-paper-base: #f7f1df;
+  --figma-color-paper-shadow: #efe6d1;
+  --figma-color-paper-card: rgba(255, 255, 255, .58);
+  --figma-color-paper-control: rgba(255, 255, 255, .46);
+  --figma-color-paper-card-strong: rgba(255,255,255,.62);
+  --figma-color-paper-drawer: rgba(255,255,255,.70);
+  --figma-color-paper-nav: rgba(255,255,255,.38);
+  --figma-color-paper-home-top: rgba(255,255,255,.22);
+  --figma-color-paper-home-bottom: rgba(255,255,255,.34);
+  --figma-color-paper-sheet-top: rgba(255,255,255,.12);
+  --figma-color-paper-sheet-bottom: rgba(255,255,255,.28);
+  --figma-color-paper-image: rgba(255,255,255,.18);
+  --figma-color-paper-empty: rgba(255,255,255,.36);
+  --figma-color-line-brown: rgba(118, 83, 46, .55);
+  --figma-color-overlay: rgba(9, 6, 4, .45);
+  --figma-color-overlay-soft: rgba(0,0,0,.28);
+  --figma-color-card-strip: rgba(231,154,68,.62);
+  --figma-color-nav-paper: rgba(255,255,255,.38);
+  --figma-color-page-fallback: #f5efe2;
+  --figma-color-sheet-fallback: #f2eadc;
+  --figma-color-brand-wash: rgba(114,0,0,.10);
+  --figma-color-brown-wash: rgba(70,47,32,.12);
+  --figma-color-brown-track: rgba(70,47,32,.20);
+  --figma-color-brown-button: rgba(70,47,32,.78);
+  --figma-color-brown-metadata: rgba(118,83,46,.10);
+  --figma-color-gold-glow-start: rgba(255,220,112,.62);
+  --figma-color-gold-glow-mid: rgba(255,238,184,.38);
+  --figma-color-gold-glow-end: rgba(255,255,255,0);
+  --figma-color-image-border: #bbbbbb;
+
+  /* Figma New Style typography tokens */
+  --figma-font-heading: "Prata", Georgia, serif;
+  --figma-font-serif: "Source Serif 4", Georgia, serif;
+  --figma-font-primary: "Source Sans 3", "Roboto", Arial, sans-serif;
+  --figma-font-data: "Roboto", Arial, sans-serif;
+  --figma-font-size-xxs: 10px;
+  --figma-font-size-xs: 12px;
+  --figma-font-size-sm: 14px;
+  --figma-font-size-md: 16px;
+  --figma-font-size-lg: 20px;
+  --figma-font-size-xl: 24px;
+  --figma-font-size-display: 32px;
+  --figma-line-height-tight: 1.05;
+  --figma-line-height-body: 1.22;
+  --figma-letter-spacing-none: 0;
+
+  /* Figma New Style spacing and sizing tokens */
+  --figma-screen-width: 390px;
+  --figma-screen-height: 844px;
+  --figma-safe-top: 64px;
+  --figma-nav-height: 73px;
+  --figma-space-3xs: 2px;
+  --figma-space-xxs: 4px;
+  --figma-space-xs: 8px;
+  --figma-space-sm: 12px;
+  --figma-space-md: 16px;
+  --figma-space-lg: 24px;
+  --figma-space-xl: 32px;
+  --figma-space-2xl: 48px;
+  --figma-card-width: 358px;
+  --figma-card-strip-height: 5px;
+  --figma-control-height: 44px;
+  --figma-nav-item-height: 31px;
+  --figma-tab-height: 49px;
+  --figma-avatar-width: 139px;
+  --figma-avatar-height: 144px;
+  --figma-stat-height: 69px;
+  --figma-item-art-sm: 64px;
+  --figma-item-art-md: 98px;
+  --figma-drawer-top: 84px;
+
+  /* Figma New Style radius/effect tokens */
+  --figma-radius-control: 4px;
+  --figma-radius-card: 8px;
+  --figma-radius-tab: 9px;
+  --figma-radius-drawer: 10px;
+  --figma-radius-image: 16px;
+  --figma-shadow-card: 0 4px 2px rgba(0,0,0,.10);
+  --figma-shadow-nav: 0 -4px 2px rgba(0,0,0,.10);
+  --figma-shadow-drawer: 0 -4px 12px rgba(0,0,0,.12);
+  --figma-shadow-image-inset: inset -8px -8px 4px rgba(0,0,0,.25), inset 8px 8px 4px rgba(0,0,0,.25);
+
+  /* Backwards-compatible aliases for the current UI layer */
+  --ns-red: var(--figma-color-brand-primary);
+  --ns-red-dark: var(--figma-color-brand-primary-dark);
+  --ns-brown: var(--figma-color-border-brown);
+  --ns-brown-dark: var(--figma-color-surface-brown-dark);
+  --ns-brown-soft: var(--figma-color-surface-brown);
+  --ns-gold: var(--figma-color-accent-gold);
+  --ns-parchment: var(--figma-color-paper-base);
+  --ns-paper: var(--figma-color-paper-card);
+  --ns-text: var(--figma-color-text-primary);
+  --ns-muted: var(--figma-color-text-muted);
+  --ns-line: var(--figma-color-line-brown);
   --ns-card-bg: url("src/images/dnd_card_bg.png");
   --ns-page-bg: url("src/images/page bg.png");
   --ns-sheet-bg: url("src/images/ficha bg.png");
@@ -3473,9 +3567,9 @@
 
 @media (max-width: 760px) {
   :root {
-    --bg: #f7f1df;
-    --surface: rgba(255, 248, 232, .86);
-    --surface2: rgba(255, 255, 255, .76);
+    --bg: var(--figma-color-paper-base);
+    --surface: var(--figma-color-paper-card);
+    --surface2: var(--figma-color-paper-control);
     --border: var(--ns-brown);
     --field-border: var(--ns-brown);
     --accent: var(--ns-gold);
@@ -3489,7 +3583,7 @@
   html,
   body {
     min-height: 100%;
-    background: #efe6d1;
+    background: var(--figma-color-paper-shadow);
   }
 
   body {
@@ -3503,16 +3597,16 @@
     min-height: 100svh;
     overflow-x: hidden;
     background:
-      linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.34)),
+      linear-gradient(180deg, var(--figma-color-paper-home-top), var(--figma-color-paper-home-bottom)),
       var(--ns-page-bg) center bottom / cover no-repeat,
-      #f5efe2;
+      var(--figma-color-page-fallback);
   }
 
   body.character-detail-mode #app {
     background:
-      linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.28)),
+      linear-gradient(180deg, var(--figma-color-paper-sheet-top), var(--figma-color-paper-sheet-bottom)),
       var(--ns-sheet-bg) center top / cover no-repeat,
-      #f2eadc;
+      var(--figma-color-sheet-fallback);
   }
 
   #content {
@@ -3528,9 +3622,9 @@
     padding: 0;
     border-top: 1px solid var(--ns-brown);
     background:
-      linear-gradient(0deg, rgba(255,255,255,.38), rgba(255,255,255,.38)),
+      linear-gradient(0deg, var(--figma-color-paper-nav), var(--figma-color-paper-nav)),
       var(--ns-card-bg) center / cover;
-    box-shadow: 0 -4px 2px rgba(0,0,0,.10);
+    box-shadow: var(--figma-shadow-nav);
   }
 
   body.character-detail-mode #sidebar {
@@ -3570,7 +3664,7 @@
   .inventory-section-tabs button.active {
     color: var(--ns-red);
     background:
-      radial-gradient(ellipse at center, rgba(255,220,112,.62) 0%, rgba(255,238,184,.38) 44%, rgba(255,255,255,0) 75%);
+      radial-gradient(ellipse at center, var(--figma-color-gold-glow-start) 0%, var(--figma-color-gold-glow-mid) 44%, var(--figma-color-gold-glow-end) 75%);
   }
 
   #sidebar nav a.active::before,
@@ -3624,7 +3718,7 @@
     overflow: hidden;
     border: 0;
     border-radius: 999px;
-    background: rgba(114,0,0,.10);
+    background: var(--figma-color-brand-wash);
     color: var(--ns-red);
     text-indent: -999px;
   }
@@ -3662,11 +3756,11 @@
   .detail-note,
   .figma-list-panel {
     background:
-      linear-gradient(0deg, rgba(255,255,255,.58), rgba(255,255,255,.58)),
+      linear-gradient(0deg, var(--figma-color-paper-card), var(--figma-color-paper-card)),
       var(--ns-card-bg) center / cover;
     border: 1px solid var(--ns-brown);
     color: var(--ns-text);
-    box-shadow: 0 4px 2px rgba(0,0,0,.10);
+    box-shadow: var(--figma-shadow-card);
   }
 
   .roster-card {
@@ -3689,7 +3783,7 @@
     height: 5px;
     border: 1px solid var(--ns-brown);
     background:
-      linear-gradient(0deg, rgba(231,154,68,.62), rgba(231,154,68,.62)),
+      linear-gradient(0deg, var(--figma-color-card-strip), var(--figma-color-card-strip)),
       var(--ns-card-bg) center / cover;
     pointer-events: none;
   }
@@ -3766,7 +3860,7 @@
   .roster-card .rc-del {
     border-color: var(--ns-brown);
     background: var(--ns-red);
-    color: #fff4dc;
+    color: var(--figma-color-text-inverse);
   }
 
   .roster-add-btn,
@@ -3780,7 +3874,7 @@
     border: 1px solid var(--ns-gold);
     border-radius: 4px;
     background: var(--ns-red);
-    color: #fff4dc;
+    color: var(--figma-color-text-inverse);
     font-family: "Source Sans 3", Arial, sans-serif;
     font-size: 16px;
     font-weight: 700;
@@ -3836,9 +3930,9 @@
     transform: translateX(-50%);
     border-top: 1px solid var(--ns-brown);
     background:
-      linear-gradient(0deg, rgba(255,255,255,.38), rgba(255,255,255,.38)),
+      linear-gradient(0deg, var(--figma-color-paper-nav), var(--figma-color-paper-nav)),
       var(--ns-card-bg) center / cover;
-    box-shadow: 0 -4px 2px rgba(0,0,0,.10);
+    box-shadow: var(--figma-shadow-nav);
   }
 
   .detail-tabs button.wide {
@@ -3863,7 +3957,7 @@
 
   .detail-combat-grid .combat-box {
     min-height: 69px;
-    background: rgba(255,255,255,.46);
+    background: var(--figma-color-paper-control);
     border: 0;
     border-radius: 8px;
   }
@@ -3902,7 +3996,7 @@
     height: 48px;
     border-radius: 999px;
     background: var(--ns-red);
-    color: #fff4dc;
+    color: var(--figma-color-text-inverse);
     line-height: 1;
   }
 
@@ -3925,7 +4019,7 @@
 
   .xp-track {
     height: 8px;
-    background: rgba(70,47,32,.20);
+    background: var(--figma-color-brown-track);
   }
 
   .xp-track div {
@@ -3947,7 +4041,7 @@
     border: 1px solid var(--ns-brown);
     border-radius: 16px;
     background:
-      linear-gradient(180deg, rgba(255,255,255,.22), rgba(70,47,32,.26)),
+      linear-gradient(180deg, var(--figma-color-paper-home-top), var(--figma-color-brown-track)),
       var(--ns-card-bg) center / cover;
   }
 
@@ -3957,8 +4051,8 @@
     padding: 4px 6px;
     border: 0;
     border-radius: 0 0 14px 14px;
-    background: rgba(70,47,32,.78);
-    color: #fff4dc;
+    background: var(--figma-color-brown-button);
+    color: var(--figma-color-text-inverse);
     font-family: "Source Sans 3", Arial, sans-serif;
     font-size: 10px;
   }
@@ -3974,7 +4068,7 @@
     padding: 4px 2px;
     border: 0;
     border-radius: 8px;
-    background: rgba(255,255,255,.46);
+    background: var(--figma-color-paper-control);
   }
 
   .detail-stat-grid .stat-name {
@@ -4017,7 +4111,7 @@
   }
 
   .detail-hp-card {
-    background: rgba(255,255,255,.46);
+    background: var(--figma-color-paper-control);
     border-radius: 8px;
   }
 
@@ -4085,11 +4179,11 @@
     padding: 16px 32px;
     border-radius: 8px;
     background: var(--ns-brown-soft);
-    color: #ffd7ad;
+    color: var(--figma-color-accent-cream);
   }
 
   .inventory-carry-title strong {
-    color: #ffd7ad;
+    color: var(--figma-color-accent-cream);
     font-family: "Source Serif 4", Georgia, serif;
     font-size: 32px;
     font-weight: 400;
@@ -4101,13 +4195,13 @@
   }
 
   .inventory-carry-bar span {
-    background: #ffd7ad;
+    background: var(--figma-color-accent-cream);
   }
 
   .inventory-carry-value,
   .inventory-carry-coin-label,
   .inventory-carry-coin-value {
-    color: #ffd7ad;
+    color: var(--figma-color-accent-cream);
     font-family: "Source Sans 3", Arial, sans-serif;
   }
 
@@ -4118,7 +4212,7 @@
   .inventory-empty-slot {
     min-height: 83px;
     border: 1px dashed var(--ns-red);
-    background: rgba(255,255,255,.36);
+    background: var(--figma-color-paper-empty);
     color: var(--ns-text);
     box-shadow: none;
   }
@@ -4144,41 +4238,98 @@
   .equipment-option {
     position: relative;
     min-height: 83px;
-    padding: 21px 16px 16px;
+    padding: 35px 32px 32px;
     border-radius: 8px 8px 0 0;
   }
 
   .inventory-item-head {
     align-items: center;
     gap: 8px;
+    padding-bottom: 16px;
+    border-bottom: 4px solid var(--figma-color-brand-primary);
+  }
+
+  .inventory-item-title {
+    gap: 2px;
+  }
+
+  .inventory-item-title strong,
+  .equipment-option-title strong {
+    color: var(--ns-red);
+    font-family: var(--figma-font-data);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.05;
+  }
+
+  .inventory-item-title small,
+  .equipment-option-title small {
+    color: var(--ns-text);
+    font-family: var(--figma-font-serif);
+    font-size: 16px;
+    font-style: italic;
+    line-height: 1.05;
+  }
+
+  .inventory-collapse-btn {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    border: 0;
+    background: transparent;
+    color: var(--figma-color-brand-primary);
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  .inventory-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-top: 16px;
+  }
+
+  .inventory-item-card.collapsed .inventory-card-body {
+    display: none;
+  }
+
+  .inventory-item-card.collapsed .inventory-item-head {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .inventory-detail-line {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    color: var(--figma-color-brand-primary);
+    font-family: var(--figma-font-serif);
+    font-size: 16px;
+    line-height: 1.1;
+  }
+
+  .inventory-detail-line + .inventory-detail-line {
+    padding-bottom: 16px;
+    border-bottom: 4px solid var(--figma-color-brand-primary);
+  }
+
+  .inventory-detail-line strong {
+    font-weight: 700;
   }
 
   .item-art {
     width: 64px;
     height: 64px;
     flex-basis: 64px;
-    border: 3px solid #bbb;
+    border: 3px solid var(--figma-color-image-border);
     border-radius: 0;
     background:
-      linear-gradient(0deg, rgba(255,255,255,.18), rgba(255,255,255,.18)),
+      linear-gradient(0deg, var(--figma-color-paper-image), var(--figma-color-paper-image)),
       var(--ns-card-bg) center / cover;
-    box-shadow: inset -8px -8px 4px rgba(0,0,0,.25), inset 8px 8px 4px rgba(0,0,0,.25);
-  }
-
-  .inventory-item-title small,
-  .equipment-option-title small {
-    color: var(--ns-text);
-    font-family: "Source Serif 4", Georgia, serif;
-    font-size: 12px;
-    font-style: italic;
-  }
-
-  .inventory-item-title strong,
-  .equipment-option-title strong {
-    color: var(--ns-red);
-    font-family: "Roboto", Arial, sans-serif;
-    font-size: 16px;
-    font-weight: 700;
+    box-shadow: var(--figma-shadow-image-inset);
   }
 
   .inventory-qty,
@@ -4186,9 +4337,19 @@
   .equipment-option b,
   .equip-chip {
     background: var(--ns-brown-dark);
-    color: #fff4dc;
+    color: var(--figma-color-text-inverse);
     font-family: "Roboto", Arial, sans-serif;
-    font-size: 14px;
+    font-size: 16px;
+  }
+
+  .inventory-qty {
+    display: grid;
+    place-items: center;
+    min-width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    border-radius: 8px;
+    font-weight: 700;
   }
 
   .inventory-status-row em {
@@ -4201,8 +4362,8 @@
   .equipment-option p {
     color: var(--ns-text);
     font-family: "Source Serif 4", Georgia, serif;
-    font-size: 12px;
-    line-height: 1.22;
+    font-size: 16px;
+    line-height: 1.4;
   }
 
   .equipment-chip-row {
@@ -4210,7 +4371,7 @@
   }
 
   .equip-chip {
-    background: rgba(70,47,32,.12);
+    background: var(--figma-color-brown-wash);
     color: var(--ns-red);
   }
 
@@ -4218,7 +4379,36 @@
     align-items: flex-end;
     justify-content: space-between;
     padding-top: 8px;
-    border-top: 1px solid var(--ns-line);
+    border-top: 0;
+  }
+
+  .inventory-secondary-actions {
+    align-items: center;
+  }
+
+  .inventory-remove-btn,
+  .inventory-sell-btn {
+    min-width: 103px;
+    min-height: 48px;
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: var(--figma-font-serif);
+    font-size: 16px;
+  }
+
+  .inventory-remove-btn {
+    background: var(--figma-color-surface-brown);
+    color: var(--figma-color-text-inverse);
+  }
+
+  .inventory-sell-btn {
+    background: transparent;
+    color: var(--figma-color-text-primary);
+  }
+
+  .inventory-card-actions > .inventory-action-buttons:last-child {
+    margin-left: auto;
   }
 
   .inventory-equip-btn:not(.equipped) {
@@ -4235,9 +4425,354 @@
   .modal-content,
   .dice-modal-card {
     background:
-      linear-gradient(0deg, rgba(255,255,255,.62), rgba(255,255,255,.62)),
+      linear-gradient(0deg, var(--figma-color-paper-card-strong), var(--figma-color-paper-card-strong)),
       var(--ns-card-bg) center / cover;
     color: var(--ns-text);
     border-color: var(--ns-brown);
+  }
+}
+
+.item-description-drawer {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: var(--figma-color-overlay);
+}
+
+.item-description-drawer.open {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+@media (max-width: 760px) {
+  #app {
+    max-width: var(--figma-screen-width);
+  }
+
+  #content {
+    padding:
+      var(--figma-safe-top)
+      var(--figma-space-md)
+      calc(var(--figma-nav-height) + var(--figma-space-2xl));
+  }
+
+  body.character-detail-mode #content {
+    padding:
+      var(--figma-safe-top)
+      var(--figma-space-md)
+      calc(var(--figma-nav-height) + var(--figma-space-xl));
+  }
+
+  #sidebar,
+  .detail-tabs {
+    width: min(var(--figma-screen-width), 100vw);
+    box-shadow: var(--figma-shadow-nav);
+  }
+
+  #sidebar nav,
+  .detail-tabs {
+    min-height: var(--figma-nav-height);
+    padding:
+      var(--figma-space-xs)
+      var(--figma-space-xs)
+      calc(var(--figma-space-lg) + env(safe-area-inset-bottom));
+  }
+
+  #sidebar nav a,
+  .detail-tabs button,
+  .inventory-section-tabs button {
+    min-height: var(--figma-nav-item-height);
+    padding: var(--figma-space-xs) var(--figma-space-xxs);
+    border-radius: var(--figma-radius-tab);
+    font-family: var(--figma-font-serif);
+    font-size: var(--figma-font-size-xs);
+    line-height: var(--figma-line-height-tight);
+    letter-spacing: var(--figma-letter-spacing-none);
+  }
+
+  #roster-welcome,
+  .detail-back {
+    font-family: var(--figma-font-heading);
+  }
+
+  #roster-welcome,
+  .detail-title {
+    color: var(--figma-color-brand-primary);
+    font-size: var(--figma-font-size-xl);
+  }
+
+  .profile-caption,
+  #profile-caption,
+  .roster-card .rc-sub,
+  .detail-bio p,
+  .inventory-item-card p,
+  .equipment-option p,
+  .item-description-body p {
+    font-family: var(--figma-font-serif);
+    letter-spacing: var(--figma-letter-spacing-none);
+  }
+
+  .roster-question,
+  .roster-card .rc-quick,
+  .detail-combat-grid .combat-box .lbl,
+  .detail-combat-grid .combat-box .val,
+  .detail-hp-label,
+  .detail-hp-value,
+  .inventory-empty-slot strong,
+  .inventory-empty-slot span,
+  .item-description-metadata,
+  .item-description-rule,
+  .item-description-price {
+    font-family: var(--figma-font-primary);
+    letter-spacing: var(--figma-letter-spacing-none);
+  }
+
+  .roster-card,
+  #detail-main-sheet,
+  .inventory-item-card,
+  .equipment-option,
+  .inventory-section-tabs {
+    border-radius: var(--figma-radius-card) var(--figma-radius-card) 0 0;
+    box-shadow: var(--figma-shadow-card);
+  }
+
+  .roster-card,
+  .inventory-item-card,
+  .equipment-option {
+    padding:
+      calc(var(--figma-card-strip-height) + var(--figma-space-md))
+      var(--figma-space-md)
+      var(--figma-space-md);
+  }
+
+  .roster-card::before,
+  .roster-card::after,
+  #detail-main-sheet::before,
+  #detail-main-sheet::after,
+  .inventory-item-card::before,
+  .inventory-item-card::after,
+  .inventory-section-tabs::before {
+    height: var(--figma-card-strip-height);
+    background:
+      linear-gradient(0deg, var(--figma-color-card-strip), var(--figma-color-card-strip)),
+      var(--ns-card-bg) center / cover;
+  }
+
+  .roster-add-btn,
+  .detail-hp-adjust-btn,
+  .inventory-add-object-btn,
+  .inventory-equip-btn,
+  .detail-xp-card .btn,
+  .inventory-apply-btn {
+    min-height: var(--figma-control-height);
+    border-radius: var(--figma-radius-control);
+    border-color: var(--figma-color-accent-gold);
+    background: var(--figma-color-brand-primary);
+    color: var(--figma-color-text-inverse);
+  }
+
+  .detail-profile-grid {
+    grid-template-columns: var(--figma-avatar-width) 1fr;
+    gap: var(--figma-space-md);
+  }
+
+  .detail-hero {
+    width: var(--figma-avatar-width);
+    height: var(--figma-avatar-height);
+    border-radius: var(--figma-radius-image);
+  }
+
+  .detail-stat-grid .stat-box,
+  .detail-combat-grid .combat-box,
+  .detail-hp-card {
+    min-height: var(--figma-stat-height);
+    background: var(--figma-color-paper-control);
+  }
+
+  .item-art {
+    width: var(--figma-item-art-sm);
+    height: var(--figma-item-art-sm);
+    flex-basis: var(--figma-item-art-sm);
+    border-color: var(--figma-color-image-border);
+    box-shadow: var(--figma-shadow-image-inset);
+  }
+
+  .item-description-drawer {
+    background: var(--figma-color-overlay-soft);
+  }
+
+  .item-description-sheet {
+    position: relative;
+    width: min(var(--figma-screen-width), 100vw);
+    min-height: calc(100svh - var(--figma-drawer-top));
+    max-height: calc(100svh - var(--figma-space-md));
+    overflow-y: auto;
+    padding: var(--figma-space-xl) var(--figma-space-md) var(--figma-space-2xl);
+    border-radius: var(--figma-radius-drawer) var(--figma-radius-drawer) 0 0;
+    background:
+      linear-gradient(0deg, var(--figma-color-paper-drawer), var(--figma-color-paper-drawer)),
+      var(--ns-page-bg) center bottom / cover no-repeat,
+      var(--figma-color-paper-base);
+    color: var(--figma-color-text-primary);
+    box-shadow: var(--figma-shadow-drawer);
+  }
+
+  .item-description-page-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--figma-space-md);
+    margin-bottom: var(--figma-space-xl);
+  }
+
+  .item-description-page-title h2 {
+    color: var(--figma-color-border-brown);
+    font-family: var(--figma-font-serif);
+    font-size: var(--figma-font-size-display);
+    font-weight: 400;
+    line-height: 1;
+  }
+
+  .item-description-close {
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: var(--figma-radius-control);
+    background: var(--figma-color-brand-primary);
+    color: var(--figma-color-text-inverse);
+    cursor: pointer;
+    font-family: var(--figma-font-primary);
+    font-size: var(--figma-font-size-xl);
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .item-description-hero {
+    display: grid;
+    grid-template-columns: var(--figma-item-art-md) 1fr auto;
+    gap: var(--figma-space-sm);
+    align-items: center;
+    margin-bottom: var(--figma-space-lg);
+  }
+
+  .item-description-art .item-art {
+    width: var(--figma-item-art-md);
+    height: var(--figma-item-art-md);
+    flex-basis: var(--figma-item-art-md);
+  }
+
+  .item-description-copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--figma-space-xs);
+  }
+
+  .item-description-copy h3 {
+    overflow: hidden;
+    color: var(--figma-color-brand-primary);
+    font-family: var(--figma-font-serif);
+    font-size: var(--figma-font-size-lg);
+    font-weight: 400;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+  }
+
+  .item-description-copy p {
+    color: var(--figma-color-text-primary);
+    font-family: var(--figma-font-serif);
+    font-size: var(--figma-font-size-xs);
+    font-style: italic;
+    line-height: 1.1;
+  }
+
+  .item-description-rule {
+    display: flex;
+    gap: var(--figma-space-xs);
+    align-items: baseline;
+    overflow: hidden;
+    border-top: 1px solid var(--figma-color-line-brown);
+    padding-top: var(--figma-space-xs);
+    color: var(--figma-color-brand-primary);
+    font-size: var(--figma-font-size-sm);
+    white-space: nowrap;
+  }
+
+  .item-description-rule strong {
+    font-weight: 700;
+  }
+
+  .item-description-rule span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .item-description-price {
+    display: grid;
+    place-items: center;
+    min-width: 44px;
+    color: var(--figma-color-brand-primary);
+  }
+
+  .item-description-price small {
+    color: var(--figma-color-text-primary);
+    font-family: var(--figma-font-data);
+    font-size: var(--figma-font-size-xxs);
+    font-weight: 700;
+  }
+
+  .item-description-price strong {
+    font-size: var(--figma-font-size-md);
+  }
+
+  .item-description-metadata {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--figma-space-xs);
+    margin-bottom: var(--figma-space-xl);
+  }
+
+  .item-description-metadata div {
+    display: flex;
+    min-height: 38px;
+    flex-direction: column;
+    justify-content: center;
+    border-radius: var(--figma-radius-control);
+    background: var(--figma-color-brown-metadata);
+    padding: var(--figma-space-xs);
+  }
+
+  .item-description-metadata span {
+    color: var(--figma-color-text-muted);
+    font-size: var(--figma-font-size-xxs);
+  }
+
+  .item-description-metadata strong {
+    color: var(--figma-color-brand-primary);
+    font-size: var(--figma-font-size-xs);
+  }
+
+  .item-description-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--figma-space-md);
+  }
+
+  .item-description-body h3 {
+    border-bottom: 1px solid var(--figma-color-border-brown);
+    color: var(--figma-color-border-brown);
+    font-family: var(--figma-font-serif);
+    font-size: var(--figma-font-size-xl);
+    font-weight: 400;
+    line-height: 1.15;
+    padding-bottom: var(--figma-space-xxs);
+  }
+
+  .item-description-body p {
+    color: var(--figma-color-text-primary);
+    font-size: var(--figma-font-size-md);
+    line-height: 1.22;
   }
 }

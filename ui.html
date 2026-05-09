@@ -589,6 +589,7 @@
   </div>
 </div>
 <div id="item-use-modal" class="item-use-modal" aria-hidden="true"></div>
+<div id="item-description-drawer" class="item-description-drawer" aria-hidden="true"></div>
 <div id="hp-adjust-modal" class="item-use-modal hp-adjust-modal" aria-hidden="true"></div>
 <div id="dice-flow-modal" class="dice-flow-modal" aria-hidden="true"></div>
 
@@ -826,6 +827,10 @@ const diceFlow = {
 
 function escapeText(value) {
   return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+function jsArg(value) {
+  return encodeURIComponent(String(value ?? ''));
 }
 
 async function rollCharacterDie() {
@@ -5190,7 +5195,6 @@ function renderInventoryItemCard(inv, options = {}) {
   const item = inv.item || itemByName(inv.item_id) || {};
   const name = itemLabel(item.name ?? inv.item_id ?? 'Objeto');
   const displayQty = inventoryDisplayQuantity(inv, item);
-  const chips = itemChips(item);
   const equippable = isUiEquippable(item);
   const usable = isUiUsable(item);
   const pack = item?.item_type === 'pack' && Array.isArray(item.pack_contents);
@@ -5199,27 +5203,163 @@ function renderInventoryItemCard(inv, options = {}) {
     inv.is_equipped ? 'Equipado' : '',
     inv.is_attuned ? 'Sintonizado' : '',
   ].filter(Boolean);
+  const itemRef = jsArg(inv.item_id ?? item.name ?? name);
+  const detailRows = inventoryCardRows(item);
+  const actionCta = pack
+    ? `<button class="inventory-equip-btn" onclick="useInventoryItem(event, '${itemRef}')">Abrir kit</button>`
+    : usable
+      ? `<button class="inventory-equip-btn" onclick="useInventoryItem(event, '${itemRef}')">Usar</button>`
+      : equippable
+        ? `<button class="inventory-equip-btn ${inv.is_equipped ? 'equipped' : ''}" onclick="toggleInventoryEquip(event, '${itemRef}', ${inv.is_equipped ? 'false' : 'true'})">${inv.is_equipped ? 'Desequipar' : 'Equipar'}</button>`
+        : '';
   return `
-    <article class="inventory-item-card ${options.compact ? 'inventory-slot-card' : ''}">
+    <article class="inventory-item-card ${options.compact ? 'inventory-slot-card' : ''}" onclick="openItemDescriptionDrawer('${itemRef}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openItemDescriptionDrawer('${itemRef}')}">
       <div class="inventory-item-head">
-        ${itemImageHtml(item, name)}
-        <div class="inventory-item-title">
-          <small>${item.item_type ? itemTypeLabel(item) : 'Objeto'}</small>
-          <strong>${name}</strong>
-        </div>
         <span class="inventory-qty">x${displayQty}</span>
+        <div class="inventory-item-title">
+          <strong>${escapeText(name)}</strong>
+          <small>${escapeText(item.item_type ? itemTypeLabel(item) : 'Objeto')}</small>
+        </div>
+        <button class="inventory-collapse-btn" onclick="toggleInventoryCard(event, this)" aria-label="Colapsar objeto" aria-expanded="true">▲</button>
       </div>
-      <p>${itemDescription(item)}</p>
-      ${chips ? `<div class="equipment-chip-row">${chips}</div>` : ''}
-      <div class="inventory-card-actions">
-        ${status.length ? `<div class="inventory-status-row">${status.map(s => `<em>${s}</em>`).join('')}</div>` : '<span></span>'}
+      <div class="inventory-card-body">
+        ${detailRows.map(row => `<div class="inventory-detail-line">${row.map(([label, value]) => `<span><strong>${escapeText(label)}</strong> ${escapeText(value)}</span>`).join('')}</div>`).join('')}
+        <p>${escapeText(itemDescription(item))}</p>
+        <div class="inventory-card-actions">
+          <div class="inventory-action-buttons inventory-secondary-actions">
+            ${status.length ? `<div class="inventory-status-row">${status.map(s => `<em>${escapeText(s)}</em>`).join('')}</div>` : ''}
+            <button class="inventory-remove-btn" onclick="deleteInventoryItem(event, '${itemRef}')">Eliminar</button>
+            <button class="inventory-sell-btn" onclick="sellInventoryItem(event, '${itemRef}')">Vender</button>
+          </div>
         <div class="inventory-action-buttons">
-          ${pack ? `<button class="inventory-equip-btn" onclick="useInventoryItem(event, '${inv.item_id}')">Abrir kit</button>` : ''}
-          ${usable ? `<button class="inventory-equip-btn" onclick="useInventoryItem(event, '${inv.item_id}')">Usar</button>` : ''}
-          ${equippable ? `<button class="inventory-equip-btn ${inv.is_equipped ? 'equipped' : ''}" onclick="toggleInventoryEquip(event, '${inv.item_id}', ${inv.is_equipped ? 'false' : 'true'})">${inv.is_equipped ? 'Desequipar' : 'Equipar'}</button>` : ''}
+            ${actionCta}
+          </div>
         </div>
       </div>
     </article>`;
+}
+
+function inventoryCardRows(item) {
+  const props = item?.properties || {};
+  const damageParts = [];
+  if (item?.damage_dice) damageParts.push(`${item.damage_dice} ${DAMAGE_ES[item.damage_type] ?? item.damage_type ?? ''}`.trim());
+  if (props.damage_dice) damageParts.push(`${props.damage_dice} ${DAMAGE_ES[props.damage_type] ?? props.damage_type ?? ''}`.trim());
+  const attrParts = itemRuleChips(item)
+    .filter(chip => !chip.startsWith('Daño ') && !chip.startsWith('Uso ') && !chip.startsWith('Peso ') && !chip.startsWith('Valor '))
+    .slice(0, 5);
+  const row1 = [];
+  if (damageParts.length) row1.push(['Daño', [...new Set(damageParts)].join(', ')]);
+  if (attrParts.length) row1.push(['Atributo', attrParts.join(', ')]);
+  const row2 = [];
+  if (item?.cost_gp !== undefined && item?.cost_gp !== null) row2.push(['Precio', `${Number(item.cost_gp).toLocaleString('es-MX')} PO`]);
+  if (item?.weight !== undefined && item?.weight !== null) row2.push(['Peso', `${item.weight}lb`]);
+  return [row1, row2].filter(row => row.length);
+}
+
+function toggleInventoryCard(event, button) {
+  event?.stopPropagation?.();
+  const card = button?.closest?.('.inventory-item-card');
+  if (!card) return;
+  const collapsed = card.classList.toggle('collapsed');
+  button.textContent = collapsed ? '▼' : '▲';
+  button.setAttribute('aria-expanded', String(!collapsed));
+}
+
+async function deleteInventoryItem(event, itemId) {
+  event?.stopPropagation?.();
+  itemId = decodeURIComponent(String(itemId ?? ''));
+  if (!characterId || !itemId) return;
+  if (!confirm('¿Eliminar este objeto del inventario?')) return;
+  try {
+    await api('DELETE', `/characters/${characterId}/inventory/${itemId}`);
+    const updated = await api('GET',`/characters/${characterId}`);
+    detailInventoryCache = updated.inventory_items || [];
+    characterData = { ...(characterData || {}), inventory_items: detailInventoryCache };
+    const panel = document.getElementById('detail-extra-panel');
+    if (panel) panel.innerHTML = renderDetailInventory(updated);
+    toast('Objeto eliminado', 'ok');
+    loadSheet().catch(() => {});
+  } catch(e) {
+    toast(e.message, 'err');
+  }
+}
+
+async function sellInventoryItem(event, itemId) {
+  event?.stopPropagation?.();
+  itemId = decodeURIComponent(String(itemId ?? ''));
+  toast('Venta de objetos pendiente de conectar a monedas.', 'info');
+}
+
+function itemDrawerPrice(item) {
+  const value = Number(item?.cost_gp ?? 0);
+  if (!Number.isFinite(value) || value <= 0) return '—';
+  return value.toLocaleString('es-MX');
+}
+
+function itemDrawerMetaRows(item) {
+  const rows = [];
+  if (item?.damage_dice) rows.push(['Daño', `${item.damage_dice} ${DAMAGE_ES[item.damage_type] ?? item.damage_type ?? ''}`.trim()]);
+  if (item?.armor_category) rows.push(['Armadura', armorCategoryLabel(item.armor_category)]);
+  if (item?.ac_base) rows.push(['CA base', item.ac_base]);
+  if (item?.weight) rows.push(['Peso', `${item.weight} lb`]);
+  if (item?.requires_attunement) rows.push(['Sintonía', 'Requerida']);
+  const props = item?.properties || {};
+  if (props.weapon_type) rows.push(['Tipo', ammoWeaponLabel(props.weapon_type)]);
+  if (props.range_normal) rows.push(['Alcance', `${props.range_normal}/${props.range_long ?? props.range_normal} pies`]);
+  if (props.heal_dice) rows.push(['Curación', `${props.heal_dice}${props.heal_bonus ? `+${props.heal_bonus}` : ''}`]);
+  return rows.slice(0, 5);
+}
+
+function openItemDescriptionDrawer(encodedItemId) {
+  const itemId = decodeURIComponent(String(encodedItemId ?? ''));
+  const inv = [...(characterData?.inventory_items || []), ...detailInventoryCache]
+    .find(row => row.item_id === itemId || row.item?.name === itemId);
+  const item = inv?.item || itemByName(itemId) || itemByRef(itemId);
+  if (!item) {
+    toast('No pude encontrar la descripción de ese objeto', 'err');
+    return;
+  }
+  const name = itemLabel(item.name ?? itemId);
+  const metaRows = itemDrawerMetaRows(item);
+  const chips = itemRuleChips(item).slice(0, 4);
+  const drawer = document.getElementById('item-description-drawer');
+  drawer.setAttribute('aria-hidden', 'false');
+  drawer.classList.add('open');
+  drawer.innerHTML = `
+    <div class="item-description-sheet" role="dialog" aria-modal="true" aria-labelledby="item-description-title">
+      <div class="item-description-page-title">
+        <h2 id="item-description-title">Descripción</h2>
+        <button class="item-description-close" onclick="closeItemDescriptionDrawer()" aria-label="Cerrar">×</button>
+      </div>
+      <section class="item-description-hero">
+        <div class="item-description-art">${itemImageHtml(item, name)}</div>
+        <div class="item-description-copy">
+          <div>
+            <h3>${escapeText(name)}</h3>
+            <p>${escapeText(itemTypeLabel(item))}${item.rarity ? `, ${escapeText(ITEM_RARITY_THEME[item.rarity]?.label?.toLowerCase() ?? item.rarity)}` : ''}</p>
+          </div>
+          ${chips.length ? `<div class="item-description-rule">${chips.map((chip, index) => index === 0 ? `<strong>${escapeText(chip)}</strong>` : `<span>${escapeText(chip)}</span>`).join('')}</div>` : ''}
+        </div>
+        <div class="item-description-price">
+          <small>PO</small>
+          <strong>${itemDrawerPrice(item)}</strong>
+        </div>
+      </section>
+      ${metaRows.length ? `<section class="item-description-metadata">
+        ${metaRows.map(([label, value]) => `<div><span>${escapeText(label)}</span><strong>${escapeText(value)}</strong></div>`).join('')}
+      </section>` : ''}
+      <section class="item-description-body">
+        <h3>Descripción</h3>
+        <p>${escapeText(itemDescription(item))}</p>
+      </section>
+    </div>`;
+}
+
+function closeItemDescriptionDrawer() {
+  const drawer = document.getElementById('item-description-drawer');
+  drawer.classList.remove('open');
+  drawer.setAttribute('aria-hidden', 'true');
+  drawer.innerHTML = '';
 }
 
 function inventoryItemCategory(item) {
@@ -5431,6 +5571,7 @@ function rollDiceFormula(formula) {
 
 async function useInventoryItem(event, itemId) {
   event?.stopPropagation?.();
+  itemId = decodeURIComponent(String(itemId ?? ''));
   if (!characterId) return;
   let item = [...(characterData?.inventory_items || []), ...detailInventoryCache].find(inv => inv.item_id === itemId)?.item || itemByName(itemId);
   if (!item) {
@@ -5697,6 +5838,7 @@ async function applyInventoryUse(itemId, effectTotal) {
 
 async function toggleInventoryEquip(event, itemId, shouldEquip) {
   event?.stopPropagation?.();
+  itemId = decodeURIComponent(String(itemId ?? ''));
   if (!characterId) return;
   try {
     await api('PATCH', `/characters/${characterId}/inventory/${itemId}`, { is_equipped: shouldEquip });

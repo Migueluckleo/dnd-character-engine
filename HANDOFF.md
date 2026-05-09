@@ -13,9 +13,13 @@
 
 ### Qué se implementó
 - Se inició el gran cambio visual solicitado desde Figma `New-style`, sección `pantallas template`.
+- `style.css` ahora contiene tokens CSS `--figma-*` derivados del template para colores, tipografías, tamaños, espaciados, medidas, radios, sombras y assets. Cualquier ajuste visual New Style debe preferir esos tokens antes que valores sueltos.
 - Home/Personajes adopta fondo `page bg`, encabezado rojo, navegación inferior en orden Figma, cards de personaje tipo parchment y botón rojo de agregar personaje.
 - Personaje abierto adopta fondo `ficha bg`, header Figma, navegación inferior de personaje, bloque parchment para stats, XP/nivel, imagen, atributos, magia y PG.
 - Inventario adopta tabs `Equipo`, `Mochila`, `Alijo`, card de Carga/monedas, slots vacíos punteados y cards parchment para objetos.
+- Las cards de inventario usan el patrón anotado por producto: pill de cantidad, nombre/tipo, colapsable, filas de daño/atributos y precio/peso, descripción y acciones.
+- Regla de CTA en inventario: consumible = `Usar`; equipable = `Equipar`/`Desequipar`; packs = `Abrir kit`.
+- Las cards de inventario abren el drawer `Descripción` al tocarlas; los botones internos de Usar/Equipar/Abrir kit conservan su comportamiento sin abrir el drawer.
 - Se conserva la lógica existente: API, autenticación, apertura de personaje, imagen, inventario, dados, conjuros y habilidades.
 
 ### Archivos modificados
@@ -30,11 +34,12 @@
 ### Validación realizada
 - `node --check` sobre el script inline de `ui.html`: correcto.
 - `npx tsc --noEmit`: correcto.
+- Balance de llaves CSS: correcto.
 
 ### Pendientes inmediatos
 1. Validar visualmente en navegador contra Figma node `2086:824`.
 2. Ajustar medidas finas de las cards y navegación si el screenshot no empata.
-3. Extender el New Style a modales secundarios como descripción de objeto, dados, HP y pantallas internas que aún conserven trazos del estilo anterior.
+3. Extender el New Style a modales secundarios restantes como dados, HP y pantallas internas que aún conserven trazos del estilo anterior.
 
 ---
 

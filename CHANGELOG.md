@@ -6,10 +6,14 @@ Registro retroactivo del proyecto. El código actual es la fuente principal de v
 
 ### Cambios
 - Se inició la migración visual del UI móvil al Figma `New-style`, sección `pantallas template`.
+- Se tokenizó la capa New Style con variables CSS `--figma-*` para colores, tipografías, tamaños de fuente, espaciados, anchos/altos, radios, sombras y assets de fondo.
 - La pantalla Home/Personajes ahora usa fondo de pergamino, encabezado rojo, orden de navegación inferior del template, cards de personaje tipo parchment y CTA rojo de agregar personaje.
 - La ficha de personaje abierto se reestructuró para mostrar CA, Velocidad y B. Competencia, bloque de nivel/XP, imagen del personaje, atributos, estadísticas mágicas y PG con el layout base del template.
 - La navegación del personaje abierto se alineó al flujo inferior de Figma: Personaje, Inventario, Habilidades, Conjuros y Diario.
 - Inventario recibió estilos de template para tabs Equipo/Mochila/Alijo, card de Carga/monedas, slots vacíos punteados y cards de objetos en parchment.
+- Las cards de inventario ahora siguen la guía anotada: cantidad como pill, nombre/tipo, control colapsable, atributos/daños separados por comas, precio/peso, descripción y acciones.
+- El CTA de la card cambia por tipo de objeto: consumibles muestran `Usar`, equipables muestran `Equipar`/`Desequipar`; también se agregaron acciones `Eliminar` y `Vender` visuales.
+- Las tarjetas de inventario ahora abren un drawer `Descripción` al tocarlas, con arte del objeto, nombre, tipo/rareza, valor, highlights de reglas, metadata y descripción completa.
 - Se reutilizaron los assets locales `src/images/page bg.png`, `src/images/ficha bg.png` y `src/images/dnd_card_bg.png`.
 
 ### Archivos modificados
