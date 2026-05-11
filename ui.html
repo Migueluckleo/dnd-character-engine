@@ -5223,7 +5223,9 @@ function renderInventoryItemCard(inv, options = {}) {
         <button class="inventory-collapse-btn" onclick="toggleInventoryCard(event, this)" aria-label="Colapsar objeto" aria-expanded="true">▲</button>
       </div>
       <div class="inventory-card-body">
+        <div class="figma-red-divider" aria-hidden="true"></div>
         ${detailRows.map(row => `<div class="inventory-detail-line">${row.map(([label, value]) => `<span><strong>${escapeText(label)}</strong> ${escapeText(value)}</span>`).join('')}</div>`).join('')}
+        <div class="figma-red-divider" aria-hidden="true"></div>
         <p>${escapeText(itemDescription(item))}</p>
         <div class="inventory-card-actions">
           <div class="inventory-action-buttons inventory-secondary-actions">
