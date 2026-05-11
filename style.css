@@ -5207,10 +5207,10 @@
     min-height: 24px;
     max-height: 24px;
     padding: 0 8px;
-    border: 1px solid var(--figma-color-accent-gold);
-    border-radius: var(--figma-radius-control);
-    background: var(--figma-color-brand-primary);
-    color: var(--figma-color-text-inverse);
+    border: 0;
+    border-radius: 4px;
+    background: #720000;
+    color: #ffffff;
     cursor: pointer;
     font-family: "Source Serif Pro", "Source Serif 4", Georgia, serif;
     font-size: 10px;
