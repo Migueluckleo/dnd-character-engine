@@ -84,7 +84,12 @@
             <div class="panel-title" id="roster-welcome" style="margin-bottom:0;border-bottom:none">Bienvenido, jugador</div>
             <div class="profile-caption" id="profile-caption">Perfil local</div>
           </div>
-          <button class="profile-logout" onclick="logoutProfile()">Cerrar sesión</button>
+          <button class="profile-logout" onclick="logoutProfile()" aria-label="Cerrar sesión">
+            <svg class="profile-logout-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M4 3h12v4h-3V6H7v12h6v-1h3v4H4V3Z"></path>
+              <path d="M15.25 7.5 22 12l-6.75 4.5v-3H10v-3h5.25v-3Z"></path>
+            </svg>
+          </button>
         </div>
         <div class="roster-question">¿Con quien deberíamos aventurarnos hoy?</div>
         <div id="roster-grid" class="roster-grid"></div>
@@ -114,17 +119,19 @@
           <div class="detail-combat-grid">
             <div class="combat-box"><div class="lbl">CA</div><div class="val" id="s-ac">—</div></div>
             <div class="combat-box"><div class="lbl">Velocidad</div><div class="val" id="s-speed">—</div></div>
-            <div class="combat-box" title="Bonificador de competencia" aria-label="Bonificador de competencia"><div class="lbl">B. Comp.</div><div class="val" id="s-prof-visible">—</div></div>
+            <div class="combat-box" title="Bonificador de competencia" aria-label="Bonificador de competencia"><div class="lbl">B. Competencia</div><div class="val" id="s-prof-visible">—</div></div>
           </div>
+          <div class="detail-stealth-penalty" id="detail-stealth-penalty" hidden></div>
           <section class="detail-xp-card">
             <div class="detail-level-badge"><span>Lvl</span><strong id="s-level-visible">—</strong></div>
             <div class="detail-xp-content">
               <div class="xp-label">Experiencia</div>
               <div class="xp-track"><div id="detail-xp-fill"></div></div>
               <div class="xp-row"><span id="detail-xp-current">0</span><span id="detail-xp-next">300</span></div>
-              <button class="btn btn-accent btn-full" onclick="toast('Agregar experiencia pendiente de conectar al flujo', 'info')">Agregar experiencia</button>
             </div>
+            <button class="btn btn-accent btn-full detail-xp-btn" onclick="toast('Agregar experiencia pendiente de conectar al flujo', 'info')">Agregar experiencia</button>
           </section>
+          <div class="figma-red-divider detail-section-divider" aria-hidden="true"></div>
           <section class="detail-profile-grid">
             <div class="detail-hero" id="detail-hero">
               <input id="character-image-input" type="file" accept="image/*" onchange="uploadCharacterImage(event)" hidden>
@@ -134,14 +141,15 @@
               <div class="stats-grid detail-stat-grid" id="stats-grid"></div>
             </div>
           </section>
+          <div class="figma-red-divider detail-section-divider" aria-hidden="true"></div>
           <section id="spell-stats-row" style="display:none">
-            <div class="detail-small-heading">Estadísticas de magia</div>
             <div class="detail-combat-grid detail-magic-grid">
               <div class="combat-box"><div class="lbl">CD Conjuros</div><div class="val" id="s-spelldc">—</div></div>
               <div class="combat-box"><div class="lbl">Ataque Mágico</div><div class="val" id="s-spellatk">—</div></div>
               <div class="combat-box"><div class="lbl">Car. Mágica</div><div class="val" id="s-spellabil">—</div></div>
             </div>
           </section>
+          <div class="figma-red-divider detail-section-divider detail-magic-divider" aria-hidden="true"></div>
           <section class="detail-hp-section">
             <div class="detail-hp-grid">
               <div class="detail-hp-card">
@@ -152,6 +160,7 @@
               <div class="detail-hp-card">
                 <div class="detail-hp-label">Puntos de Golpe temporales</div>
                 <div class="detail-hp-value" id="detail-temp-hp">—</div>
+                <div class="detail-hp-sub">Primero usa estos en ataques</div>
               </div>
             </div>
             <button class="detail-hp-adjust-btn" onclick="openHpAdjustModal()">Ajustar puntos de golpe</button>
@@ -6062,24 +6071,21 @@ async function loadSheet(){
     document.getElementById('s-init').textContent   = fmt(h.initiative);
     document.getElementById('s-level-visible').textContent = h.total_level;
     document.getElementById('s-prof-visible').textContent  = fmt(h.proficiency_bonus);
-    document.getElementById('s-speed').textContent  = h.speed + ' pies';
+    document.getElementById('s-speed').textContent  = h.speed;
     document.getElementById('s-hp').textContent     = `${c.current_hp} / ${h.max_hp}`;
     document.getElementById('s-ac').textContent     = h.armor_class ?? h.unarmored_ac;
-    // Stealth disadvantage indicator from equipped armor
-    const acEl = document.getElementById('s-ac');
-    if (acEl) {
-      const stealthBadge = document.getElementById('s-stealth-dis');
+    const penaltyEl = document.getElementById('detail-stealth-penalty');
+    if (penaltyEl) {
+      const stealthItem = (c.inventory_items || []).find(inv => inv.is_equipped && inv.item?.stealth_disadvantage)?.item;
+      const stealthCategory = stealthItem?.armor_category
+        ? armorCategoryLabel(stealthItem.armor_category).toLowerCase()
+        : itemLabel(stealthItem?.name || 'equipo');
       if (h.stealth_disadvantage) {
-        if (!stealthBadge) {
-          const badge = document.createElement('span');
-          badge.id = 's-stealth-dis';
-          badge.title = 'Esta armadura impone desventaja en pruebas de Sigilo';
-          badge.style.cssText = 'font-size:0.6rem;color:var(--red-soft,#e07);margin-left:4px;vertical-align:super;cursor:help';
-          badge.textContent = '★Sigilo';
-          acEl.parentElement.appendChild(badge);
-        }
-      } else if (stealthBadge) {
-        stealthBadge.remove();
+        penaltyEl.hidden = false;
+        penaltyEl.innerHTML = `La/el <strong>${escapeText(stealthCategory)}</strong> causará penalización en tiradas de <strong>sigilo</strong>`;
+      } else {
+        penaltyEl.hidden = true;
+        penaltyEl.textContent = '';
       }
     }
 
@@ -6122,13 +6128,17 @@ async function loadSheet(){
     document.getElementById('s-pins').textContent = h.passive_insight;
 
     // Spell stats
+    const spellStatsRow = document.getElementById('spell-stats-row');
+    const magicDivider = document.querySelector('.detail-magic-divider');
     if (h.spellcasting_ability) {
-      document.getElementById('spell-stats-row').style.display = '';
+      spellStatsRow.style.display = '';
+      if (magicDivider) magicDivider.style.display = '';
       document.getElementById('s-spelldc').textContent   = h.spell_save_dc;
       document.getElementById('s-spellatk').textContent  = fmt(h.spell_attack_bonus);
       document.getElementById('s-spellabil').textContent = STAT_NAMES[h.spellcasting_ability] ?? h.spellcasting_ability;
     } else {
-      document.getElementById('spell-stats-row').style.display = 'none';
+      spellStatsRow.style.display = 'none';
+      if (magicDivider) magicDivider.style.display = 'none';
     }
     const activeDetailTab = document.querySelector('.detail-tabs button.active')?.id?.replace('detail-tab-', '') ?? 'sheet';
     if (activeDetailTab !== 'sheet') renderCharacterTab(activeDetailTab);

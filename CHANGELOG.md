@@ -11,6 +11,7 @@ Registro retroactivo del proyecto. El código actual es la fuente principal de v
 - Se ajustó la tipografía del roster card al spec refinado: título `Source Serif Pro` 20px regular, raza/clase 10px italic, atributos `Source Sans 3` 14px regular y descripción `Source Sans Pro` 14px regular.
 - Se ajustó el header interno de la card: separador `•` en `Source Serif Pro` 10px regular color `#110000` y menú de dots en caja `24x24` con vector visual `3x18` color `#720000`.
 - Se alineó el `header_app` de Home al spec: contenedor horizontal de 358px, gap 32px, usuario `Source Serif Pro` 16px regular `#720000`, email `Source Sans Pro` 14px italic `#000000`, e icono logout `24x24` en `#720000`.
+- Se corrigió una regla móvil posterior que sobrescribía el `header_app` y devolvía el título a `Prata 24px`; el logout ahora es un SVG inline sin pseudo-elemento, fondo ni contenedor circular.
 - El divider de la card de personaje ahora usa degradado y taper visual para estrecharse/desvanecerse hacia la derecha.
 - Se escapó el texto dinámico de nombre, raza, clase y biografía en el render del roster para evitar que datos del personaje rompan el HTML.
 
@@ -29,6 +30,43 @@ Registro retroactivo del proyecto. El código actual es la fuente principal de v
 ### Fuente / certeza
 - Confirmado por código actual
 - Basado en captura/referencia Figma compartida por el usuario
+- Confirmado por validación de JS inline y balance de CSS
+- Pendiente de validación visual en navegador contra Figma
+
+---
+
+## [2026-05-11] - Primera alineación Figma de hoja de personaje abierto
+
+### Cambios
+- Se reestructuró la card principal de personaje abierto para usar secciones internas en vez de cards anidadas: métricas superiores, XP, imagen/atributos, magia y puntos de golpe.
+- Se aplicaron dividers rojos degradados entre XP, perfil/atributos, magia y puntos de golpe.
+- La fila superior muestra `CA`, `Velocidad` y `B. Competencia` con columnas separadas por líneas verticales internas.
+- El estado de penalización en sigilo se movió a una línea contextual entre las métricas superiores y XP, y se muestra solo cuando el personaje tiene equipo equipado con `stealth_disadvantage`.
+- El bloque XP ahora queda en una fila con badge de nivel, barra/progreso y botón `Agregar experiencia` a la derecha.
+- La imagen del personaje usa un botón circular pequeño de cámara en la esquina inferior izquierda.
+- Los atributos se muestran como una grilla 3x2 con separadores verticales y horizontales internos.
+- La sección de magia queda en 3 columnas sin título adicional, igualando la arquitectura de la card de Figma.
+- La sección de puntos de golpe conserva PG actuales, PG temporales, nota de máximos, nota de temporales y CTA de ajuste.
+- La métrica `Velocidad` en la ficha abierta muestra solo el número, sin `pies`, para coincidir con el componente de Figma.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `docs/requirements.md`
+- `docs/tasks.md`
+- `docs/behavioral_design.md`
+- `HANDOFF.md`
+- `CHANGELOG.md`
+
+### Historias de usuario relacionadas
+- US-117: Figma-Matched Character Detail Microflow and Bottom Navigation
+- US-125: Figma-Matched Hit Point Summary and Adjustment Modals
+- US-139: Full Item-Stat Hydration via Engine
+- US-146: New Style Template UI from Figma
+
+### Fuente / certeza
+- Confirmado por código actual
+- Basado en captura Figma compartida por el usuario con estados sin penalización y con penalización en sigilo
 - Confirmado por validación de JS inline y balance de CSS
 - Pendiente de validación visual en navegador contra Figma
 

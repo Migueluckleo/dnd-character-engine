@@ -9,6 +9,35 @@
 - El wizard de creación está orientado a mobile-first y debe seguir `docs/Create Character.pdf` y el Figma `DM-Dnd-App--Copy-`.
 - La documentación viva principal está en `docs/requirements.md`, `docs/plan.md`, `docs/tasks.md`, `.claude.md`, `CHANGELOG.md` y este archivo.
 
+## Últimos cambios realizados (2026-05-11) — Hoja de personaje abierto (US-117 / US-125 / US-146)
+
+### Qué se implementó
+- La card principal de personaje abierto se reorganizó por secciones Figma: métricas superiores, XP, perfil/atributos, magia y puntos de golpe.
+- Se agregaron dividers rojos degradados entre secciones y separadores internos verticales/horizontales en métricas, atributos y magia.
+- El estado con penalización en sigilo se muestra como línea contextual bajo las métricas superiores cuando el equipo equipado trae `stealth_disadvantage`; el estado sin penalización no muestra esa línea.
+- El bloque XP usa badge de nivel, barra de progreso, valores actual/siguiente y botón `Agregar experiencia` en la misma fila.
+- La imagen del personaje conserva upload, pero ahora el CTA se ve como botón circular de cámara en la esquina inferior izquierda.
+- La sección de PG muestra PG actuales, PG temporales, máximo, nota de temporales y botón de ajuste.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `docs/requirements.md`
+- `docs/tasks.md`
+- `docs/behavioral_design.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Validación realizada
+- Script inline de `ui.html`: correcto.
+- Balance de llaves CSS: correcto.
+
+### Pendientes inmediatos
+1. Validar visualmente en navegador contra las dos variantes del Figma: sin penalización y con penalización en sigilo.
+2. Ajustar tamaños finos si el contenido real, especialmente nombres largos o velocidades de 30/35 pies, rompe la proporción visual.
+
+---
+
 ## Últimos cambios realizados (2026-05-11) — Card de personaje del roster (US-119 / US-146)
 
 ### Qué se implementó
@@ -16,6 +45,7 @@
 - El spec tipográfico vigente para esta card es: título `Source Serif Pro` 20px regular, raza/clase `Source Serif Pro` 10px italic, atributos `Source Sans 3` 14px regular, descripción `Source Sans Pro` 14px regular.
 - El header interno de la card usa layout horizontal: bloque nombre/clase en fill y menú de tres puntos de `24x24`; el vector de puntos debe medir visualmente `3x18` en `#720000`. El separador `•` entre raza y clase usa `Source Serif Pro` 10px regular en `#110000`.
 - El `header_app` de Home usa ancho `358px`, layout horizontal con gap `32px`, usuario `Source Serif Pro` 16px regular `#720000`, email `Source Sans Pro` 14px italic `#000000` y logout `24x24` con vector `#720000`.
+- Importante: no volver a agrupar `#roster-welcome` con `.detail-title` o `.detail-back` en reglas posteriores, porque sobrescribe el spec del `header_app`. El logout debe permanecer como SVG inline sin pseudo-elemento ni fondo circular.
 - El divider usa rojo Figma con degradado y taper visual hacia la derecha; no debe volver a una línea sólida de grosor uniforme.
 - Las acciones de personaje ya no viven como botones visibles/hover. Se movieron a un botón táctil de tres puntos verticales que abre un dropdown con `Editar` y `Eliminar`.
 - El render del roster escapa nombre, raza, clase y biografía para evitar que contenido dinámico rompa la tarjeta.
