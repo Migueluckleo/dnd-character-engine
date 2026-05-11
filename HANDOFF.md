@@ -13,7 +13,8 @@
 
 ### Qué se implementó
 - La card de personaje creado en Home/Personajes ahora sigue la arquitectura visual indicada por producto: nombre primero, subtítulo raza/clase, divider rojo, métricas rápidas y biografía.
-- El divider usa el contrato Figma ya tokenizado: `outline 4px`, `outline-offset -2px`, color rojo `--figma-color-divider-red`.
+- El spec tipográfico vigente para esta card es: título `Source Serif Pro` 20px regular, raza/clase `Source Serif Pro` 10px italic, atributos `Source Sans 3` 14px regular, descripción `Source Sans Pro` 14px regular.
+- El divider usa rojo Figma con degradado y taper visual hacia la derecha; no debe volver a una línea sólida de grosor uniforme.
 - Las acciones de personaje ya no viven como botones visibles/hover. Se movieron a un botón táctil de tres puntos verticales que abre un dropdown con `Editar` y `Eliminar`.
 - El render del roster escapa nombre, raza, clase y biografía para evitar que contenido dinámico rompa la tarjeta.
 

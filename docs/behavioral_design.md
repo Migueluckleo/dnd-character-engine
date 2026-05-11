@@ -470,7 +470,7 @@
 
 **Criterios de aceptación:**
 - US146.1: Home usa fondo de pergamino, encabezado rojo, navegación inferior en orden `Personajes`, `Tienda`, `Glosario`, `Razas y clases`, cards parchment y CTA rojo de agregar personaje.
-- US146.1a: La card de personaje creado muestra nombre, raza/clase, divider rojo, métricas (`CA`, velocidad, PG, nivel) y biografía en ese orden; las acciones `Editar` y `Eliminar` se muestran únicamente desde el menú táctil de tres puntos.
+- US146.1a: La card de personaje creado muestra nombre, raza/clase, divider rojo degradado/taper, métricas (`CA`, velocidad, PG, nivel) y biografía en ese orden; las acciones `Editar` y `Eliminar` se muestran únicamente desde el menú táctil de tres puntos. Tipografías: título `Source Serif Pro` 20px regular, raza/clase 10px italic, atributos `Source Sans 3` 14px regular y descripción `Source Sans Pro` 14px regular.
 - US146.2: Personaje abierto usa fondo de ficha, header con Atrás/nombre/Tirar dado, navegación inferior interna y bloque parchment para CA, Velocidad, B. Competencia, XP, imagen, atributos, magia y PG.
 - US146.3: Inventario usa tabs `Equipo`, `Mochila`, `Alijo`, card de `Carga` con monedas, slots vacíos punteados y cards parchment de objetos.
 - US146.4: Los colores, tipografías, tamaños, espacios, radios y sombras del template viven como tokens CSS derivados del Figma para evitar valores sueltos.

@@ -8,6 +8,8 @@ Registro retroactivo del proyecto. El código actual es la fuente principal de v
 - Se reordenó la card de personaje creado para seguir la arquitectura indicada por Figma: nombre, raza/clase, divider rojo, métricas rápidas y biografía.
 - Se reemplazaron las acciones siempre visibles/hover por un botón táctil de tres puntos verticales que despliega `Editar` y `Eliminar`.
 - Se aplicó el divider rojo tokenizado (`outline 4px`, `outline-offset -2px`) dentro de la card de personaje.
+- Se ajustó la tipografía del roster card al spec refinado: título `Source Serif Pro` 20px regular, raza/clase 10px italic, atributos `Source Sans 3` 14px regular y descripción `Source Sans Pro` 14px regular.
+- El divider de la card de personaje ahora usa degradado y taper visual para estrecharse/desvanecerse hacia la derecha.
 - Se escapó el texto dinámico de nombre, raza, clase y biografía en el render del roster para evitar que datos del personaje rompan el HTML.
 
 ### Archivos modificados
