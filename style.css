@@ -4093,6 +4093,30 @@
     border-radius: 8px 8px 0 0;
   }
 
+  .character-card-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 0;
+  }
+
+  .character-card-stats .detail-xp-card {
+    margin: 0 0 32px;
+  }
+
+  .character-card-stats .detail-combat-grid {
+    margin: 0;
+  }
+
+  .character-card-stats .detail-stealth-penalty {
+    margin: 24px 0 0;
+  }
+
+  .character-card-stats .detail-stealth-penalty[hidden] {
+    display: none;
+    margin: 0;
+  }
+
   .detail-combat-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0;

@@ -14,6 +14,7 @@
 ### Qué se implementó
 - La card principal de personaje abierto se reorganizó por secciones Figma: métricas superiores, XP, perfil/atributos, magia y puntos de golpe.
 - Orden superior vigente de la hoja: XP primero, luego `CA`, `Velocidad`, `B. Competencia`, luego penalización en sigilo si aplica, luego divider rojo.
+- El bloque XP + métricas + penalización opcional vive dentro de `.character-card-stats`, que replica el frame Figma `character card stats`. Mantener ahí los espaciados internos: XP separado de métricas con 32px y penalización, cuando existe, separada de métricas con 24px.
 - Se agregaron dividers rojos degradados entre secciones y separadores internos verticales/horizontales en métricas, atributos y magia. Los dividers de ficha usan override específico `#detail-main-sheet .figma-red-divider.detail-section-divider` porque `.figma-red-divider` global puede ocultarlos si gana la cascada.
 - La grilla de atributos de la hoja debe conservar el orden explícito Figma: `FUE`, `DES`, `CON` / `INT`, `SAB`, `CAR`.
 - La hoja debe renderizar esas abreviaturas literalmente; no usar `STAT_ES[k]` porque eso devuelve nombres completos como Fuerza/Destreza/Constitución.

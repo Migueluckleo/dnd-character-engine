@@ -46,6 +46,7 @@ Registro retroactivo del proyecto. El código actual es la fuente principal de v
 - El botón `Agregar experiencia` se separó de las clases genéricas `btn`, `btn-accent` y `btn-full`, y quedó como botón mini propio de 24px alto, `Source Serif Pro` 10px regular, padding horizontal de 8px, fill `#720000`, texto `#FFFFFF`, sin borde y radius `4px`.
 - Se ajustó el padding interno de la card de personaje abierto a 16px laterales y 32px arriba/abajo, con 16px de separación vertical alrededor de los dividers.
 - Se cambió el orden del bloque superior de la hoja: XP primero, luego `CA`, `Velocidad`, `B. Competencia`, después la penalización en sigilo y finalmente el divider.
+- Se agrupó XP, métricas superiores y penalización opcional en el contenedor `.character-card-stats`, replicando el frame Figma `character card stats` para controlar sus espaciados internos sin depender del gap global de la card.
 - La fila superior muestra `CA`, `Velocidad` y `B. Competencia` con columnas separadas por líneas verticales internas.
 - El estado de penalización en sigilo se movió a una línea contextual entre las métricas superiores y XP, con copy `La armadura equipada causará penalización en tiradas de sigilo` cuando el personaje tiene armadura con `stealth_disadvantage`.
 - El bloque XP ahora queda en una fila con badge de nivel, barra/progreso y botón `Agregar experiencia` a la derecha.
