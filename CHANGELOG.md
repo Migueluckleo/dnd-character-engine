@@ -42,6 +42,8 @@ Registro retroactivo del proyecto. El código actual es la fuente principal de v
 - Se aplicaron dividers rojos degradados entre XP, perfil/atributos, magia y puntos de golpe.
 - Se corrigió la cascada CSS para que los dividers de la hoja ganen sobre `.figma-red-divider` global y sean visibles en la ficha.
 - Se forzó el orden visual de atributos de la hoja como Figma: `FUE`, `DES`, `CON` / `INT`, `SAB`, `CAR`.
+- Se corrigieron las etiquetas de atributos para que la hoja muestre abreviaturas (`FUE`, `DES`, `CON`, `INT`, `SAB`, `CAR`) en lugar de nombres completos.
+- El botón `Agregar experiencia` se ajustó como botón mini de 24px alto, `Source Serif Pro` 10px regular y padding horizontal de 8px.
 - La fila superior muestra `CA`, `Velocidad` y `B. Competencia` con columnas separadas por líneas verticales internas.
 - El estado de penalización en sigilo se movió a una línea contextual entre las métricas superiores y XP, con copy `La armadura equipada causará penalización en tiradas de sigilo` cuando el personaje tiene armadura con `stealth_disadvantage`.
 - El bloque XP ahora queda en una fila con badge de nivel, barra/progreso y botón `Agregar experiencia` a la derecha.

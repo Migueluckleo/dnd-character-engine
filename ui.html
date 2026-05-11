@@ -6089,9 +6089,10 @@ async function loadSheet(){
 
     // Ability scores
     const detailAbilityOrder = ['str','dex','con','int','wis','cha'];
+    const detailAbilityLabels = { str:'FUE', dex:'DES', con:'CON', int:'INT', wis:'SAB', cha:'CAR' };
     document.getElementById('stats-grid').innerHTML = detailAbilityOrder.map(k=>`
       <div class="stat-box">
-        <div class="stat-name">${STAT_ES[k].toUpperCase()}</div>
+        <div class="stat-name">${detailAbilityLabels[k]}</div>
         <div class="stat-mod">${fmt(h.ability_modifiers[k])}</div>
         <div class="stat-score">${h.ability_scores[k]}</div>
       </div>`).join('');
