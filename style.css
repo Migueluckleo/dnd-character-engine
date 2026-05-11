@@ -4084,11 +4084,11 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 16px;
     margin: 0 0 16px;
     padding:
       calc(var(--figma-card-strip-height) + 32px)
-      32px
+      16px
       32px;
     border-radius: 8px 8px 0 0;
   }
@@ -4134,7 +4134,7 @@
   }
 
   .detail-stealth-penalty {
-    margin-top: -16px;
+    margin-top: 0;
     color: var(--ns-text);
     font-family: "Source Sans Pro", "Source Sans 3", Arial, sans-serif;
     font-size: 10px;
@@ -4209,7 +4209,7 @@
 
   .detail-section-divider {
     height: 5px;
-    margin: -4px 0 0;
+    margin: 0;
     outline: 0;
     outline-offset: 0;
     background:
@@ -5163,7 +5163,7 @@
     width: 100%;
     height: 5px;
     min-height: 5px;
-    margin: -4px 0 0;
+    margin: 0;
     border: 0;
     outline: 0;
     outline-offset: 0;
@@ -5197,6 +5197,9 @@
   }
 
   #detail-main-sheet .detail-xp-card .detail-xp-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     justify-self: end;
     width: auto;
     min-width: 0;
@@ -5204,10 +5207,16 @@
     min-height: 24px;
     max-height: 24px;
     padding: 0 8px;
+    border: 1px solid var(--figma-color-accent-gold);
     border-radius: var(--figma-radius-control);
+    background: var(--figma-color-brand-primary);
+    color: var(--figma-color-text-inverse);
+    cursor: pointer;
     font-family: "Source Serif Pro", "Source Serif 4", Georgia, serif;
     font-size: 10px;
     font-weight: 400;
     line-height: 1;
+    text-align: center;
+    white-space: nowrap;
   }
 }
