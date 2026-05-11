@@ -604,6 +604,7 @@
 - **Action:** Aplicar la sección `pantallas template` del Figma `New-style` a Home/Personajes, personaje abierto e Inventario usando los fondos locales de `src/images`, tokens CSS derivados del Figma y drawer de descripción de objeto.
 - **Done when:** Home usa navegación inferior y card de personaje del template; personaje abierto muestra resumen, XP, imagen, atributos, magia y PG en parchment; inventario muestra tabs Equipo/Mochila/Alijo, card de Carga/monedas, slots vacíos, cards de objetos del template, patrón colapsable anotado y modal `Descripción` al tocar un objeto.
 - **Notas 2026-05-09:** Primera pasada implementada en `ui.html` y `style.css`. Se agregaron tokens `--figma-*` para colores, tipografías, espaciados, tamaños, radios, sombras y assets. La card de inventario ya separa daño/atributos por comas, precio/peso, acciones y CTA por tipo de objeto. El modal de descripción fue corregido para no ser drawer inferior. Falta QA visual en navegador para ajustar medidas finas, modales y pantallas secundarias.
+- **Notas 2026-05-11:** La card de personaje del roster fue reordenada a nombre → raza/clase → divider rojo → métricas → biografía, con menú táctil de tres puntos para `Editar`/`Eliminar`. Falta QA visual contra Figma para escala exacta e iconografía fina.
 - **Status:** `[~]`
 
 ---

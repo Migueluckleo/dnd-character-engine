@@ -470,6 +470,7 @@
 
 **Criterios de aceptación:**
 - US146.1: Home usa fondo de pergamino, encabezado rojo, navegación inferior en orden `Personajes`, `Tienda`, `Glosario`, `Razas y clases`, cards parchment y CTA rojo de agregar personaje.
+- US146.1a: La card de personaje creado muestra nombre, raza/clase, divider rojo, métricas (`CA`, velocidad, PG, nivel) y biografía en ese orden; las acciones `Editar` y `Eliminar` se muestran únicamente desde el menú táctil de tres puntos.
 - US146.2: Personaje abierto usa fondo de ficha, header con Atrás/nombre/Tirar dado, navegación inferior interna y bloque parchment para CA, Velocidad, B. Competencia, XP, imagen, atributos, magia y PG.
 - US146.3: Inventario usa tabs `Equipo`, `Mochila`, `Alijo`, card de `Carga` con monedas, slots vacíos punteados y cards parchment de objetos.
 - US146.4: Los colores, tipografías, tamaños, espacios, radios y sombras del template viven como tokens CSS derivados del Figma para evitar valores sueltos.
@@ -483,6 +484,7 @@
 
 | Fecha | Cambio | US relacionada |
 |---|---|---|
+| 2026-05-11 | US-146 extendida — card de personaje del roster con menú de tres puntos, dropdown Editar/Eliminar y divider rojo | US-119 / US-146 |
 | 2026-05-09 | US-146 extendida — tokens CSS `--figma-*` y drawer de descripción para objetos de inventario | US-146 |
 | 2026-05-09 | US-146 creada — migración visual a Figma `New-style` / `pantallas template` para Home, personaje abierto e Inventario | US-146 |
 | 2026-05-07 | Documento creado — baselined desde behavioral design.docx v1.0 | Todas |

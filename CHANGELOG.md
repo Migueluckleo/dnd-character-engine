@@ -2,6 +2,34 @@
 
 Registro retroactivo del proyecto. El código actual es la fuente principal de verdad; las fechas previas se basan en marcas de archivo y documentación disponible, por lo que algunas entradas se indican como estimadas.
 
+## [2026-05-11] - Ajuste Figma de card de personaje en roster
+
+### Cambios
+- Se reordenó la card de personaje creado para seguir la arquitectura indicada por Figma: nombre, raza/clase, divider rojo, métricas rápidas y biografía.
+- Se reemplazaron las acciones siempre visibles/hover por un botón táctil de tres puntos verticales que despliega `Editar` y `Eliminar`.
+- Se aplicó el divider rojo tokenizado (`outline 4px`, `outline-offset -2px`) dentro de la card de personaje.
+- Se escapó el texto dinámico de nombre, raza, clase y biografía en el render del roster para evitar que datos del personaje rompan el HTML.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `docs/requirements.md`
+- `docs/tasks.md`
+- `HANDOFF.md`
+- `CHANGELOG.md`
+
+### Historias de usuario relacionadas
+- US-119: Figma-Matched Created Character Card
+- US-146: New Style Template UI from Figma
+
+### Fuente / certeza
+- Confirmado por código actual
+- Basado en captura/referencia Figma compartida por el usuario
+- Confirmado por validación de JS inline y balance de CSS
+- Pendiente de validación visual en navegador contra Figma
+
+---
+
 ## [2026-05-09] - New Style UI desde Figma pantallas template
 
 ### Cambios

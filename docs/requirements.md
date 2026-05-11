@@ -1821,6 +1821,7 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 
 **Acceptance criteria:**
 - The roster/home screen uses the new parchment page background, red welcome heading, Figma bottom navigation order, Figma character card hierarchy, and full-width red add-character CTA.
+- Created-character cards must preserve the Figma information architecture: character name first, race/class subtitle, red divider, quick stats row (`CA`, speed in feet, HP, level), biography, and a top-right three-dot menu that reveals `Editar` and `Eliminar`.
 - The opened-character screen uses the `ficha bg` background, Figma header, bottom character navigation, parchment detail card, visible CA, Velocidad and Bonificador de competencia, XP/level block, character image, attributes, magic stats, and HP adjustment block.
 - The inventory screen uses Figma tabs (`Equipo`, `Mochila`, `Alijo`), the `Carga`/coin card, parchment item cards, dashed empty equipment slots, and the established local-image/Game-icons visual identity for item art.
 - The New Style UI layer must expose Figma-derived CSS tokens for colors, typography, spacing, sizing, radii, shadows, and image/background assets instead of scattering raw values across components.
@@ -1833,6 +1834,6 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 
 | US | Estado | Notas |
 |----|--------|-------|
-| US-146 | En progreso / pendiente de validación visual en navegador | Current `ui.html` and `style.css` add the first New Style template pass for home, opened character, inventory templates, Figma-derived CSS tokens, and the inventory item `Descripción` drawer using `src/images/page bg.png`, `src/images/ficha bg.png`, and `src/images/dnd_card_bg.png`. JS syntax and TypeScript validation pass. Pending: browser QA against Figma node `2086:824` and remaining modal/detail screens. |
+| US-146 | En progreso / pendiente de validación visual en navegador | Current `ui.html` and `style.css` add the first New Style template pass for home, opened character, inventory templates, Figma-derived CSS tokens, the roster card three-dot dropdown, and the inventory item `Descripción` drawer using `src/images/page bg.png`, `src/images/ficha bg.png`, and `src/images/dnd_card_bg.png`. JS syntax and TypeScript validation pass. Pending: browser QA against Figma node `2086:824` and remaining modal/detail screens. |
 
 *End of requirements.md — Total User Stories: US-01 through US-146.*

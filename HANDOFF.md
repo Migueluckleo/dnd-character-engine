@@ -9,6 +9,32 @@
 - El wizard de creación está orientado a mobile-first y debe seguir `docs/Create Character.pdf` y el Figma `DM-Dnd-App--Copy-`.
 - La documentación viva principal está en `docs/requirements.md`, `docs/plan.md`, `docs/tasks.md`, `.claude.md`, `CHANGELOG.md` y este archivo.
 
+## Últimos cambios realizados (2026-05-11) — Card de personaje del roster (US-119 / US-146)
+
+### Qué se implementó
+- La card de personaje creado en Home/Personajes ahora sigue la arquitectura visual indicada por producto: nombre primero, subtítulo raza/clase, divider rojo, métricas rápidas y biografía.
+- El divider usa el contrato Figma ya tokenizado: `outline 4px`, `outline-offset -2px`, color rojo `--figma-color-divider-red`.
+- Las acciones de personaje ya no viven como botones visibles/hover. Se movieron a un botón táctil de tres puntos verticales que abre un dropdown con `Editar` y `Eliminar`.
+- El render del roster escapa nombre, raza, clase y biografía para evitar que contenido dinámico rompa la tarjeta.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `docs/requirements.md`
+- `docs/tasks.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Validación realizada
+- Script inline de `ui.html`: correcto.
+- Balance de llaves CSS: correcto.
+
+### Pendientes inmediatos
+1. Validar visualmente la card contra Figma en navegador real, especialmente escala tipográfica, espacios y dropdown de tres puntos.
+2. Ajustar iconografía de velocidad si Figma requiere el ícono de bota exacto en lugar del icono actual de velocidad.
+
+---
+
 ## Últimos cambios realizados (2026-05-09) — New Style UI desde Figma (US-146)
 
 ### Qué se implementó

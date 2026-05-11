@@ -766,26 +766,57 @@ function renderRosterCard(c) {
     .filter(Boolean)
     .join(' ')
     .trim() || `${c.name} es ${raceName} y ${clsName}. Su aventura apenas comienza.`;
+  const deleteName = (c.name || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
   return `<div class="roster-card" onclick="openCharacter('${c.id}')">
     ${c.is_dead ? '<div class="rc-dead">☠ MUERTO</div>' : ''}
-    <div class="rc-actions">
-      <button class="rc-del"  onclick="event.stopPropagation(); deleteCharacter('${c.id}', '${(c.name||'').replace(/'/g,"\\'")}')">Eliminar</button>
-      <button class="rc-edit" onclick="event.stopPropagation(); openEditModal('${c.id}')">Editar</button>
+    <div class="rc-title-row">
+      <div class="rc-name">${escapeText(c.name ?? 'Personaje')}</div>
+      <div class="rc-menu">
+        <button class="rc-menu-btn" type="button" aria-label="Opciones de personaje" aria-expanded="false" onclick="toggleRosterMenu(event, this)">
+          <span></span><span></span><span></span>
+        </button>
+        <div class="rc-actions" role="menu">
+          <button class="rc-edit" type="button" role="menuitem" onclick="event.stopPropagation(); closeRosterMenus(); openEditModal('${c.id}')">Editar</button>
+          <button class="rc-del" type="button" role="menuitem" onclick="event.stopPropagation(); closeRosterMenus(); deleteCharacter('${c.id}', '${deleteName}')">Eliminar</button>
+        </div>
+      </div>
     </div>
-    <div class="rc-sub">${raceName} <span>·</span> ${clsName}</div>
-    <div class="rc-name">${c.name}</div>
+    <div class="rc-sub">${escapeText(raceName)} <span>&bull;</span> ${escapeText(clsName)}</div>
+    <div class="figma-red-divider rc-divider" aria-hidden="true"></div>
     <div class="rc-quick">
       <span><strong>CA</strong> ${armorClass}</span>
       <span><svg class="inline-info-icon" aria-hidden="true"><use href="#icon-speed"></use></svg> ${speed} pies</span>
       <span><svg class="inline-info-icon" aria-hidden="true"><use href="#icon-heart"></use></svg> ${cur}</span>
       <span>Lvl ${clsLevel}</span>
     </div>
-    <p class="rc-bio">${bio}</p>
+    <p class="rc-bio">${escapeText(bio)}</p>
   </div>`;
 }
 
+function closeRosterMenus() {
+  document.querySelectorAll('.rc-menu.open').forEach(menu => {
+    menu.classList.remove('open');
+    menu.querySelector('.rc-menu-btn')?.setAttribute('aria-expanded', 'false');
+  });
+}
+
+function toggleRosterMenu(event, button) {
+  event.stopPropagation();
+  const menu = button.closest('.rc-menu');
+  if (!menu) return;
+  const willOpen = !menu.classList.contains('open');
+  closeRosterMenus();
+  if (willOpen) {
+    menu.classList.add('open');
+    button.setAttribute('aria-expanded', 'true');
+  }
+}
+
+document.addEventListener('click', closeRosterMenus);
+
 async function openCharacter(id) {
+  closeRosterMenus();
   characterId = id;
   currentChar = null;
   detailEquipmentChoices = {};
