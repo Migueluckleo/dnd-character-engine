@@ -15,6 +15,7 @@
 - La card de personaje creado en Home/Personajes ahora sigue la arquitectura visual indicada por producto: nombre primero, subtítulo raza/clase, divider rojo, métricas rápidas y biografía.
 - El spec tipográfico vigente para esta card es: título `Source Serif Pro` 20px regular, raza/clase `Source Serif Pro` 10px italic, atributos `Source Sans 3` 14px regular, descripción `Source Sans Pro` 14px regular.
 - El header interno de la card usa layout horizontal: bloque nombre/clase en fill y menú de tres puntos de `24x24`; el vector de puntos debe medir visualmente `3x18` en `#720000`. El separador `•` entre raza y clase usa `Source Serif Pro` 10px regular en `#110000`.
+- El `header_app` de Home usa ancho `358px`, layout horizontal con gap `32px`, usuario `Source Serif Pro` 16px regular `#720000`, email `Source Sans Pro` 14px italic `#000000` y logout `24x24` con vector `#720000`.
 - El divider usa rojo Figma con degradado y taper visual hacia la derecha; no debe volver a una línea sólida de grosor uniforme.
 - Las acciones de personaje ya no viven como botones visibles/hover. Se movieron a un botón táctil de tres puntos verticales que abre un dropdown con `Editar` y `Eliminar`.
 - El render del roster escapa nombre, raza, clase y biografía para evitar que contenido dinámico rompa la tarjeta.
