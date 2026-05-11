@@ -40,8 +40,10 @@ Registro retroactivo del proyecto. El código actual es la fuente principal de v
 ### Cambios
 - Se reestructuró la card principal de personaje abierto para usar secciones internas en vez de cards anidadas: métricas superiores, XP, imagen/atributos, magia y puntos de golpe.
 - Se aplicaron dividers rojos degradados entre XP, perfil/atributos, magia y puntos de golpe.
+- Se corrigió la cascada CSS para que los dividers de la hoja ganen sobre `.figma-red-divider` global y sean visibles en la ficha.
+- Se forzó el orden visual de atributos de la hoja como Figma: `FUE`, `DES`, `CON` / `INT`, `SAB`, `CAR`.
 - La fila superior muestra `CA`, `Velocidad` y `B. Competencia` con columnas separadas por líneas verticales internas.
-- El estado de penalización en sigilo se movió a una línea contextual entre las métricas superiores y XP, y se muestra solo cuando el personaje tiene equipo equipado con `stealth_disadvantage`.
+- El estado de penalización en sigilo se movió a una línea contextual entre las métricas superiores y XP, con copy `La armadura equipada causará penalización en tiradas de sigilo` cuando el personaje tiene armadura con `stealth_disadvantage`.
 - El bloque XP ahora queda en una fila con badge de nivel, barra/progreso y botón `Agregar experiencia` a la derecha.
 - La imagen del personaje usa un botón circular pequeño de cámara en la esquina inferior izquierda.
 - Los atributos se muestran como una grilla 3x2 con separadores verticales y horizontales internos.

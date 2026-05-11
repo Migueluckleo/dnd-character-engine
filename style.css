@@ -5156,4 +5156,43 @@
     font-size: var(--figma-font-size-md);
     line-height: 1.22;
   }
+
+  #detail-main-sheet .figma-red-divider.detail-section-divider {
+    display: block;
+    align-self: stretch;
+    width: 100%;
+    height: 5px;
+    min-height: 5px;
+    margin: -4px 0 0;
+    border: 0;
+    outline: 0;
+    outline-offset: 0;
+    background:
+      linear-gradient(
+        90deg,
+        #8b0000 0%,
+        #8b0000 23%,
+        rgba(139, 0, 0, .72) 56%,
+        rgba(139, 0, 0, .18) 86%,
+        rgba(139, 0, 0, 0) 100%
+      );
+    clip-path: polygon(0 0, 100% 42%, 100% 58%, 0 100%);
+  }
+
+  #detail-main-sheet .detail-combat-grid .combat-box,
+  #detail-main-sheet .detail-stat-grid .stat-box,
+  #detail-main-sheet .detail-hp-card {
+    background: transparent;
+    border-radius: 0;
+  }
+
+  #detail-main-sheet .detail-combat-grid .combat-box:not(:last-child),
+  #detail-main-sheet .detail-magic-grid .combat-box:not(:last-child),
+  #detail-main-sheet .detail-stat-grid .stat-box:not(:nth-child(3n)) {
+    border-right: 1px solid var(--figma-color-line-brown);
+  }
+
+  #detail-main-sheet .detail-stat-grid .stat-box:nth-child(n+4) {
+    border-top: 1px solid var(--figma-color-line-brown);
+  }
 }

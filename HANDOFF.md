@@ -13,8 +13,9 @@
 
 ### Qué se implementó
 - La card principal de personaje abierto se reorganizó por secciones Figma: métricas superiores, XP, perfil/atributos, magia y puntos de golpe.
-- Se agregaron dividers rojos degradados entre secciones y separadores internos verticales/horizontales en métricas, atributos y magia.
-- El estado con penalización en sigilo se muestra como línea contextual bajo las métricas superiores cuando el equipo equipado trae `stealth_disadvantage`; el estado sin penalización no muestra esa línea.
+- Se agregaron dividers rojos degradados entre secciones y separadores internos verticales/horizontales en métricas, atributos y magia. Los dividers de ficha usan override específico `#detail-main-sheet .figma-red-divider.detail-section-divider` porque `.figma-red-divider` global puede ocultarlos si gana la cascada.
+- La grilla de atributos de la hoja debe conservar el orden explícito Figma: `FUE`, `DES`, `CON` / `INT`, `SAB`, `CAR`.
+- El estado con penalización en sigilo se muestra como línea contextual bajo las métricas superiores cuando el equipo equipado trae `stealth_disadvantage`; el estado sin penalización no muestra esa línea. Para armadura, el copy visible debe decir `La armadura equipada causará penalización en tiradas de sigilo`.
 - El bloque XP usa badge de nivel, barra de progreso, valores actual/siguiente y botón `Agregar experiencia` en la misma fila.
 - La imagen del personaje conserva upload, pero ahora el CTA se ve como botón circular de cámara en la esquina inferior izquierda.
 - La sección de PG muestra PG actuales, PG temporales, máximo, nota de temporales y botón de ajuste.

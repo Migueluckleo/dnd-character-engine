@@ -6077,12 +6077,10 @@ async function loadSheet(){
     const penaltyEl = document.getElementById('detail-stealth-penalty');
     if (penaltyEl) {
       const stealthItem = (c.inventory_items || []).find(inv => inv.is_equipped && inv.item?.stealth_disadvantage)?.item;
-      const stealthCategory = stealthItem?.armor_category
-        ? armorCategoryLabel(stealthItem.armor_category).toLowerCase()
-        : itemLabel(stealthItem?.name || 'equipo');
       if (h.stealth_disadvantage) {
+        const penaltySubject = stealthItem?.item_type === 'armor' ? 'armadura equipada' : 'equipo equipado';
         penaltyEl.hidden = false;
-        penaltyEl.innerHTML = `La/el <strong>${escapeText(stealthCategory)}</strong> causará penalización en tiradas de <strong>sigilo</strong>`;
+        penaltyEl.innerHTML = `La <strong>${escapeText(penaltySubject)}</strong> causará penalización en tiradas de <strong>sigilo</strong>`;
       } else {
         penaltyEl.hidden = true;
         penaltyEl.textContent = '';
@@ -6090,7 +6088,8 @@ async function loadSheet(){
     }
 
     // Ability scores
-    document.getElementById('stats-grid').innerHTML = STATS.map(k=>`
+    const detailAbilityOrder = ['str','dex','con','int','wis','cha'];
+    document.getElementById('stats-grid').innerHTML = detailAbilityOrder.map(k=>`
       <div class="stat-box">
         <div class="stat-name">${STAT_ES[k].toUpperCase()}</div>
         <div class="stat-mod">${fmt(h.ability_modifiers[k])}</div>
