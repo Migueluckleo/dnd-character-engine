@@ -9,6 +9,7 @@ Registro retroactivo del proyecto. El código actual es la fuente principal de v
 - Se reemplazaron las acciones siempre visibles/hover por un botón táctil de tres puntos verticales que despliega `Editar` y `Eliminar`.
 - Se aplicó el divider rojo tokenizado (`outline 4px`, `outline-offset -2px`) dentro de la card de personaje.
 - Se ajustó la tipografía del roster card al spec refinado: título `Source Serif Pro` 20px regular, raza/clase 10px italic, atributos `Source Sans 3` 14px regular y descripción `Source Sans Pro` 14px regular.
+- Se ajustó el header interno de la card: separador `•` en `Source Serif Pro` 10px regular color `#110000` y menú de dots en caja `24x24` con vector visual `3x18` color `#720000`.
 - El divider de la card de personaje ahora usa degradado y taper visual para estrecharse/desvanecerse hacia la derecha.
 - Se escapó el texto dinámico de nombre, raza, clase y biografía en el render del roster para evitar que datos del personaje rompan el HTML.
 

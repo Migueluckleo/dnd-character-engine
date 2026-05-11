@@ -3843,6 +3843,17 @@
     font-weight: 400;
   }
 
+  .roster-card .rc-sub span {
+    display: inline-block;
+    margin: 0 4px;
+    color: #110000;
+    font-family: "Source Serif Pro", "Source Serif 4", Georgia, serif;
+    font-size: 10px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1;
+  }
+
   .roster-card .rc-divider {
     height: 5px;
     margin: 0 0 18px;
@@ -3897,11 +3908,14 @@
   }
 
   .roster-card .rc-menu-btn {
-    display: grid;
-    place-items: center;
-    width: 32px;
-    min-width: 32px;
-    height: 42px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4.5px;
+    width: 24px;
+    min-width: 24px;
+    height: 24px;
     padding: 0;
     border: 0;
     background: transparent;
@@ -3911,10 +3925,10 @@
 
   .roster-card .rc-menu-btn span {
     display: block;
-    width: 5px;
-    height: 5px;
+    width: 3px;
+    height: 3px;
     border-radius: 999px;
-    background: currentColor;
+    background: #720000;
   }
 
   .roster-card .rc-actions {
