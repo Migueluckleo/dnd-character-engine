@@ -104,7 +104,7 @@
         <div class="character-detail-header">
           <button class="detail-back" onclick="closeCharacterDetail()" aria-label="Volver a personajes">‹ <span>Atrás</span></button>
           <div class="detail-title" id="detail-name">Personaje</div>
-          <button class="detail-roll" onclick="rollCharacterDie()">Tirar Dado</button>
+          <button class="detail-roll" onclick="rollCharacterDie()">Tirar dado</button>
         </div>
 
         <div class="detail-tabs" role="tablist" aria-label="Detalle del personaje">
@@ -167,14 +167,16 @@
             </div>
             <button class="detail-hp-adjust-btn" onclick="openHpAdjustModal()">Ajustar puntos de golpe</button>
           </section>
-          <section class="detail-bio">
-            <div class="detail-section-title">Biografía <span>⌄</span></div>
-            <p id="detail-bio-text">Selecciona un personaje para ver su historia.</p>
-          </section>
-          <div class="detail-hidden-values" aria-hidden="true">
-            <span id="s-level">—</span><span id="s-prof">—</span><span id="s-init">—</span><span id="s-hp">—</span>
-            <span id="s-pp">—</span><span id="s-pi">—</span><span id="s-pins">—</span>
-          </div>
+        </div>
+
+        <section class="detail-bio">
+          <div class="detail-section-title">Biografía <span>⌄</span></div>
+          <div id="detail-bio-text">Selecciona un personaje para ver su historia.</div>
+        </section>
+
+        <div class="detail-hidden-values" aria-hidden="true">
+          <span id="s-level">—</span><span id="s-prof">—</span><span id="s-init">—</span><span id="s-hp">—</span>
+          <span id="s-pp">—</span><span id="s-pi">—</span><span id="s-pins">—</span>
         </div>
 
         <div class="detail-tab-panel" id="detail-extra-panel" style="display:none"></div>
@@ -4834,12 +4836,6 @@ function hydrateCharacterDetail(c, h) {
   const raceName = RACE_NAME_ES[raceNameRaw] ?? raceNameRaw;
   const bgName = BG_NAME_ES[bgNameRaw] ?? bgNameRaw;
   const level = h.total_level ?? cls?.class_level ?? 1;
-  const bioParts = [
-    c.personality_traits,
-    c.ideals ? `Ideal: ${c.ideals}` : '',
-    c.bonds ? `Vinculo: ${c.bonds}` : '',
-    c.flaws ? `Defecto: ${c.flaws}` : '',
-  ].filter(Boolean);
   const xp = c.xp ?? 0;
   const curLevelXp = DETAIL_XP[level] ?? 0;
   const nextLevelXp = DETAIL_XP[Math.min(20, level + 1)] ?? curLevelXp;
@@ -4848,9 +4844,21 @@ function hydrateCharacterDetail(c, h) {
     : 100;
 
   document.getElementById('detail-name').textContent = c.name ?? 'Personaje';
-  document.getElementById('detail-bio-text').textContent = bioParts.length
-    ? bioParts.join(' ')
-    : `${c.name ?? 'Este personaje'} es ${raceName}, ${clsName} nivel ${level}, con trasfondo ${bgName}.`;
+  const bioEl = document.getElementById('detail-bio-text');
+  if (bioEl) {
+    const bullets = [
+      ['Ideal', c.ideals],
+      ['Vínculo', c.bonds],
+      ['Defecto', c.flaws],
+    ].filter(([, value]) => value);
+    const intro = c.personality_traits
+      ? escapeText(c.personality_traits)
+      : escapeText(`${c.name ?? 'Este personaje'} es ${raceName}, ${clsName} nivel ${level}, con trasfondo ${bgName}.`);
+    bioEl.innerHTML = `
+      <p>${intro}</p>
+      ${bullets.length ? `<ul>${bullets.map(([label, value]) => `<li><strong>${escapeText(label)}:</strong> ${escapeText(value)}</li>`).join('')}</ul>` : ''}
+    `;
+  }
   document.getElementById('detail-xp-current').textContent = xp.toLocaleString();
   document.getElementById('detail-xp-next').textContent = level >= 20 ? 'Nivel max.' : nextLevelXp.toLocaleString();
   document.getElementById('detail-xp-fill').style.width = `${xpPct}%`;
@@ -5354,6 +5362,50 @@ function itemDrawerMetaRows(item) {
   return rows.slice(0, 5);
 }
 
+function itemDrawerRuleText(value) {
+  return String(value ?? '')
+    .replace(/\badvantage on\b/gi, 'tiradas de')
+    .replace(/\badvantage in\b/gi, 'tiradas de')
+    .replace(/\bimmunity to\b/gi, 'inmune contra')
+    .replace(/\bimmune to\b/gi, 'inmune contra')
+    .replace(/\bfire damage\b/gi, 'daño de fuego')
+    .replace(/\bpoison damage\b/gi, 'daño de veneno')
+    .replace(/\bcold damage\b/gi, 'daño de frío')
+    .replace(/\blightning damage\b/gi, 'daño de relámpago')
+    .replace(/\bIntimidation\b/g, 'intimidación')
+    .replace(/\bStealth\b/g, 'sigilo')
+    .replace(/\bPerception\b/g, 'percepción')
+    .replace(/\bInvestigation\b/g, 'investigación')
+    .replace(/\bAthletics\b/g, 'atletismo')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function itemDrawerRule(item, chips = []) {
+  const props = item?.properties || {};
+  const explicitAdvantage = props.advantage || props.ventaja;
+  const explicitImmunity = props.immunity || props.immune || props.inmune;
+  const text = [props.effect, props.description, item?.description].filter(Boolean).join(' ');
+  const values = [];
+  if (explicitAdvantage) values.push(itemDrawerRuleText(explicitAdvantage));
+  const advantageMatch = text.match(/(?:Ventaja en|advantage on)\s+([^.;]+)/i);
+  if (advantageMatch) values.push(itemDrawerRuleText(advantageMatch[1]));
+  if (explicitImmunity) values.push(itemDrawerRuleText(`inmune contra ${explicitImmunity}`));
+  const immunityMatch = text.match(/(?:inmune(?: contra| a)?|immune to|immunity to)\s+([^.;]+)/i);
+  if (immunityMatch) values.push(itemDrawerRuleText(`inmune contra ${immunityMatch[1]}`));
+  const uniqueValues = [...new Set(values.filter(Boolean))];
+  if (uniqueValues.length) {
+    return { label: 'Ventaja', value: uniqueValues.join(', ') };
+  }
+  const attr = chips
+    .filter(chip => !/^Peso\b/i.test(chip) && !/^Valor\b/i.test(chip))
+    .join(', ');
+  return {
+    label: item?.item_type === 'magic_item' ? 'Atributo' : 'Atributo',
+    value: attr || itemTypeLabel(item),
+  };
+}
+
 function openItemDescriptionDrawer(encodedItemId) {
   const itemId = decodeURIComponent(String(encodedItemId ?? ''));
   const inv = [...(characterData?.inventory_items || []), ...detailInventoryCache]
@@ -5364,7 +5416,10 @@ function openItemDescriptionDrawer(encodedItemId) {
     return;
   }
   const name = itemLabel(item.name ?? itemId);
-  const chips = itemRuleChips(item).slice(0, 4);
+  const chips = itemRuleChips(item).slice(0, 7);
+  const rule = itemDrawerRule(item, chips);
+  const rarityKey = itemRarity(item);
+  const rarityText = rarityKey ? (ITEM_RARITY_THEME[rarityKey]?.label ?? rarityKey.replace(/_/g, ' ')) : '';
   const drawer = document.getElementById('item-description-drawer');
   drawer.setAttribute('aria-hidden', 'false');
   drawer.classList.add('open');
@@ -5379,17 +5434,18 @@ function openItemDescriptionDrawer(encodedItemId) {
         <div class="item-description-copy">
           <div>
             <h3>${escapeText(name)}</h3>
-            <p>${escapeText(itemTypeLabel(item))}${item.rarity ? `, ${escapeText(ITEM_RARITY_THEME[item.rarity]?.label?.toLowerCase() ?? item.rarity)}` : ''}</p>
+            <p>${escapeText(itemTypeLabel(item))}${rarityText ? `, ${escapeText(rarityText)}` : ''}</p>
           </div>
-          ${chips.length ? `<div class="item-description-rule">${chips.map((chip, index) => index === 0 ? `<strong>${escapeText(chip)}</strong>` : `<span>${escapeText(chip)}</span>`).join('')}</div>` : ''}
+          <div class="item-description-divider" aria-hidden="true"></div>
+          ${rule.value ? `<div class="item-description-rule"><strong>${escapeText(rule.label)}</strong><span>${escapeText(rule.value)}</span></div>` : ''}
         </div>
         <div class="item-description-price">
-          <small>PO</small>
+          <small>💰 PO</small>
           <strong>${itemDrawerPrice(item)}</strong>
         </div>
       </section>
       <section class="item-description-body">
-        <h3>Descripción</h3>
+        <h3>Description</h3>
         <p>${escapeText(itemDescription(item))}</p>
       </section>
     </div>`;

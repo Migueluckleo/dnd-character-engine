@@ -9,12 +9,13 @@
 - El wizard de creación está orientado a mobile-first y debe seguir `docs/Create Character.pdf` y el Figma `DM-Dnd-App--Copy-`.
 - La documentación viva principal está en `docs/requirements.md`, `docs/plan.md`, `docs/tasks.md`, `.claude.md`, `CHANGELOG.md` y este archivo.
 
-## Últimos cambios realizados (2026-05-11) — Figma specs y hoja de personaje abierto (US-117 / US-125 / US-146)
+## Últimos cambios realizados (2026-05-12) — Réplica de pantalla de personaje abierto (US-117 / US-125 / US-146)
 
 ### Qué se implementó
+- El header de personaje abierto sigue la composición de la captura/Figma: `Atrás` a la izquierda, eyebrow `Personaje` y nombre centrado, botón mini `Tirar dado` a la derecha.
 - La card principal de personaje abierto se reorganizó por secciones Figma: XP, métricas superiores, perfil/atributos, magia y puntos de golpe.
 - Orden superior vigente de la hoja: XP primero, luego `CA`, `Velocidad`, `B. Competencia`, luego penalización en sigilo si aplica, luego divider rojo.
-- El bloque XP + métricas + penalización opcional vive dentro de `.character-card-stats`, que implementa el componente Figma `--module-xp`. Mantener ahí los espaciados internos del spec: gap 8px, padding superior 16px, badge `Lvl` 32x32, barra XP 4px, métricas de 48px y penalización con icono informativo de 16px.
+- El bloque XP + métricas + penalización opcional vive dentro de `.character-card-stats`, que implementa el componente Figma `--module-xp`. Mantener ahí los espaciados internos controlados por la pantalla: badge `Lvl` 32x32, barra XP 4px, métricas de 56px y penalización con icono informativo de 16px.
 - Se agregaron dividers rojos degradados entre secciones y separadores internos verticales/horizontales en métricas, atributos y magia. Los dividers de ficha usan override específico `#detail-main-sheet .figma-red-divider.detail-section-divider` porque `.figma-red-divider` global puede ocultarlos si gana la cascada.
 - La grilla de atributos de la hoja debe conservar el orden explícito Figma: `FUE`, `DES`, `CON` / `INT`, `SAB`, `CAR`.
 - La hoja debe renderizar esas abreviaturas literalmente; no usar `STAT_ES[k]` porque eso devuelve nombres completos como Fuerza/Destreza/Constitución.
@@ -25,8 +26,13 @@
 - El bloque XP usa badge de nivel, barra de progreso, valores actual/siguiente y botón `Agregar experiencia` en la misma fila.
 - La imagen del personaje conserva upload, pero ahora el CTA se ve como botón circular de cámara en la esquina inferior izquierda.
 - La sección de PG muestra PG actuales, PG temporales, máximo, nota de temporales y botón de ajuste.
+- `Biografía` ya no vive dentro de `#detail-main-sheet`; ahora es una card parchment independiente debajo de la ficha principal. El render usa párrafo introductorio y lista con etiquetas rojas para `Ideal`, `Vínculo` y `Defecto`.
+- Hay una capa final CSS específica para `body.character-detail-mode` al final de `style.css` para evitar que reglas antiguas o tokens genéricos sobrescriban la pantalla de personaje abierto.
+- El modal de objeto `Descripción` debe mantener una regla destacada visible y multilínea: etiqueta `Ventaja` cuando detecte ventaja/inmunidad desde `properties.advantage`, `properties.ventaja`, `properties.immunity`, `properties.effect`, `properties.description` o `description`; si no, etiqueta `Atributo`. No volver a usar `white-space: nowrap`, `overflow:hidden` ni ellipsis en `.item-description-rule`.
+- La rareza del modal de objeto debe leerse con `itemRarity(item)` para aceptar `properties.rarity`; no depender solo de `item.rarity`.
 
 ### Archivos modificados
+- `ui.html`
 - `style.css`
 - `docs/requirements.md`
 - `docs/tasks.md`
@@ -37,6 +43,7 @@
 ### Validación realizada
 - Script inline de `ui.html`: correcto.
 - Balance de llaves CSS: correcto.
+- Typecheck: correcto.
 
 ### Pendientes inmediatos
 1. Validar visualmente en navegador contra las dos variantes del Figma: sin penalización y con penalización en sigilo.

@@ -2,6 +2,67 @@
 
 Registro retroactivo del proyecto. El código actual es la fuente principal de verdad; las fechas previas se basan en marcas de archivo y documentación disponible, por lo que algunas entradas se indican como estimadas.
 
+## [2026-05-12] - Modal de descripción de objeto multilínea
+
+### Cambios
+- Se ajustó el modal `Descripción` de inventario para replicar la referencia visual: overlay, hoja con esquinas superiores redondeadas, título grande, botón de cerrar mini, header de objeto, precio, regla destacada y card interna de descripción.
+- La regla destacada ahora usa etiqueta fija (`Ventaja` o `Atributo`) y valor completo con wrapping libre; ya no se trunca con `nowrap`, `overflow:hidden` ni `text-overflow`.
+- Se agregó extracción de regla destacada desde `properties.advantage`, `properties.ventaja`, `properties.immunity`, `properties.description`, `properties.effect` o `description`.
+- La rareza del modal ahora se lee desde `properties.rarity` además de campos directos, para objetos mágicos seeded como `magic_item`.
+- La descripción interna se renderiza como card parchment independiente con top/bottom strips.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+- `docs/requirements.md`
+- `docs/tasks.md`
+- `docs/behavioral_design.md`
+
+### Historias de usuario relacionadas
+- US-127: Rich Item, Spell and Cantrip Descriptions
+- US-146: New Style Template UI from Figma
+
+### Fuente / certeza
+- Confirmado por código actual
+- Basado en captura de referencia compartida por el usuario
+- Validado con parse de JS inline, balance de CSS y `npm run typecheck`
+- Pendiente de validación visual en navegador contra Figma/Prototipo
+
+---
+
+## [2026-05-12] - Réplica de pantalla de personaje abierto
+
+### Cambios
+- Se ajustó el header de personaje abierto para replicar la referencia: `Atrás`, título centrado con eyebrow `Personaje`, nombre del personaje debajo y botón mini `Tirar dado`.
+- Se separó `Biografía` de la card principal para renderizarla como una card independiente con top/bottom strips, igual que la pantalla de referencia.
+- Se cambió el render de biografía a estructura de introducción + bullets con etiquetas rojas (`Ideal`, `Vínculo`, `Defecto`).
+- Se agregó una capa CSS final específica para `body.character-detail-mode` que fuerza la arquitectura visual de la captura: card principal de 358px, padding, separadores rojos, XP, métricas, penalización, imagen, atributos, magia, PG y navegación inferior.
+- Se ajustó el CTA de PG a botón regular Figma y los botones del header a tamaños mini.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+- `docs/requirements.md`
+- `docs/tasks.md`
+- `docs/behavioral_design.md`
+
+### Historias de usuario relacionadas
+- US-117: Figma-Matched Character Detail Microflow and Bottom Navigation
+- US-125: Figma-Matched Hit Point Summary and Adjustment Modals
+- US-146: New Style Template UI from Figma
+
+### Fuente / certeza
+- Confirmado por código actual
+- Basado en captura de referencia compartida por el usuario
+- Validado con parse de JS inline, balance de CSS y `npm run typecheck`
+- Pendiente de validación visual en navegador contra Figma/Prototipo
+
+---
+
 ## [2026-05-11] - Refinamiento de tokens desde Figma specs
 
 ### Cambios
