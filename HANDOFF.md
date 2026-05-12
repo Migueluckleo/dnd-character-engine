@@ -9,16 +9,17 @@
 - El wizard de creación está orientado a mobile-first y debe seguir `docs/Create Character.pdf` y el Figma `DM-Dnd-App--Copy-`.
 - La documentación viva principal está en `docs/requirements.md`, `docs/plan.md`, `docs/tasks.md`, `.claude.md`, `CHANGELOG.md` y este archivo.
 
-## Últimos cambios realizados (2026-05-11) — Hoja de personaje abierto (US-117 / US-125 / US-146)
+## Últimos cambios realizados (2026-05-11) — Figma specs y hoja de personaje abierto (US-117 / US-125 / US-146)
 
 ### Qué se implementó
-- La card principal de personaje abierto se reorganizó por secciones Figma: métricas superiores, XP, perfil/atributos, magia y puntos de golpe.
+- La card principal de personaje abierto se reorganizó por secciones Figma: XP, métricas superiores, perfil/atributos, magia y puntos de golpe.
 - Orden superior vigente de la hoja: XP primero, luego `CA`, `Velocidad`, `B. Competencia`, luego penalización en sigilo si aplica, luego divider rojo.
-- El bloque XP + métricas + penalización opcional vive dentro de `.character-card-stats`, que replica el frame Figma `character card stats`. Mantener ahí los espaciados internos: XP separado de métricas con 32px y penalización, cuando existe, separada de métricas con 24px.
+- El bloque XP + métricas + penalización opcional vive dentro de `.character-card-stats`, que implementa el componente Figma `--module-xp`. Mantener ahí los espaciados internos del spec: gap 8px, padding superior 16px, badge `Lvl` 32x32, barra XP 4px, métricas de 48px y penalización con icono informativo de 16px.
 - Se agregaron dividers rojos degradados entre secciones y separadores internos verticales/horizontales en métricas, atributos y magia. Los dividers de ficha usan override específico `#detail-main-sheet .figma-red-divider.detail-section-divider` porque `.figma-red-divider` global puede ocultarlos si gana la cascada.
 - La grilla de atributos de la hoja debe conservar el orden explícito Figma: `FUE`, `DES`, `CON` / `INT`, `SAB`, `CAR`.
 - La hoja debe renderizar esas abreviaturas literalmente; no usar `STAT_ES[k]` porque eso devuelve nombres completos como Fuerza/Destreza/Constitución.
 - El botón `Agregar experiencia` en la hoja es mini: 24px de alto, `Source Serif Pro` 10px regular, padding horizontal de 8px, fill `#720000`, texto `#FFFFFF`, sin borde y radius `4px`. No debe llevar clases genéricas `btn`, `btn-accent` ni `btn-full`, porque lo vuelven a convertir en botón regular/grande.
+- Tokens New Style confirmados desde Figma page `specs`: mini button `24px`, regular button `44px`, close button `32px`. Acciones mini de cards de inventario (`Eliminar`, `Vender`, `Equipar`, `Usar`) deben usar 24px de alto, radius 4px y padding horizontal de 8px.
 - La card interna de personaje abierto usa padding de 16px en eje X y 32px arriba/abajo. Los dividers tienen 16px de aire arriba y abajo por el `gap` del contenedor; no usar márgenes negativos.
 - El estado con penalización en sigilo se muestra como línea contextual bajo las métricas superiores cuando el equipo equipado trae `stealth_disadvantage`; el estado sin penalización no muestra esa línea. Para armadura, el copy visible debe decir `La armadura equipada causará penalización en tiradas de sigilo`.
 - El bloque XP usa badge de nivel, barra de progreso, valores actual/siguiente y botón `Agregar experiencia` en la misma fila.
@@ -26,7 +27,6 @@
 - La sección de PG muestra PG actuales, PG temporales, máximo, nota de temporales y botón de ajuste.
 
 ### Archivos modificados
-- `ui.html`
 - `style.css`
 - `docs/requirements.md`
 - `docs/tasks.md`

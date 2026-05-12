@@ -2,6 +2,35 @@
 
 Registro retroactivo del proyecto. El código actual es la fuente principal de verdad; las fechas previas se basan en marcas de archivo y documentación disponible, por lo que algunas entradas se indican como estimadas.
 
+## [2026-05-11] - Refinamiento de tokens desde Figma specs
+
+### Cambios
+- Se tomó la page `specs` de Figma como fuente de anatomía/tokens y la page `Prototipo` como fuente de composición de pantallas y reglas de uso.
+- Se ajustaron tokens New Style: botón mini a `24px`, botón regular a `44px` y botón de cierre de modal a `32px`.
+- Se alineó `.character-card-stats` con el componente Figma `--module-xp`: gap interno `8px`, padding superior `16px`, badge `Lvl` de `32x32`, tipografía XP `Source Serif Pro` 12px y barra de progreso de `4px`.
+- Se corrigieron tipografías de la hoja abierta: valores de métricas y modificadores en `Source Serif Pro`, etiquetas de atributos en `Source Sans 3` 14px y valores rojos `#720000`.
+- Se normalizaron acciones mini dentro de cards de inventario (`Eliminar`, `Vender`, `Equipar` / `Usar`) a altura `24px`, radio `4px`, fuente `Source Serif Pro` 10px y padding horizontal de `8px`.
+- Se agregó el icono contextual de información al estado de penalización en sigilo, siguiendo el patrón visual del spec.
+
+### Archivos modificados
+- `style.css`
+- `docs/requirements.md`
+- `docs/tasks.md`
+- `docs/behavioral_design.md`
+- `HANDOFF.md`
+- `CHANGELOG.md`
+
+### Historias de usuario relacionadas
+- US-146: New Style Template UI from Figma
+
+### Fuente / certeza
+- Confirmado por código actual
+- Confirmado por Figma page `specs`
+- Basado en aclaración del usuario sobre pages `specs` y `Prototipo`
+- Pendiente de validación visual en navegador contra Figma
+
+---
+
 ## [2026-05-11] - Ajuste Figma de card de personaje en roster
 
 ### Cambios

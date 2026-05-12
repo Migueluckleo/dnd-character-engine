@@ -3536,9 +3536,9 @@
   --figma-card-strip-height: 5px;
   --figma-control-height: 44px;
   --figma-button-mini-width: 80px;
-  --figma-button-mini-height: 32px;
-  --figma-button-regular-height: 48px;
-  --figma-button-close-size: 64px;
+  --figma-button-mini-height: 24px;
+  --figma-button-regular-height: 44px;
+  --figma-button-close-size: 32px;
   --figma-nav-item-height: 31px;
   --figma-tab-height: 49px;
   --figma-avatar-width: 139px;
@@ -4096,12 +4096,14 @@
   .character-card-stats {
     display: flex;
     flex-direction: column;
-    gap: 0;
+    gap: 8px;
     margin: 0;
+    padding-top: 16px;
+    border-radius: 16px;
   }
 
   .character-card-stats .detail-xp-card {
-    margin: 0 0 32px;
+    margin: 0;
   }
 
   .character-card-stats .detail-combat-grid {
@@ -4109,7 +4111,7 @@
   }
 
   .character-card-stats .detail-stealth-penalty {
-    margin: 24px 0 0;
+    margin: 0;
   }
 
   .character-card-stats .detail-stealth-penalty[hidden] {
@@ -4124,8 +4126,8 @@
   }
 
   .detail-combat-grid .combat-box {
-    min-height: 56px;
-    padding: 0 10px;
+    min-height: 48px;
+    padding: 4px;
     background: transparent;
     border: 0;
     border-radius: 0;
@@ -4137,9 +4139,7 @@
 
   .detail-combat-grid .combat-box .lbl,
   .detail-hp-label,
-  .detail-hp-sub,
-  .xp-label,
-  .xp-row {
+  .detail-hp-sub {
     color: var(--ns-text);
     font-family: "Source Sans 3", Arial, sans-serif;
     font-size: 14px;
@@ -4151,8 +4151,17 @@
   .detail-combat-grid .combat-box .val,
   .detail-hp-value {
     color: var(--ns-red);
-    font-family: "Source Sans 3", Arial, sans-serif;
+    font-family: "Source Serif Pro", "Source Serif 4", Georgia, serif;
     font-size: 16px;
+    font-weight: 400;
+    line-height: 1.15;
+  }
+
+  .xp-label,
+  .xp-row {
+    color: var(--ns-text);
+    font-family: "Source Serif Pro", "Source Serif 4", Georgia, serif;
+    font-size: 12px;
     font-weight: 400;
     line-height: 1.15;
   }
@@ -4167,6 +4176,23 @@
     text-align: center;
   }
 
+  .detail-stealth-penalty:not([hidden]) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .detail-stealth-penalty::before {
+    content: "";
+    width: 16px;
+    height: 16px;
+    flex: 0 0 16px;
+    background: var(--ns-red);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M11 17h2v-6h-2v6Zm1-8a1.25 1.25 0 1 0 0-2.5A1.25 1.25 0 0 0 12 9Zm0 13a10 10 0 1 1 0-20 10 10 0 0 1 0 20Z'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M11 17h2v-6h-2v6Zm1-8a1.25 1.25 0 1 0 0-2.5A1.25 1.25 0 0 0 12 9Zm0 13a10 10 0 1 1 0-20 10 10 0 0 1 0 20Z'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+
   .detail-stealth-penalty strong {
     color: var(--ns-red);
     font-weight: 700;
@@ -4174,7 +4200,7 @@
 
   .detail-xp-card {
     display: grid;
-    grid-template-columns: 48px minmax(0, 1fr) auto;
+    grid-template-columns: 32px minmax(0, 1fr) auto;
     gap: 16px;
     align-items: center;
     margin: 0;
@@ -4183,8 +4209,8 @@
   .detail-level-badge {
     display: grid;
     place-items: center;
-    width: 48px;
-    height: 48px;
+    width: 32px;
+    height: 32px;
     border-radius: 999px;
     background: var(--ns-red);
     color: var(--figma-color-text-inverse);
@@ -4192,24 +4218,24 @@
   }
 
   .detail-level-badge span {
-    font-family: "Source Sans 3", Arial, sans-serif;
-    font-size: 10px;
+    font-family: "Source Serif Pro", "Source Serif 4", Georgia, serif;
+    font-size: 7px;
   }
 
   .detail-level-badge strong {
-    font-family: "Prata", Georgia, serif;
-    font-size: 18px;
+    font-family: "Source Serif Pro", "Source Serif 4", Georgia, serif;
+    font-size: 13.5px;
     font-weight: 400;
   }
 
   .detail-xp-content {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
   }
 
   .xp-track {
-    height: 5px;
+    height: 4px;
     border-radius: 999px;
     background: #d9d9d9;
   }
@@ -4225,9 +4251,10 @@
 
   .detail-xp-card .detail-xp-btn {
     min-width: 114px;
-    min-height: 32px;
+    min-height: 24px;
     padding: 6px 10px;
-    font-size: 12px;
+    font-family: "Source Serif Pro", "Source Serif 4", Georgia, serif;
+    font-size: 10px;
     white-space: nowrap;
   }
 
@@ -4321,14 +4348,14 @@
   .detail-stat-grid .stat-name {
     color: var(--ns-text);
     font-family: "Source Sans 3", Arial, sans-serif;
-    font-size: 10px;
+    font-size: 14px;
     letter-spacing: 0;
     text-transform: none;
   }
 
   .detail-stat-grid .stat-mod {
     color: var(--ns-red);
-    font-family: "Source Sans 3", Arial, sans-serif;
+    font-family: "Source Serif Pro", "Source Serif 4", Georgia, serif;
     font-size: 16px;
     font-weight: 400;
   }
@@ -4664,13 +4691,13 @@
 
   .inventory-remove-btn,
   .inventory-sell-btn {
-    min-width: 103px;
-    min-height: 48px;
+    min-width: 64px;
+    min-height: var(--figma-button-mini-height);
     border: 0;
-    border-radius: 8px;
+    border-radius: var(--figma-radius-control);
     cursor: pointer;
     font-family: var(--figma-font-serif);
-    font-size: 16px;
+    font-size: 10px;
   }
 
   .inventory-remove-btn {
@@ -4694,6 +4721,22 @@
   .inventory-equip-btn.equipped {
     background: transparent;
     color: var(--ns-red);
+  }
+
+  .inventory-card-actions .inventory-equip-btn,
+  .inventory-card-actions .inventory-remove-btn,
+  .inventory-card-actions .inventory-sell-btn {
+    width: auto;
+    min-width: 0;
+    height: var(--figma-button-mini-height);
+    min-height: var(--figma-button-mini-height);
+    max-height: var(--figma-button-mini-height);
+    padding: 0 8px;
+    border-radius: var(--figma-radius-control);
+    font-family: var(--figma-font-serif);
+    font-size: 10px;
+    font-weight: 400;
+    line-height: 1;
   }
 
   .placeholder-shell,
@@ -4816,7 +4859,7 @@
     align-items: center;
     justify-content: center;
     min-height: var(--figma-button-regular-height);
-    border-radius: var(--figma-radius-card);
+    border-radius: var(--figma-radius-control);
     border: 1px solid transparent;
     cursor: pointer;
     font-family: var(--figma-font-serif);
@@ -5208,6 +5251,11 @@
   #detail-main-sheet .detail-hp-card {
     background: transparent;
     border-radius: 0;
+  }
+
+  #detail-main-sheet .detail-combat-grid .combat-box {
+    min-height: 48px;
+    padding: 4px;
   }
 
   #detail-main-sheet .detail-combat-grid .combat-box:not(:last-child),
