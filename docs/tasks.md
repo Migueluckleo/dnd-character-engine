@@ -610,6 +610,7 @@
 - **Notas 2026-05-12:** La pantalla de personaje abierto se ajustó contra captura de referencia: header de tres columnas con eyebrow `Personaje`, `Tirar dado` mini, card principal separada de la card `Biografía`, y render de biografía como párrafo + bullets `Ideal`/`Vínculo`/`Defecto`. Validado con parse de JS, balance CSS y typecheck.
 - **Notas 2026-05-12:** El modal `Descripción` de objetos fue ajustado contra captura: header con arte/nombre/tipo/precio, regla destacada `Ventaja`/`Atributo` con wrap multilínea, rareza desde `properties.rarity`, y descripción como card parchment interna. Validado con parse de JS, balance CSS y typecheck.
 - **Notas 2026-05-12:** El header del modal `Descripción` se reestructuró como Figma `--module-item-header`: arte + `item summary`; `main information` contiene título/categoría y precio; debajo quedan divider rojo y `advantages`. Falta QA visual fina contra la page `specs`.
+- **Notas 2026-05-12:** Se corrigió la visibilidad de `Biografía` para que solo aparezca en el tab `Personaje`; también se fijó la navbar principal e interna con padding horizontal de 16px.
 - **Status:** `[~]`
 
 ---

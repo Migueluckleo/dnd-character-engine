@@ -4889,9 +4889,12 @@ function switchCharacterTab(tab, opts = {}) {
   document.getElementById(`detail-tab-${tab}`)?.classList.add('active');
   const main = document.getElementById('detail-main-sheet');
   const extra = document.getElementById('detail-extra-panel');
+  const bio = document.querySelector('.detail-bio');
   if (!main || !extra) return;
-  main.style.display = tab === 'sheet' ? '' : 'none';
-  extra.style.display = tab === 'sheet' ? 'none' : '';
+  const isSheetTab = tab === 'sheet';
+  main.style.display = isSheetTab ? '' : 'none';
+  extra.style.display = isSheetTab ? 'none' : '';
+  if (bio) bio.hidden = !isSheetTab;
   if (tab !== 'sheet' && !opts.skipRender) renderCharacterTab(tab);
 }
 

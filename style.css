@@ -3651,7 +3651,7 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0;
     min-height: 73px;
-    padding: 8px 8px calc(24px + env(safe-area-inset-bottom));
+    padding: 8px 16px calc(24px + env(safe-area-inset-bottom));
   }
 
   #sidebar nav a,
@@ -4951,7 +4951,7 @@
     min-height: var(--figma-nav-height);
     padding:
       var(--figma-space-xs)
-      var(--figma-space-xs)
+      var(--figma-space-md)
       calc(var(--figma-space-lg) + env(safe-area-inset-bottom));
   }
 
@@ -5629,6 +5629,10 @@
     padding: 32px 16px;
   }
 
+  body.character-detail-mode .detail-bio[hidden] {
+    display: none !important;
+  }
+
   body.character-detail-mode .detail-bio .detail-section-title {
     display: block;
     color: var(--figma-color-brand-primary);
@@ -5669,6 +5673,8 @@
   body.character-detail-mode .detail-tabs {
     grid-template-columns: 82px 82px 82px 82px 62px;
     justify-content: center;
+    padding-right: 16px;
+    padding-left: 16px;
   }
 }
 

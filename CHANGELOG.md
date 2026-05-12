@@ -2,6 +2,33 @@
 
 Registro retroactivo del proyecto. El código actual es la fuente principal de verdad; las fechas previas se basan en marcas de archivo y documentación disponible, por lo que algunas entradas se indican como estimadas.
 
+## [2026-05-12] - Visibilidad de biografía y padding de navbar
+
+### Cambios
+- Se corrigió la navegación de la hoja de personaje para que la card `Biografía` solo se muestre en el tab `Personaje`.
+- Al cambiar a `Inventario`, `Habilidades`, `Conjuros` o `Diario`, la biografía queda oculta junto con la ficha principal.
+- Se ajustó la navegación inferior a `16px` de padding horizontal en la navbar principal y en la navbar interna de personaje.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+- `docs/requirements.md`
+- `docs/tasks.md`
+- `docs/behavioral_design.md`
+
+### Historias de usuario relacionadas
+- US-117: Figma-Matched Character Detail Microflow and Bottom Navigation
+- US-146: New Style Template UI from Figma
+
+### Fuente / certeza
+- Confirmado por código actual
+- Basado en feedback visual del usuario
+- Pendiente de validación visual en navegador contra Figma/Prototipo
+
+---
+
 ## [2026-05-12] - Arquitectura `--module-item-header` en modal de objeto
 
 ### Cambios

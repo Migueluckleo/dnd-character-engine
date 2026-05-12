@@ -27,6 +27,8 @@
 - La imagen del personaje conserva upload, pero ahora el CTA se ve como botón circular de cámara en la esquina inferior izquierda.
 - La sección de PG muestra PG actuales, PG temporales, máximo, nota de temporales y botón de ajuste.
 - `Biografía` ya no vive dentro de `#detail-main-sheet`; ahora es una card parchment independiente debajo de la ficha principal. El render usa párrafo introductorio y lista con etiquetas rojas para `Ideal`, `Vínculo` y `Defecto`.
+- `Biografía` pertenece solo al tab `Personaje`. `switchCharacterTab()` debe ocultar `.detail-bio` cuando el usuario cambia a `Inventario`, `Habilidades`, `Conjuros` o `Diario`.
+- Las navbars New Style deben conservar `16px` de padding horizontal, tanto en la navegación principal inferior como en la navegación interna de personaje.
 - Hay una capa final CSS específica para `body.character-detail-mode` al final de `style.css` para evitar que reglas antiguas o tokens genéricos sobrescriban la pantalla de personaje abierto.
 - El modal de objeto `Descripción` debe mantener una regla destacada visible y multilínea: etiqueta `Ventaja` cuando detecte ventaja/inmunidad desde `properties.advantage`, `properties.ventaja`, `properties.immunity`, `properties.effect`, `properties.description` o `description`; si no, etiqueta `Atributo`. No volver a usar `white-space: nowrap`, `overflow:hidden` ni ellipsis en `.item-description-rule`.
 - La rareza del modal de objeto debe leerse con `itemRarity(item)` para aceptar `properties.rarity`; no depender solo de `item.rarity`.
