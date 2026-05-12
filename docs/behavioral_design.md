@@ -478,6 +478,7 @@
 - US146.4: Los colores, tipografías, tamaños, espacios, radios y sombras del template viven como tokens CSS derivados del Figma para evitar valores sueltos.
 - US146.5: Al tocar una tarjeta de inventario, se abre el drawer `Descripción` con arte del ítem, nombre, tipo/rareza, valor, atributos clave y descripción completa.
 - US146.5a: En el modal `Descripción`, la regla destacada debe mostrar etiqueta (`Ventaja` o `Atributo`) y valor completo. Los textos largos como ventajas, inmunidades o atributos múltiples pueden ocupar varios renglones; no deben truncarse ni ocultarse.
+- US146.5b: El header del modal `Descripción` debe mapear al componente Figma `--module-item-header`: arte a la izquierda, `item summary` a la derecha, `main information` con `titleAndCategory` + `price`, divider rojo y bloque `advantages`. El precio no debe separarse como una tercera columna independiente.
 - US146.6: La migración visual no rompe autenticación, apertura de personaje, carga de imagen, inventario, dados, habilidades, conjuros ni llamadas API.
 - US146.7: Cualquier pantalla secundaria no migrada al nuevo template se mantiene como pendiente explícito de validación visual.
 
@@ -487,6 +488,7 @@
 
 | Fecha | Cambio | US relacionada |
 |---|---|---|
+| 2026-05-12 | US-146 extendida — modal `Descripción` alineado a arquitectura Figma `--module-item-header` | US-127 / US-146 |
 | 2026-05-12 | US-146 extendida — modal `Descripción` de objeto con regla destacada multilínea, rareza desde properties y card interna de descripción | US-127 / US-146 |
 | 2026-05-12 | US-146 extendida — réplica de pantalla de personaje abierto con header, ficha principal y biografía como card independiente | US-117 / US-125 / US-146 |
 | 2026-05-11 | US-146 refinada desde Figma `specs` — tokens mini/regular/close, `.character-card-stats` alineado a `--module-xp` y acciones mini de inventario | US-146 |

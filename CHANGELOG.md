@@ -2,6 +2,34 @@
 
 Registro retroactivo del proyecto. El código actual es la fuente principal de verdad; las fechas previas se basan en marcas de archivo y documentación disponible, por lo que algunas entradas se indican como estimadas.
 
+## [2026-05-12] - Arquitectura `--module-item-header` en modal de objeto
+
+### Cambios
+- Se reestructuró el encabezado del modal `Descripción` para seguir la anatomía Figma `--module-item-header`.
+- El header del objeto ahora usa arte a la izquierda y `item summary` a la derecha.
+- Dentro de `item summary`, `main information` agrupa título/categoría y precio; debajo se renderizan divider rojo y regla destacada (`Ventaja` / `Atributo`).
+- Se evitaron columnas flotantes para precio/regla, manteniendo wrapping libre para nombres, rarezas y ventajas largas.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+- `docs/requirements.md`
+- `docs/tasks.md`
+- `docs/behavioral_design.md`
+
+### Historias de usuario relacionadas
+- US-127: Rich Item, Spell and Cantrip Descriptions
+- US-146: New Style Template UI from Figma
+
+### Fuente / certeza
+- Confirmado por código actual
+- Basado en captura Figma `--module-item-header` compartida por el usuario
+- Pendiente de validación visual en navegador contra Figma/Prototipo
+
+---
+
 ## [2026-05-12] - Modal de descripción de objeto multilínea
 
 ### Cambios

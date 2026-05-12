@@ -5429,19 +5429,21 @@ function openItemDescriptionDrawer(encodedItemId) {
         <h2 id="item-description-title">Descripción</h2>
         <button class="item-description-close" onclick="closeItemDescriptionDrawer()" aria-label="Cerrar">×</button>
       </div>
-      <section class="item-description-hero">
+      <section class="item-description-hero module-item-header">
         <div class="item-description-art">${itemImageHtml(item, name)}</div>
-        <div class="item-description-copy">
-          <div>
-            <h3>${escapeText(name)}</h3>
-            <p>${escapeText(itemTypeLabel(item))}${rarityText ? `, ${escapeText(rarityText)}` : ''}</p>
+        <div class="item-description-summary">
+          <div class="item-description-main-info">
+            <div class="item-description-title-category">
+              <h3>${escapeText(name)}</h3>
+              <p>${escapeText(itemTypeLabel(item))}${rarityText ? `, ${escapeText(rarityText)}` : ''}</p>
+            </div>
+            <div class="item-description-price">
+              <small>💰 PO</small>
+              <strong>${itemDrawerPrice(item)}</strong>
+            </div>
           </div>
           <div class="item-description-divider" aria-hidden="true"></div>
           ${rule.value ? `<div class="item-description-rule"><strong>${escapeText(rule.label)}</strong><span>${escapeText(rule.value)}</span></div>` : ''}
-        </div>
-        <div class="item-description-price">
-          <small>💰 PO</small>
-          <strong>${itemDrawerPrice(item)}</strong>
         </div>
       </section>
       <section class="item-description-body">

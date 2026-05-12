@@ -5124,8 +5124,8 @@
 
   .item-description-hero {
     display: grid;
-    grid-template-columns: var(--figma-item-art-md) 1fr auto;
-    gap: var(--figma-space-md);
+    grid-template-columns: var(--figma-item-art-md) minmax(0, 1fr);
+    gap: var(--figma-space-xs);
     align-items: center;
     margin-bottom: var(--figma-space-2xl);
   }
@@ -5139,24 +5139,41 @@
     box-shadow: none;
   }
 
-  .item-description-copy {
+  .item-description-summary {
     display: flex;
     min-width: 0;
     flex-direction: column;
     gap: var(--figma-space-xs);
   }
 
-  .item-description-copy h3 {
-    overflow: hidden;
+  .item-description-main-info {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: var(--figma-space-xs);
+  }
+
+  .item-description-title-category {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .item-description-title-category h3 {
+    overflow: visible;
     color: var(--figma-color-brand-primary);
     font-family: var(--figma-font-serif);
     font-size: var(--figma-font-size-display);
     font-weight: 400;
     line-height: 1.1;
-    text-overflow: ellipsis;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 
-  .item-description-copy p {
+  .item-description-title-category p {
     color: var(--figma-color-text-primary);
     font-family: var(--figma-font-serif);
     font-size: var(--figma-font-size-md);
@@ -5165,15 +5182,16 @@
   }
 
   .item-description-rule {
-    display: flex;
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
     gap: var(--figma-space-xs);
-    align-items: baseline;
-    overflow: hidden;
-    border-top: 4px solid var(--figma-color-brand-primary);
-    padding-top: var(--figma-space-lg);
+    align-items: start;
+    overflow: visible;
+    border-top: 0;
+    padding-top: 0;
     color: var(--figma-color-brand-primary);
     font-size: var(--figma-font-size-sm);
-    white-space: nowrap;
+    white-space: normal;
   }
 
   .item-description-rule strong {
@@ -5181,15 +5199,22 @@
   }
 
   .item-description-rule span {
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   .item-description-price {
-    display: grid;
-    place-items: center;
-    min-width: 44px;
+    display: flex;
+    min-width: 36px;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 4px;
     color: var(--figma-color-brand-primary);
+    text-align: right;
   }
 
   .item-description-price small {
@@ -5703,9 +5728,9 @@
 
   .item-description-hero {
     display: grid;
-    grid-template-columns: 86px minmax(0, 1fr) 44px;
-    gap: 16px;
-    align-items: start;
+    grid-template-columns: 86px minmax(0, 1fr);
+    gap: 8px;
+    align-items: center;
     margin-bottom: 60px;
   }
 
@@ -5728,14 +5753,30 @@
     display: none;
   }
 
-  .item-description-copy {
+  .item-description-summary {
     display: flex;
     min-width: 0;
     flex-direction: column;
+    justify-content: center;
     gap: 8px;
   }
 
-  .item-description-copy h3 {
+  .item-description-main-info {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .item-description-title-category {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .item-description-title-category h3 {
     overflow: visible;
     color: var(--figma-color-brand-primary);
     font-family: var(--figma-font-serif);
@@ -5747,7 +5788,7 @@
     overflow-wrap: anywhere;
   }
 
-  .item-description-copy p {
+  .item-description-title-category p {
     color: var(--figma-color-text-primary);
     font-family: var(--figma-font-serif);
     font-size: 16px;
@@ -5775,7 +5816,7 @@
   .item-description-rule {
     display: grid;
     grid-template-columns: max-content minmax(0, 1fr);
-    gap: 12px;
+    gap: 8px;
     align-items: start;
     overflow: visible;
     border-top: 0;
@@ -5804,12 +5845,15 @@
   }
 
   .item-description-price {
-    display: grid;
-    justify-items: center;
-    align-content: start;
-    min-width: 44px;
+    display: flex;
+    min-width: 36px;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 4px;
     color: var(--figma-color-brand-primary);
-    text-align: center;
+    text-align: right;
   }
 
   .item-description-price small {
