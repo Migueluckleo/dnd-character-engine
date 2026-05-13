@@ -475,6 +475,8 @@
 - US146.2a: La card de personaje abierto se divide internamente con dividers rojos degradados visibles: XP, métricas superiores, estado opcional de penalización en sigilo, imagen/atributos, magia y PG. XP, métricas y penalización viven en `.character-card-stats`, que implementa la anatomía Figma `--module-xp`: espaciado interno controlado, badge `Lvl` 32x32, barra XP 4px, botón mini y métricas 3 columnas. Los estados con y sin penalización deben mantener la misma arquitectura, cambiando solo la línea contextual de penalización. La grilla de atributos debe leerse `FUE`, `DES`, `CON` / `INT`, `SAB`, `CAR`; el botón `Agregar experiencia` es mini de 24px alto con `Source Serif Pro` 10px regular y padding horizontal de 8px. La card interna usa padding 16px en X, 32px arriba/abajo y 16px de separación alrededor de dividers.
 - US146.2b: El header de personaje abierto usa composición de tres columnas: `Atrás` a la izquierda, eyebrow `Personaje` y nombre centrado, y botón mini `Tirar dado` a la derecha. La biografía es una card parchment independiente debajo de la ficha principal, con título `Biografía`, párrafo introductorio y bullets para `Ideal`, `Vínculo` y `Defecto`; solo debe mostrarse en el tab `Personaje`.
 - US146.3: Inventario usa tabs `Equipo`, `Mochila`, `Alijo`, card de `Carga` con monedas, slots vacíos punteados y cards parchment de objetos.
+- US146.3a: Las cards de objetos en `Equipo`, `Mochila` y `Alijo` nacen colapsadas para facilitar el escaneo; el caret expande/colapsa detalle inline y el tap sobre la card abre el modal `Descripción`.
+- US146.3b: `Mochila` sigue el spec visual `--module-inventory` / `--dndCharacterEngine-character-backpack`: tabs superiores, módulo `Carga`/PO/PP/PC, buscador, cards parchment con strips, status en header y gaps de 16px. El CTA `Agregar objeto` se muestra en el header superior del tab `Inventario`. Al abrir `Inventario`, el subtab inicial es `Mochila`.
 - US146.4: Los colores, tipografías, tamaños, espacios, radios y sombras del template viven como tokens CSS derivados del Figma para evitar valores sueltos.
 - US146.4a: Las navbars New Style usan padding horizontal de 16px. Sus columnas internas deben ser flexibles para respetar el ancho útil; no deben sumar el ancho total de pantalla antes de aplicar padding.
 - US146.5: Al tocar una tarjeta de inventario, se abre el drawer `Descripción` con arte del ítem, nombre, tipo/rareza, valor, atributos clave y descripción completa.
@@ -489,6 +491,8 @@
 
 | Fecha | Cambio | US relacionada |
 |---|---|---|
+| 2026-05-12 | US-146 extendida — `Mochila` homologada al spec `--module-inventory` y `--dndCharacterEngine-character-backpack` | US-127 / US-146 |
+| 2026-05-12 | US-146 ajustada — cards de inventario colapsadas por defecto en Equipo/Mochila/Alijo | US-127 / US-146 |
 | 2026-05-12 | US-146 ajustada — biografía solo visible en tab `Personaje` y navbar con padding horizontal de 16px | US-117 / US-146 |
 | 2026-05-12 | US-146 extendida — modal `Descripción` alineado a arquitectura Figma `--module-item-header` | US-127 / US-146 |
 | 2026-05-12 | US-146 extendida — modal `Descripción` de objeto con regla destacada multilínea, rareza desde properties y card interna de descripción | US-127 / US-146 |

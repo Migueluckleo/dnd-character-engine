@@ -34,6 +34,8 @@
 - El modal de objeto `Descripción` debe mantener una regla destacada visible y multilínea: etiqueta `Ventaja` cuando detecte ventaja/inmunidad desde `properties.advantage`, `properties.ventaja`, `properties.immunity`, `properties.effect`, `properties.description` o `description`; si no, etiqueta `Atributo`. No volver a usar `white-space: nowrap`, `overflow:hidden` ni ellipsis en `.item-description-rule`.
 - La rareza del modal de objeto debe leerse con `itemRarity(item)` para aceptar `properties.rarity`; no depender solo de `item.rarity`.
 - El header del modal `Descripción` debe conservar la anatomía Figma `--module-item-header`: arte del item a la izquierda; `item summary` a la derecha; `main information` con `titleAndCategory` y `price`; luego divider rojo y `advantages`. No volver a separar el precio como tercera columna independiente.
+- Las cards de inventario en `Equipo`, `Mochila` y `Alijo` deben nacer colapsadas para maximizar escaneo. El caret expande/colapsa el detalle inline; tocar la card completa sigue abriendo el modal `Descripción`.
+- La pantalla `Mochila` debe seguir el spec `--dndCharacterEngine-character-backpack`: tabs parchment, módulo `Carga`/PO/PP/PC, buscador `Buscar objeto` + botón `Buscar`, y cards de objeto con strips y gaps de 16px. La acción `Agregar objeto` vive en el header superior cuando el tab activo es `Inventario`, no como encabezado interno de Mochila. El subtab inicial de `Inventario` debe ser `Mochila`.
 
 ### Archivos modificados
 - `ui.html`

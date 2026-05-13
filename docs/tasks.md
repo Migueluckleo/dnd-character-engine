@@ -611,6 +611,8 @@
 - **Notas 2026-05-12:** El modal `Descripción` de objetos fue ajustado contra captura: header con arte/nombre/tipo/precio, regla destacada `Ventaja`/`Atributo` con wrap multilínea, rareza desde `properties.rarity`, y descripción como card parchment interna. Validado con parse de JS, balance CSS y typecheck.
 - **Notas 2026-05-12:** El header del modal `Descripción` se reestructuró como Figma `--module-item-header`: arte + `item summary`; `main information` contiene título/categoría y precio; debajo quedan divider rojo y `advantages`. Falta QA visual fina contra la page `specs`.
 - **Notas 2026-05-12:** Se corrigió la visibilidad de `Biografía` para que solo aparezca en el tab `Personaje`; también se fijó la navbar principal e interna con padding horizontal de 16px. La navbar interna ahora usa columnas flexibles para no invadir el padding.
+- **Notas 2026-05-12:** Las cards de inventario ahora nacen colapsadas en `Equipo`, `Mochila` y `Alijo` para mejorar escaneo; el caret expande el detalle inline y el tap de card mantiene el modal `Descripción`.
+- **Notas 2026-05-12:** `Mochila` fue homologada al spec visual: header con `Agregar objeto`, tabs parchment, módulo `Carga`/monedas, buscador, cards con strips, status en header y gaps de 16px. `Inventario` abre por defecto en `Mochila`. Falta QA visual fina contra Figma.
 - **Status:** `[~]`
 
 ---

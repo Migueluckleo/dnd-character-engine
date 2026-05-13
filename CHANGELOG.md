@@ -2,6 +2,38 @@
 
 Registro retroactivo del proyecto. El código actual es la fuente principal de verdad; las fechas previas se basan en marcas de archivo y documentación disponible, por lo que algunas entradas se indican como estimadas.
 
+## [2026-05-12] - Homologación visual de Mochila
+
+### Cambios
+- Se alineó la pantalla `Mochila` del inventario al Look & Feel del template Figma: tabs parchment, card de carga/monedas, buscador, cards de objetos y gaps de 16px.
+- El header de personaje ahora cambia el CTA derecho a `Agregar objeto` cuando el usuario está en el tab `Inventario`; en los demás tabs conserva `Tirar dado`.
+- Se eliminó el encabezado redundante interno de `Mochila`; la acción de agregar objeto vive en el header superior.
+- El subtab inicial de `Inventario` ahora es `Mochila`, para coincidir con la pantalla de referencia.
+- Se agregó buscador visual `Buscar objeto` + botón `Buscar` dentro de Mochila.
+- La card de carga/monedas se rediseñó como módulo parchment con barra de carga roja, divisor vertical y columnas PO/PP/PC.
+- Las cards de objetos se ajustaron con strips, cantidad, título serif, subtítulo italic, badge de estado en header y acciones inline en estado expandido.
+- La munición ahora muestra subtipo contextual (`Municion para arco`, `Municion para ballesta`, etc.) cuando el catálogo trae `properties.weapon_type`.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+- `docs/requirements.md`
+- `docs/tasks.md`
+- `docs/behavioral_design.md`
+
+### Historias de usuario relacionadas
+- US-127: Rich Item, Spell and Cantrip Descriptions
+- US-146: New Style Template UI from Figma
+
+### Fuente / certeza
+- Confirmado por código actual
+- Basado en captura/spec `--module-inventory` y `--dndCharacterEngine-character-backpack` compartidos por el usuario
+- Pendiente de validación visual en navegador contra Figma/Prototipo
+
+---
+
 ## [2026-05-12] - Cards de inventario colapsadas por defecto
 
 ### Cambios

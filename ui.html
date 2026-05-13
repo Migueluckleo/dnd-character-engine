@@ -104,7 +104,7 @@
         <div class="character-detail-header">
           <button class="detail-back" onclick="closeCharacterDetail()" aria-label="Volver a personajes">‹ <span>Atrás</span></button>
           <div class="detail-title" id="detail-name">Personaje</div>
-          <button class="detail-roll" onclick="rollCharacterDie()">Tirar dado</button>
+          <button class="detail-roll" id="detail-header-action" onclick="rollCharacterDie()">Tirar dado</button>
         </div>
 
         <div class="detail-tabs" role="tablist" aria-label="Detalle del personaje">
@@ -615,7 +615,8 @@ let characterData = null;
 let detailEquipmentChoices = {};
 let pendingUseItem = null;
 let detailInventoryCache = [];
-let detailInventoryMode = 'equipment';
+let detailInventoryMode = 'backpack';
+let detailBackpackSearch = '';
 let detailInventorySearch = '';
 let detailInventoryFilters = new Set(['weapon', 'armor', 'consumable', 'ammunition']);
 let pendingInventoryAddItemId = null;
@@ -4575,7 +4576,14 @@ function itemTypeLabel(item) {
   };
   if (item.item_type === 'weapon' && item.damage_dice) return `Arma ${weaponTraining(item).toLowerCase()} · ${weaponFamily(item)}`;
   if (item.item_type === 'armor') return item.armor_category === 'shield' ? 'Escudo' : `Armadura ${armorCategoryLabel(item.armor_category).toLowerCase()}`;
-  if (item.item_type === 'ammunition') return 'Municion';
+  if (item.item_type === 'ammunition') {
+    const ammoType = item.properties?.weapon_type || item.properties?.ammunition_type || '';
+    if (ammoType === 'bow') return 'Municion para arco';
+    if (ammoType === 'crossbow') return 'Municion para ballesta';
+    if (ammoType === 'sling') return 'Municion para honda';
+    if (ammoType === 'blowgun') return 'Municion para cerbatana';
+    return 'Municion';
+  }
   return map[item.item_type] ?? item.item_type ?? 'Equipo';
 }
 
@@ -4887,6 +4895,7 @@ function applyCharacterImage(dataUrl) {
 function switchCharacterTab(tab, opts = {}) {
   document.querySelectorAll('.detail-tabs button').forEach(b => b.classList.remove('active'));
   document.getElementById(`detail-tab-${tab}`)?.classList.add('active');
+  syncCharacterHeaderAction(tab);
   const main = document.getElementById('detail-main-sheet');
   const extra = document.getElementById('detail-extra-panel');
   const bio = document.querySelector('.detail-bio');
@@ -4896,6 +4905,24 @@ function switchCharacterTab(tab, opts = {}) {
   extra.style.display = isSheetTab ? 'none' : '';
   if (bio) bio.hidden = !isSheetTab;
   if (tab !== 'sheet' && !opts.skipRender) renderCharacterTab(tab);
+}
+
+function syncCharacterHeaderAction(tab) {
+  const action = document.getElementById('detail-header-action');
+  if (!action) return;
+  const header = action.closest('.character-detail-header');
+  const isInventory = tab === 'inventory';
+  header?.classList.toggle('inventory-header', isInventory);
+  action.classList.toggle('inventory-action', isInventory);
+  if (isInventory) {
+    action.textContent = 'Agregar objeto';
+    action.onclick = openInventoryAddObject;
+    action.setAttribute('aria-label', 'Agregar objeto al inventario');
+  } else {
+    action.textContent = 'Tirar dado';
+    action.onclick = rollCharacterDie;
+    action.setAttribute('aria-label', 'Tirar dado');
+  }
 }
 
 async function renderCharacterTab(tab) {
@@ -4951,7 +4978,7 @@ function renderDetailInventory(c) {
   const needsClassEquipment = equipmentGroupsForClass(classRef).length > 0
     && !localStorage.getItem(`dnd-class-equipment:${c.id}`)
     && !hasClassEquipmentSignature(items);
-  const active = detailInventoryMode || 'equipment';
+  const active = detailInventoryMode || 'backpack';
   return `
     <div class="inventory-section-shell">
       <div class="inventory-section-tabs" role="tablist" aria-label="Inventario">
@@ -4978,22 +5005,47 @@ function switchInventorySection(mode) {
   if (panel && characterData) panel.innerHTML = renderDetailInventory(characterData);
 }
 
+function refreshDetailInventoryPanel() {
+  const panel = document.getElementById('detail-extra-panel');
+  if (panel && characterData) panel.innerHTML = renderDetailInventory(characterData);
+}
+
+function setBackpackSearch(value) {
+  detailBackpackSearch = String(value ?? '');
+}
+
 function renderInventoryBackpackView(items) {
   const load = inventoryLoadSummary(items);
   const coins = inventoryCoinSummary(characterData || {});
+  const query = detailBackpackSearch.trim().toLowerCase();
+  const visibleItems = query
+    ? items.filter(inv => {
+        const item = inv.item || itemByRef(inv.item_id) || {};
+        const haystack = [
+          itemLabel(item.name ?? inv.item_id ?? ''),
+          itemTypeLabel(item),
+          itemDescription(item),
+          inventoryCardRows(item).flat().map(([, value]) => value).join(' '),
+        ].join(' ').toLowerCase();
+        return haystack.includes(query);
+      })
+    : items;
   return `
-    <div class="inventory-section-head">
-      <div>
-        <small>Mochila</small>
-        <strong>${items.length} objeto${items.length === 1 ? '' : 's'}</strong>
-      </div>
-      <button class="inventory-add-object-btn" onclick="openInventoryAddObject()">Agregar objeto</button>
-    </div>
     ${renderInventoryCarryCard(load, coins)}
-    ${items.length ? `
+    <div class="inventory-backpack-search">
+      <label class="inventory-search-field" aria-label="Buscar objeto">
+        <svg class="inventory-search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="11" cy="11" r="7"></circle>
+          <path d="M16.5 16.5 21 21"></path>
+        </svg>
+        <input value="${escapeText(detailBackpackSearch)}" placeholder="Buscar objeto" oninput="setBackpackSearch(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();refreshDetailInventoryPanel()}">
+      </label>
+      <button class="inventory-search-btn" onclick="refreshDetailInventoryPanel()">Buscar</button>
+    </div>
+    ${visibleItems.length ? `
       <div class="inventory-rich-list">
-        ${items.map(renderInventoryItemCard).join('')}
-      </div>` : '<div class="detail-empty">Sin objetos registrados.</div>'}`;
+        ${visibleItems.map(renderInventoryItemCard).join('')}
+      </div>` : `<div class="detail-empty">${items.length ? 'No encontramos objetos con esa búsqueda.' : 'Sin objetos registrados.'}</div>`}`;
 }
 
 function inventoryLoadSummary(items) {
@@ -5256,6 +5308,10 @@ function renderInventoryItemCard(inv, options = {}) {
     inv.is_equipped ? 'Equipado' : '',
     inv.is_attuned ? 'Sintonizado' : '',
   ].filter(Boolean);
+  const headerStatus = [
+    inv.is_equipped ? 'Equipado' : '',
+    inv.is_attuned ? 'Sintonizado' : '',
+  ].filter(Boolean);
   const itemRef = jsArg(inv.item_id ?? item.name ?? name);
   const detailRows = inventoryCardRows(item);
   const collapsed = options.expanded ? false : true;
@@ -5274,6 +5330,7 @@ function renderInventoryItemCard(inv, options = {}) {
           <strong>${escapeText(name)}</strong>
           <small>${escapeText(item.item_type ? itemTypeLabel(item) : 'Objeto')}</small>
         </div>
+        ${headerStatus.length ? `<div class="inventory-head-status">${headerStatus.map(s => `<em>${escapeText(s)}</em>`).join('')}</div>` : ''}
         <button class="inventory-collapse-btn" onclick="toggleInventoryCard(event, this)" aria-label="${collapsed ? 'Expandir objeto' : 'Colapsar objeto'}" aria-expanded="${String(!collapsed)}">${collapsed ? '▼' : '▲'}</button>
       </div>
       <div class="inventory-card-body">
