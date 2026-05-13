@@ -2,12 +2,40 @@
 
 Registro retroactivo del proyecto. El código actual es la fuente principal de verdad; las fechas previas se basan en marcas de archivo y documentación disponible, por lo que algunas entradas se indican como estimadas.
 
+## [2026-05-12] - Cards de inventario colapsadas por defecto
+
+### Cambios
+- Las cards de objetos del inventario ahora se renderizan colapsadas por defecto para permitir escanear más items en `Equipo`, `Mochila` y `Alijo`.
+- El botón de colapsar/expandir ahora inicia con caret hacia abajo, `aria-expanded="false"` y etiqueta accesible `Expandir objeto`.
+- Al expandir o colapsar una card, el botón actualiza texto, estado accesible y etiqueta (`Expandir objeto` / `Colapsar objeto`).
+- Tocar la card sigue abriendo el modal `Descripción`; el caret controla solo el contenido inline de la card.
+
+### Archivos modificados
+- `ui.html`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+- `docs/requirements.md`
+- `docs/tasks.md`
+- `docs/behavioral_design.md`
+
+### Historias de usuario relacionadas
+- US-127: Rich Item, Spell and Cantrip Descriptions
+- US-146: New Style Template UI from Figma
+
+### Fuente / certeza
+- Confirmado por código actual
+- Basado en feedback del usuario
+- Pendiente de validación visual en navegador contra Figma/Prototipo
+
+---
+
 ## [2026-05-12] - Visibilidad de biografía y padding de navbar
 
 ### Cambios
 - Se corrigió la navegación de la hoja de personaje para que la card `Biografía` solo se muestre en el tab `Personaje`.
 - Al cambiar a `Inventario`, `Habilidades`, `Conjuros` o `Diario`, la biografía queda oculta junto con la ficha principal.
 - Se ajustó la navegación inferior a `16px` de padding horizontal en la navbar principal y en la navbar interna de personaje.
+- Se corrigió la grilla interna de la navbar de personaje: dejó de usar columnas fijas que sumaban `390px` y ahora usa columnas flexibles dentro del ancho útil, respetando realmente el padding lateral.
 
 ### Archivos modificados
 - `ui.html`

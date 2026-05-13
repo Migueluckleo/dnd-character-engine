@@ -5258,6 +5258,7 @@ function renderInventoryItemCard(inv, options = {}) {
   ].filter(Boolean);
   const itemRef = jsArg(inv.item_id ?? item.name ?? name);
   const detailRows = inventoryCardRows(item);
+  const collapsed = options.expanded ? false : true;
   const actionCta = pack
     ? `<button class="inventory-equip-btn" onclick="useInventoryItem(event, '${itemRef}')">Abrir kit</button>`
     : usable
@@ -5266,14 +5267,14 @@ function renderInventoryItemCard(inv, options = {}) {
         ? `<button class="inventory-equip-btn ${inv.is_equipped ? 'equipped' : ''}" onclick="toggleInventoryEquip(event, '${itemRef}', ${inv.is_equipped ? 'false' : 'true'})">${inv.is_equipped ? 'Desequipar' : 'Equipar'}</button>`
         : '';
   return `
-    <article class="inventory-item-card ${options.compact ? 'inventory-slot-card' : ''}" onclick="openItemDescriptionDrawer('${itemRef}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openItemDescriptionDrawer('${itemRef}')}">
+    <article class="inventory-item-card ${options.compact ? 'inventory-slot-card' : ''} ${collapsed ? 'collapsed' : ''}" onclick="openItemDescriptionDrawer('${itemRef}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openItemDescriptionDrawer('${itemRef}')}">
       <div class="inventory-item-head">
         <span class="inventory-qty">x${displayQty}</span>
         <div class="inventory-item-title">
           <strong>${escapeText(name)}</strong>
           <small>${escapeText(item.item_type ? itemTypeLabel(item) : 'Objeto')}</small>
         </div>
-        <button class="inventory-collapse-btn" onclick="toggleInventoryCard(event, this)" aria-label="Colapsar objeto" aria-expanded="true">▲</button>
+        <button class="inventory-collapse-btn" onclick="toggleInventoryCard(event, this)" aria-label="${collapsed ? 'Expandir objeto' : 'Colapsar objeto'}" aria-expanded="${String(!collapsed)}">${collapsed ? '▼' : '▲'}</button>
       </div>
       <div class="inventory-card-body">
         <div class="figma-red-divider" aria-hidden="true"></div>
@@ -5318,6 +5319,7 @@ function toggleInventoryCard(event, button) {
   const collapsed = card.classList.toggle('collapsed');
   button.textContent = collapsed ? '▼' : '▲';
   button.setAttribute('aria-expanded', String(!collapsed));
+  button.setAttribute('aria-label', collapsed ? 'Expandir objeto' : 'Colapsar objeto');
 }
 
 async function deleteInventoryItem(event, itemId) {

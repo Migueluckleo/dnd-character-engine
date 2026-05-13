@@ -4068,7 +4068,7 @@
     width: min(390px, 100vw);
     min-height: 73px;
     margin: 0;
-    padding: 8px 8px calc(24px + env(safe-area-inset-bottom));
+    padding: 8px 16px calc(24px + env(safe-area-inset-bottom));
     transform: translateX(-50%);
     border-top: 1px solid var(--ns-brown);
     background:
@@ -5671,10 +5671,14 @@
   }
 
   body.character-detail-mode .detail-tabs {
-    grid-template-columns: 82px 82px 82px 82px 62px;
-    justify-content: center;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    justify-content: stretch;
     padding-right: 16px;
     padding-left: 16px;
+  }
+
+  body.character-detail-mode .detail-tabs button {
+    min-width: 0;
   }
 }
 

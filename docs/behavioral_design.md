@@ -476,7 +476,7 @@
 - US146.2b: El header de personaje abierto usa composición de tres columnas: `Atrás` a la izquierda, eyebrow `Personaje` y nombre centrado, y botón mini `Tirar dado` a la derecha. La biografía es una card parchment independiente debajo de la ficha principal, con título `Biografía`, párrafo introductorio y bullets para `Ideal`, `Vínculo` y `Defecto`; solo debe mostrarse en el tab `Personaje`.
 - US146.3: Inventario usa tabs `Equipo`, `Mochila`, `Alijo`, card de `Carga` con monedas, slots vacíos punteados y cards parchment de objetos.
 - US146.4: Los colores, tipografías, tamaños, espacios, radios y sombras del template viven como tokens CSS derivados del Figma para evitar valores sueltos.
-- US146.4a: Las navbars New Style usan padding horizontal de 16px.
+- US146.4a: Las navbars New Style usan padding horizontal de 16px. Sus columnas internas deben ser flexibles para respetar el ancho útil; no deben sumar el ancho total de pantalla antes de aplicar padding.
 - US146.5: Al tocar una tarjeta de inventario, se abre el drawer `Descripción` con arte del ítem, nombre, tipo/rareza, valor, atributos clave y descripción completa.
 - US146.5a: En el modal `Descripción`, la regla destacada debe mostrar etiqueta (`Ventaja` o `Atributo`) y valor completo. Los textos largos como ventajas, inmunidades o atributos múltiples pueden ocupar varios renglones; no deben truncarse ni ocultarse.
 - US146.5b: El header del modal `Descripción` debe mapear al componente Figma `--module-item-header`: arte a la izquierda, `item summary` a la derecha, `main information` con `titleAndCategory` + `price`, divider rojo y bloque `advantages`. El precio no debe separarse como una tercera columna independiente.
