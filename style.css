@@ -3352,13 +3352,13 @@
   }
 
   body.character-detail-mode .detail-roll.inventory-action {
-    min-width: 124px;
-    height: 44px;
-    max-height: 44px;
-    padding: 0 16px;
+    min-width: auto;
+    height: var(--figma-button-mini-height);
+    max-height: var(--figma-button-mini-height);
+    padding: 0 8px;
     border-radius: 4px;
     font-family: var(--figma-font-serif);
-    font-size: 14px;
+    font-size: 10px;
     font-weight: 400;
   }
 
@@ -6362,5 +6362,129 @@
     font-size: 12px;
     font-weight: 400;
     line-height: 1.16;
+  }
+}
+
+/* ── Reusable UI atoms — buttons and inputs ──────────────────────────────── */
+.figma-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-width: 0;
+  border: 1px solid transparent;
+  border-radius: var(--figma-radius-control, 4px);
+  cursor: pointer;
+  font-family: var(--figma-font-serif, Georgia, serif);
+  font-weight: 400;
+  line-height: 1;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.figma-btn:disabled,
+.figma-btn[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: .45;
+}
+
+.figma-btn--mini {
+  height: var(--figma-button-mini-height, 24px);
+  min-height: var(--figma-button-mini-height, 24px);
+  max-height: var(--figma-button-mini-height, 24px);
+  padding: 0 8px;
+  font-size: 10px;
+}
+
+.figma-btn--regular {
+  height: var(--figma-button-regular-height, 44px);
+  min-height: var(--figma-button-regular-height, 44px);
+  padding: 0 16px;
+  font-size: 16px;
+}
+
+.figma-btn--primary {
+  border-color: var(--figma-color-accent-gold, #92752b);
+  background: var(--figma-color-brand-primary, #720000);
+  color: #ffffff;
+}
+
+.figma-btn--secondary {
+  border-color: transparent;
+  background: var(--figma-color-surface-brown, #64422b);
+  color: #ffffff;
+}
+
+.figma-btn--ghost {
+  border-color: #000000;
+  background: transparent;
+  color: var(--figma-color-text-primary, #090604);
+}
+
+.figma-input {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: var(--figma-button-regular-height, 44px);
+  border: 1px solid var(--figma-color-image-border, #bbbbbb);
+  border-radius: var(--figma-radius-control, 4px);
+  background: rgba(255,255,255,.82);
+  color: var(--figma-color-text-muted, #6f5d4e);
+}
+
+.figma-input--search {
+  gap: 8px;
+  padding: 0 16px;
+}
+
+.figma-input-control {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--figma-color-text-primary, #090604);
+  font-family: var(--figma-font-serif, Georgia, serif);
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.figma-input-control::placeholder {
+  color: var(--figma-color-text-muted, #6f5d4e);
+  opacity: 1;
+}
+
+@media (max-width: 760px) {
+  body.character-detail-mode .detail-roll.inventory-action,
+  body.character-detail-mode .detail-roll.inventory-action.figma-btn--mini,
+  body.character-detail-mode .inventory-add-object-btn.figma-btn--mini {
+    width: auto;
+    min-width: 0;
+    height: var(--figma-button-mini-height);
+    min-height: var(--figma-button-mini-height);
+    max-height: var(--figma-button-mini-height);
+    padding: 0 8px;
+    font-size: 10px;
+  }
+
+  body.character-detail-mode .inventory-search-field.figma-input {
+    min-height: var(--figma-button-regular-height);
+    padding: 0 16px;
+  }
+
+  body.character-detail-mode .inventory-search-btn.figma-btn--regular {
+    height: var(--figma-button-regular-height);
+    min-height: var(--figma-button-regular-height);
+    padding: 0 16px;
+  }
+
+  body.character-detail-mode .inventory-card-actions .figma-btn--mini {
+    min-width: 64px;
+    height: var(--figma-button-mini-height);
+    min-height: var(--figma-button-mini-height);
+    max-height: var(--figma-button-mini-height);
+    padding: 0 8px;
+    font-size: 10px;
   }
 }

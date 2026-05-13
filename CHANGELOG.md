@@ -2,6 +2,34 @@
 
 Registro retroactivo del proyecto. El código actual es la fuente principal de verdad; las fechas previas se basan en marcas de archivo y documentación disponible, por lo que algunas entradas se indican como estimadas.
 
+## [2026-05-12] - Átomos reutilizables para botones e inputs
+
+### Cambios
+- Se formalizaron átomos reutilizables `figma-btn` y `figma-input` para evitar estilos sueltos entre botones e inputs.
+- Se agregaron variantes de botón: `figma-btn--mini`, `figma-btn--regular`, `figma-btn--primary`, `figma-btn--secondary` y `figma-btn--ghost`.
+- Se agregaron variantes/base de input: `figma-input`, `figma-input--search` y `figma-input-control`.
+- Se aplicaron los átomos a acciones clave: `Agregar nuevo personaje`, `Tirar dado`, `Agregar objeto`, `Agregar experiencia`, `Ajustar puntos de golpe`, buscador de mochila, acciones de inventario y guardado de equipamiento.
+- El CTA `Agregar objeto` del header de inventario quedó como botón mini, no regular.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+- `docs/requirements.md`
+- `docs/tasks.md`
+- `docs/behavioral_design.md`
+
+### Historias de usuario relacionadas
+- US-146: New Style Template UI from Figma
+
+### Fuente / certeza
+- Confirmado por código actual
+- Basado en feedback del usuario
+- Pendiente de validación visual en navegador contra Figma/Prototipo
+
+---
+
 ## [2026-05-12] - Homologación visual de Mochila
 
 ### Cambios

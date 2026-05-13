@@ -36,6 +36,8 @@
 - El header del modal `Descripción` debe conservar la anatomía Figma `--module-item-header`: arte del item a la izquierda; `item summary` a la derecha; `main information` con `titleAndCategory` y `price`; luego divider rojo y `advantages`. No volver a separar el precio como tercera columna independiente.
 - Las cards de inventario en `Equipo`, `Mochila` y `Alijo` deben nacer colapsadas para maximizar escaneo. El caret expande/colapsa el detalle inline; tocar la card completa sigue abriendo el modal `Descripción`.
 - La pantalla `Mochila` debe seguir el spec `--dndCharacterEngine-character-backpack`: tabs parchment, módulo `Carga`/PO/PP/PC, buscador `Buscar objeto` + botón `Buscar`, y cards de objeto con strips y gaps de 16px. La acción `Agregar objeto` vive en el header superior cuando el tab activo es `Inventario`, no como encabezado interno de Mochila. El subtab inicial de `Inventario` debe ser `Mochila`.
+- Botones e inputs New Style deben usar átomos reutilizables: `figma-btn` + variante de tamaño (`figma-btn--mini` o `figma-btn--regular`) + variante visual (`figma-btn--primary`, `figma-btn--secondary` o `figma-btn--ghost`). Inputs deben usar `figma-input` y `figma-input-control`. No crear estilos locales de botón/input sin reutilizar estos átomos.
+- `Agregar objeto` en el header de inventario es botón mini (`figma-btn--mini`), no regular.
 
 ### Archivos modificados
 - `ui.html`

@@ -93,7 +93,7 @@
         </div>
         <div class="roster-question">¿Con quien deberíamos aventurarnos hoy?</div>
         <div id="roster-grid" class="roster-grid"></div>
-        <button class="btn btn-accent roster-add-btn" onclick="wizardOpen()">
+        <button class="btn btn-accent roster-add-btn figma-btn figma-btn--regular figma-btn--primary" onclick="wizardOpen()">
           <span class="add-icon">+</span>
           <span>Agregar nuevo personaje</span>
         </button>
@@ -104,7 +104,7 @@
         <div class="character-detail-header">
           <button class="detail-back" onclick="closeCharacterDetail()" aria-label="Volver a personajes">‹ <span>Atrás</span></button>
           <div class="detail-title" id="detail-name">Personaje</div>
-          <button class="detail-roll" id="detail-header-action" onclick="rollCharacterDie()">Tirar dado</button>
+          <button class="detail-roll figma-btn figma-btn--mini figma-btn--primary" id="detail-header-action" onclick="rollCharacterDie()">Tirar dado</button>
         </div>
 
         <div class="detail-tabs" role="tablist" aria-label="Detalle del personaje">
@@ -124,7 +124,7 @@
                 <div class="xp-track"><div id="detail-xp-fill"></div></div>
                 <div class="xp-row"><span id="detail-xp-current">0</span><span id="detail-xp-next">300</span></div>
               </div>
-              <button class="detail-xp-btn" onclick="toast('Agregar experiencia pendiente de conectar al flujo', 'info')">Agregar experiencia</button>
+              <button class="detail-xp-btn figma-btn figma-btn--mini figma-btn--primary" onclick="toast('Agregar experiencia pendiente de conectar al flujo', 'info')">Agregar experiencia</button>
             </div>
             <div class="detail-combat-grid">
               <div class="combat-box"><div class="lbl">CA</div><div class="val" id="s-ac">—</div></div>
@@ -165,7 +165,7 @@
                 <div class="detail-hp-sub">Primero usa estos en ataques</div>
               </div>
             </div>
-            <button class="detail-hp-adjust-btn" onclick="openHpAdjustModal()">Ajustar puntos de golpe</button>
+            <button class="detail-hp-adjust-btn figma-btn figma-btn--regular figma-btn--primary" onclick="openHpAdjustModal()">Ajustar puntos de golpe</button>
           </section>
         </div>
 
@@ -675,7 +675,7 @@ function showAuthScreen(mode = authMode) {
         <label>Contraseña
           <input id="auth-password" type="password" autocomplete="${isRegister ? 'new-password' : 'current-password'}" placeholder="Mínimo 10 caracteres">
         </label>
-        <button class="btn btn-accent btn-full auth-submit" onclick="submitAuthForm()">${isRegister ? 'Crear perfil' : 'Entrar'}</button>
+        <button class="btn btn-accent btn-full auth-submit figma-btn figma-btn--regular figma-btn--primary" onclick="submitAuthForm()">${isRegister ? 'Crear perfil' : 'Entrar'}</button>
       </div>
       <button class="auth-switch" onclick="showAuthScreen('${isRegister ? 'login' : 'register'}')">
         ${isRegister ? 'Ya tengo perfil' : 'Crear un perfil nuevo'}
@@ -754,7 +754,7 @@ async function loadRoster() {
       grid.innerHTML = `<div class="roster-empty">
         <h3>No tienes personajes creados</h3>
         <p style="margin-bottom:20px">Crea tu primer aventurero para comenzar.</p>
-        <button class="btn btn-accent" onclick="wizardOpen()">Agregar nuevo personaje</button>
+        <button class="btn btn-accent figma-btn figma-btn--regular figma-btn--primary" onclick="wizardOpen()">Agregar nuevo personaje</button>
       </div>`;
       return;
     }
@@ -5033,14 +5033,14 @@ function renderInventoryBackpackView(items) {
   return `
     ${renderInventoryCarryCard(load, coins)}
     <div class="inventory-backpack-search">
-      <label class="inventory-search-field" aria-label="Buscar objeto">
+      <label class="inventory-search-field figma-input figma-input--search" aria-label="Buscar objeto">
         <svg class="inventory-search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <circle cx="11" cy="11" r="7"></circle>
           <path d="M16.5 16.5 21 21"></path>
         </svg>
-        <input value="${escapeText(detailBackpackSearch)}" placeholder="Buscar objeto" oninput="setBackpackSearch(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();refreshDetailInventoryPanel()}">
+        <input class="figma-input-control" value="${escapeText(detailBackpackSearch)}" placeholder="Buscar objeto" oninput="setBackpackSearch(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();refreshDetailInventoryPanel()}">
       </label>
-      <button class="inventory-search-btn" onclick="refreshDetailInventoryPanel()">Buscar</button>
+      <button class="inventory-search-btn figma-btn figma-btn--regular figma-btn--primary" onclick="refreshDetailInventoryPanel()">Buscar</button>
     </div>
     ${visibleItems.length ? `
       <div class="inventory-rich-list">
@@ -5112,7 +5112,7 @@ function renderInventoryStashView(items) {
         <small>Alijo</small>
         <strong>${stashItems.length} objeto${stashItems.length === 1 ? '' : 's'} guardado${stashItems.length === 1 ? '' : 's'}</strong>
       </div>
-      <button class="inventory-add-object-btn" onclick="openInventoryAddObject()">Agregar objeto</button>
+      <button class="inventory-add-object-btn figma-btn figma-btn--mini figma-btn--primary" onclick="openInventoryAddObject()">Agregar objeto</button>
     </div>
     <p class="inventory-section-copy">El alijo agrupa objetos no equipados ni consumibles para revisar tesoro, herramientas y piezas de rol sin mezclarlas con el equipo activo.</p>
     ${stashItems.length ? `
@@ -5205,7 +5205,7 @@ function renderDetailEquipmentChooser(cls) {
         <span>Este personaje aún no tiene equipamiento de ${CLASS_NAME_ES[cls?.name] ?? cls?.name ?? 'clase'} asignado.</span>
       </div>
       ${groups.map(group => detailEquipmentGroupHTML(group)).join('')}
-      <button class="btn btn-accent btn-full inventory-apply-btn" ${equipmentCompleteForClass(cls, detailEquipmentChoices) ? '' : 'disabled aria-disabled="true"'} onclick="applyDetailEquipment()">Guardar equipamiento</button>
+      <button class="btn btn-accent btn-full inventory-apply-btn figma-btn figma-btn--regular figma-btn--primary" ${equipmentCompleteForClass(cls, detailEquipmentChoices) ? '' : 'disabled aria-disabled="true"'} onclick="applyDetailEquipment()">Guardar equipamiento</button>
     </section>`;
 }
 
@@ -5316,11 +5316,11 @@ function renderInventoryItemCard(inv, options = {}) {
   const detailRows = inventoryCardRows(item);
   const collapsed = options.expanded ? false : true;
   const actionCta = pack
-    ? `<button class="inventory-equip-btn" onclick="useInventoryItem(event, '${itemRef}')">Abrir kit</button>`
+    ? `<button class="inventory-equip-btn figma-btn figma-btn--mini figma-btn--primary" onclick="useInventoryItem(event, '${itemRef}')">Abrir kit</button>`
     : usable
-      ? `<button class="inventory-equip-btn" onclick="useInventoryItem(event, '${itemRef}')">Usar</button>`
+      ? `<button class="inventory-equip-btn figma-btn figma-btn--mini figma-btn--primary" onclick="useInventoryItem(event, '${itemRef}')">Usar</button>`
       : equippable
-        ? `<button class="inventory-equip-btn ${inv.is_equipped ? 'equipped' : ''}" onclick="toggleInventoryEquip(event, '${itemRef}', ${inv.is_equipped ? 'false' : 'true'})">${inv.is_equipped ? 'Desequipar' : 'Equipar'}</button>`
+        ? `<button class="inventory-equip-btn figma-btn figma-btn--mini ${inv.is_equipped ? 'equipped figma-btn--ghost' : 'figma-btn--primary'}" onclick="toggleInventoryEquip(event, '${itemRef}', ${inv.is_equipped ? 'false' : 'true'})">${inv.is_equipped ? 'Desequipar' : 'Equipar'}</button>`
         : '';
   return `
     <article class="inventory-item-card ${options.compact ? 'inventory-slot-card' : ''} ${collapsed ? 'collapsed' : ''}" onclick="openItemDescriptionDrawer('${itemRef}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openItemDescriptionDrawer('${itemRef}')}">
@@ -5341,8 +5341,8 @@ function renderInventoryItemCard(inv, options = {}) {
         <div class="inventory-card-actions">
           <div class="inventory-action-buttons inventory-secondary-actions">
             ${status.length ? `<div class="inventory-status-row">${status.map(s => `<em>${escapeText(s)}</em>`).join('')}</div>` : ''}
-            <button class="inventory-remove-btn" onclick="deleteInventoryItem(event, '${itemRef}')">Eliminar</button>
-            <button class="inventory-sell-btn" onclick="sellInventoryItem(event, '${itemRef}')">Vender</button>
+            <button class="inventory-remove-btn figma-btn figma-btn--mini figma-btn--ghost" onclick="deleteInventoryItem(event, '${itemRef}')">Eliminar</button>
+            <button class="inventory-sell-btn figma-btn figma-btn--mini figma-btn--ghost" onclick="sellInventoryItem(event, '${itemRef}')">Vender</button>
           </div>
         <div class="inventory-action-buttons">
             ${actionCta}
