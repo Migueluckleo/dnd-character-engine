@@ -2,15 +2,76 @@
 
 Registro retroactivo del proyecto. El código actual es la fuente principal de verdad; las fechas previas se basan en marcas de archivo y documentación disponible, por lo que algunas entradas se indican como estimadas.
 
+## [2026-05-13] - Limpieza de átomos de UI y caret
+
+### Cambios
+- Se reemplazó el contrato anterior `figma-btn*` / `figma-input*` por clases canónicas simples: `primary-btn`, `primary-btn-mini`, `secondary-btn`, `secondary-btn-mini`, `ghost-btn`, `ghost-btn-mini`, `input` e `input-control`.
+- Se separó el caret de colapsar/desplegar como acción propia: `caret-btn` con hitbox de `24x24px` y vector interno `12x6px`, sin heredar estilos de botón mini.
+- Se corrigió el buscador de Mochila para usar la variante de input con ícono, evitando renderizar un input visual dentro de otro input visual.
+- Se actualizó la normalización global de controles para aplicar los átomos canónicos a botones, inputs, selects y textareas renderizados dinámicamente, sin reinyectar clases `figma-btn`.
+- Se limpiaron botones visibles de inventario, personaje, auth y roster para usar clases atómicas simples en vez de mezclar nombres de acción con variantes visuales.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+- `.claude.md`
+- `docs/requirements.md`
+- `docs/tasks.md`
+- `docs/behavioral_design.md`
+
+### Historias de usuario relacionadas
+- US-146: New Style Template UI from Figma
+
+### Fuente / certeza
+- Confirmado por código actual
+- Basado en feedback directo del usuario
+- Pendiente de validación visual fina contra Figma
+
+---
+
+## [2026-05-13] - Vista de prueba local sin login
+
+### Cambios
+- Se agregó `preview.html` como entrada separada para abrir `ui.html?preview=1` sin reemplazar la app deployada.
+- Se creó `PREVIEW_MODE`, activado por query param `?preview=1`, `window.DND_PREVIEW_MODE` o `DND_PUBLIC_CONFIG.PREVIEW_MODE`.
+- El preview usa un perfil local falso, datos demo en memoria, inventario, conjuros, habilidades, PG y catálogo mínimo sin llamar a la API real ni requerir login.
+- Se agregó `npm run preview` para levantar un servidor estático local en el puerto 5500 y revisar cambios antes de hacer `git push`.
+- El indicador de conexión muestra `Preview local` cuando el modo de prueba está activo.
+
+### Archivos modificados
+- `ui.html`
+- `preview.html`
+- `package.json`
+- `README.md`
+- `SETUP.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+- `docs/requirements.md`
+- `docs/tasks.md`
+- `docs/behavioral_design.md`
+- `.claude.md`
+
+### Historias de usuario relacionadas
+- US-147: Vista de prueba local sin login
+
+### Fuente / certeza
+- Confirmado por código actual
+- Basado en solicitud directa del usuario
+- Pendiente de validación visual en navegador local
+
+---
+
 ## [2026-05-12] - Átomos reutilizables para botones e inputs
 
 ### Cambios
-- Se formalizaron átomos reutilizables `figma-btn` y `figma-input` para evitar estilos sueltos entre botones e inputs.
-- Se agregaron variantes de botón: `figma-btn--mini`, `figma-btn--regular`, `figma-btn--primary`, `figma-btn--secondary` y `figma-btn--ghost`.
-- Se agregaron variantes/base de input: `figma-input`, `figma-input--search` y `figma-input-control`.
+- Se formalizaron átomos reutilizables de botones e inputs para evitar estilos sueltos entre controles.
+- Se agregaron variantes canónicas de botón: `primary-btn`, `primary-btn-mini`, `secondary-btn`, `secondary-btn-mini`, `ghost-btn` y `ghost-btn-mini`.
+- Se agregaron variantes/base de input: `input`, `input-icon` e `input-control`.
 - Se aplicaron los átomos a acciones clave: `Agregar nuevo personaje`, `Tirar dado`, `Agregar objeto`, `Agregar experiencia`, `Ajustar puntos de golpe`, buscador de mochila, acciones de inventario y guardado de equipamiento.
 - El CTA `Agregar objeto` del header de inventario quedó como botón mini, no regular.
-- Se agregó una normalización global en UI para aplicar automáticamente `figma-btn` y `figma-input-control` a botones, inputs, selects y textareas ya existentes o renderizados por JS, usando solo los tamaños `mini` y `regular` para botones.
+- Se agregó una normalización global en UI para aplicar automáticamente los átomos canónicos a botones, inputs, selects y textareas ya existentes o renderizados por JS, usando solo los tamaños `regular` y `mini` para botones.
 
 ### Archivos modificados
 - `ui.html`

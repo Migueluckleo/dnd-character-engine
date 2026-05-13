@@ -93,7 +93,7 @@
         </div>
         <div class="roster-question">¿Con quien deberíamos aventurarnos hoy?</div>
         <div id="roster-grid" class="roster-grid"></div>
-        <button class="btn btn-accent roster-add-btn figma-btn figma-btn--regular figma-btn--primary" onclick="wizardOpen()">
+        <button id="roster-add-btn" class="primary-btn" onclick="wizardOpen()">
           <span class="add-icon">+</span>
           <span>Agregar nuevo personaje</span>
         </button>
@@ -104,7 +104,7 @@
         <div class="character-detail-header">
           <button class="detail-back" onclick="closeCharacterDetail()" aria-label="Volver a personajes">‹ <span>Atrás</span></button>
           <div class="detail-title" id="detail-name">Personaje</div>
-          <button class="detail-roll figma-btn figma-btn--mini figma-btn--primary" id="detail-header-action" onclick="rollCharacterDie()">Tirar dado</button>
+          <button class="primary-btn-mini" id="detail-header-action" onclick="rollCharacterDie()">Tirar dado</button>
         </div>
 
         <div class="detail-tabs" role="tablist" aria-label="Detalle del personaje">
@@ -124,7 +124,7 @@
                 <div class="xp-track"><div id="detail-xp-fill"></div></div>
                 <div class="xp-row"><span id="detail-xp-current">0</span><span id="detail-xp-next">300</span></div>
               </div>
-              <button class="detail-xp-btn figma-btn figma-btn--mini figma-btn--primary" onclick="toast('Agregar experiencia pendiente de conectar al flujo', 'info')">Agregar experiencia</button>
+              <button class="primary-btn-mini" onclick="toast('Agregar experiencia pendiente de conectar al flujo', 'info')">Agregar experiencia</button>
             </div>
             <div class="detail-combat-grid">
               <div class="combat-box"><div class="lbl">CA</div><div class="val" id="s-ac">—</div></div>
@@ -165,7 +165,7 @@
                 <div class="detail-hp-sub">Primero usa estos en ataques</div>
               </div>
             </div>
-            <button class="detail-hp-adjust-btn figma-btn figma-btn--regular figma-btn--primary" onclick="openHpAdjustModal()">Ajustar puntos de golpe</button>
+            <button class="primary-btn" onclick="openHpAdjustModal()">Ajustar puntos de golpe</button>
           </section>
         </div>
 
@@ -610,6 +610,8 @@
 const PUBLIC_CONFIG = window.DND_PUBLIC_CONFIG || {};
 const API = String(PUBLIC_CONFIG.API_BASE_URL || 'http://localhost:3000').replace(/\/$/, '');
 const AUTH_TOKEN_KEY = 'dnd-profile-token';
+const URL_PARAMS = new URLSearchParams(window.location.search || '');
+const PREVIEW_MODE = URL_PARAMS.has('preview') || window.DND_PREVIEW_MODE === true || PUBLIC_CONFIG.PREVIEW_MODE === true;
 let characterId = null;
 let characterData = null;
 let detailEquipmentChoices = {};
@@ -626,6 +628,7 @@ let currentProfile = null;
 let authMode = 'login';
 
 function authToken() {
+  if (PREVIEW_MODE) return 'preview-local-token';
   return localStorage.getItem(AUTH_TOKEN_KEY);
 }
 
@@ -646,6 +649,406 @@ function updateProfileChrome() {
   const caption = document.getElementById('profile-caption');
   if (welcome) welcome.textContent = `Bienvenido, ${currentProfile?.display_name ?? 'jugador'}`;
   if (caption) caption.textContent = currentProfile?.email ?? 'Perfil local';
+}
+
+const PREVIEW_PROFILE = {
+  id: 'preview-profile',
+  display_name: 'Vista de prueba',
+  email: 'sin login · datos demo locales',
+};
+
+const PREVIEW_LANGUAGES = [
+  { language_id: 'common', name: 'Común', language_type: 'standard' },
+  { language_id: 'elvish', name: 'Élfico', language_type: 'standard' },
+  { language_id: 'draconic', name: 'Dracónico', language_type: 'exotic' },
+];
+
+const PREVIEW_ITEMS = [
+  {
+    item_id: 'longsword', name: 'Longsword', item_type: 'weapon', quantity: 1,
+    weight: 3, cost_gp: 15, damage_dice: '1d8', damage_type: 'slashing',
+    properties: { versatile: true, damage_versatile: '1d10' },
+    description: 'Espada recta de una mano, equilibrada para defensa y ataque. Puede blandirse con dos manos para aumentar el daño cuando no se usa escudo.',
+  },
+  {
+    item_id: 'shield', name: 'Shield', item_type: 'armor', armor_category: 'shield',
+    weight: 6, cost_gp: 10, ac_base: 2,
+    description: 'Escudo de madera reforzada y borde metálico. Ocupa una mano y aumenta la Clase de Armadura mientras esté equipado.',
+  },
+  {
+    item_id: 'chain_mail', name: 'Chain Mail', item_type: 'armor', armor_category: 'heavy',
+    weight: 55, cost_gp: 75, ac_base: 16, strength_requirement: 13, stealth_disadvantage: true,
+    description: 'Armadura pesada formada por anillos metálicos entrelazados. Protege muy bien, pero su peso y ruido causan desventaja en tiradas de Sigilo.',
+  },
+  {
+    item_id: 'shortbow', name: 'Shortbow', item_type: 'weapon',
+    weight: 2, cost_gp: 25, damage_dice: '1d6', damage_type: 'piercing',
+    properties: { ammunition: true, range_normal: 80, range_long: 320 },
+    description: 'Arco compacto para ataques a distancia. Consume una flecha por ataque y permite mantener distancia sin perder movilidad.',
+  },
+  {
+    item_id: 'arrows', name: 'Arrows (20)', item_type: 'ammunition',
+    weight: 1, cost_gp: 1, properties: { weapon_type: 'bow' },
+    description: 'Munición para arcos. Cada disparo consume una flecha si el ataque usa un arco equipado.',
+  },
+  {
+    item_id: 'healing_potion', name: 'Potion of Healing', item_type: 'potion',
+    weight: 0.5, cost_gp: 50, properties: { heal_dice: '2d4', heal_bonus: 2, rarity: 'common' },
+    description: 'Líquido rojo brillante que recupera 2d4 + 2 puntos de golpe al beberlo. El resultado se suma a los PG actuales sin exceder el máximo.',
+  },
+  {
+    item_id: 'backpack', name: 'Backpack', item_type: 'gear',
+    weight: 5, cost_gp: 2,
+    description: 'Mochila resistente para transportar raciones, herramientas, cuerda, antorchas y otros objetos de viaje.',
+  },
+  {
+    item_id: 'rations', name: 'Rations (1 day)', item_type: 'gear',
+    weight: 2, cost_gp: 0.5, properties: { consumable: true },
+    description: 'Comida seca para un día de viaje: carne curada, fruta deshidratada, nueces y pan duro.',
+  },
+  {
+    item_id: 'holy_symbol', name: 'Holy Symbol', item_type: 'focus',
+    weight: 1, cost_gp: 5,
+    description: 'Símbolo sagrado usado como foco para canalizar conjuros divinos y juramentos de paladín.',
+  },
+  {
+    item_id: 'terrible_helm', name: 'Helm of Dread', item_type: 'magic_item',
+    weight: 2, cost_gp: 100, properties: { rarity: 'rare', advantage: 'Tiradas de intimidación, inmune contra daño de fuego' },
+    description: 'Un amenazante yelmo de acero. Su efecto es cosmético: hace que tus ojos brillen de un rojo intenso mientras lo llevas puesto.',
+  },
+];
+
+const PREVIEW_SPELLS = [
+  {
+    id: 'preview-ks-bless', spell_id: 'bless', is_prepared: true,
+    spell: {
+      spell_id: 'bless', name: 'Bless', level: 1, school: 'enchantment',
+      casting_time: '1 acción', range_ft: 30, duration: 'Concentración, hasta 1 minuto',
+      components: ['V', 'S', 'M'], requires_concentration: true,
+      description: 'Bendices hasta tres criaturas. Cuando una criatura bendecida haga una tirada de ataque o salvación, suma 1d4 al resultado.',
+      effects: { targets: 3 },
+    },
+  },
+  {
+    id: 'preview-ks-cure-wounds', spell_id: 'cure_wounds', is_prepared: true,
+    spell: {
+      spell_id: 'cure_wounds', name: 'Cure Wounds', level: 1, school: 'evocation',
+      casting_time: '1 acción', range: 'Touch', duration: 'Instantáneo',
+      components: ['V', 'S'], requires_concentration: false,
+      description: 'Una criatura que tocas recupera puntos de golpe. No afecta a muertos vivientes ni constructos.',
+      effects: { heal: '1d8 + modificador de característica' },
+    },
+  },
+  {
+    id: 'preview-ks-divine-favor', spell_id: 'divine_favor', is_prepared: false,
+    spell: {
+      spell_id: 'divine_favor', name: 'Divine Favor', level: 1, school: 'evocation',
+      casting_time: '1 acción bonus', range: 'Self', duration: 'Concentración, hasta 1 minuto',
+      components: ['V', 'S'], requires_concentration: true,
+      description: 'Tu arma irradia poder divino. Tus ataques con arma infligen 1d4 de daño radiante adicional.',
+      effects: { damage: '1d4 radiant' },
+    },
+  },
+];
+
+const PREVIEW_CATALOG = {
+  races: [
+    { race_id: 'human', name: 'Human', base_speed: 30, ability_bonuses: { str: 1, dex: 1, con: 1, int: 1, wis: 1, cha: 1 } },
+    { race_id: 'high_elf', name: 'High Elf', parent_race: 'Elf', base_speed: 30, ability_bonuses: { dex: 2, int: 1 } },
+    { race_id: 'wood_elf', name: 'Wood Elf', parent_race: 'Elf', base_speed: 35, ability_bonuses: { dex: 2, wis: 1 } },
+    { race_id: 'drow', name: 'Drow', parent_race: 'Elf', base_speed: 30, ability_bonuses: { dex: 2, cha: 1 } },
+  ],
+  classes: [
+    {
+      class_id: 'paladin', name: 'Paladin', hit_die: 10, subclass_level: 3, spellcasting_ability: 'cha',
+      starting_skill_choices: { count: 2, pool: ['athletics', 'insight', 'intimidation', 'medicine', 'persuasion', 'religion'] },
+      starting_cantrips_known: 0, starting_spells_known: 2,
+    },
+    {
+      class_id: 'fighter', name: 'Fighter', hit_die: 10, subclass_level: 3,
+      starting_skill_choices: { count: 2, pool: ['acrobatics', 'animal_handling', 'athletics', 'history', 'insight', 'intimidation', 'perception', 'survival'] },
+      starting_cantrips_known: 0, starting_spells_known: 0,
+    },
+  ],
+  backgrounds: [
+    { background_id: 'noble', name: 'Noble', skill_proficiencies: ['history', 'persuasion'], tool_proficiencies: ['dragonchess_set'], languages: ['elvish'] },
+    { background_id: 'soldier', name: 'Soldier', skill_proficiencies: ['athletics', 'intimidation'], tool_proficiencies: ['vehicles_land'], languages: [] },
+  ],
+  languages: PREVIEW_LANGUAGES,
+};
+
+function previewFindItem(ref) {
+  const key = String(ref || '').toLowerCase();
+  return PREVIEW_ITEMS.find(item => item.item_id === ref || item.name.toLowerCase() === key) ?? null;
+}
+
+function previewInventoryItem(itemId, quantity = 1, equipped = false) {
+  const item = previewFindItem(itemId);
+  return {
+    item_id: item?.item_id ?? itemId,
+    quantity,
+    is_equipped: equipped,
+    is_attuned: item?.requires_attunement ?? false,
+    item,
+  };
+}
+
+function previewComputed() {
+  return {
+    total_level: 2,
+    proficiency_bonus: 2,
+    speed: 30,
+    armor_class: 18,
+    unarmored_ac: 10,
+    max_hp: 20,
+    initiative: 0,
+    hit_dice: [{ die_type: 10, max: 2, available: 2 }],
+    ability_scores: { str: 16, dex: 10, con: 14, int: 10, wis: 12, cha: 16 },
+    ability_modifiers: { str: 3, dex: 0, con: 2, int: 0, wis: 1, cha: 3 },
+    saving_throw_proficiencies: ['wis', 'cha'],
+    saving_throw_bonuses: { str: 3, dex: 0, con: 2, int: 0, wis: 3, cha: 5 },
+    skill_bonuses: {
+      acrobatics: 0, animal_handling: 1, arcana: 0, athletics: 5, deception: 3, history: 2,
+      insight: 3, intimidation: 5, investigation: 0, medicine: 1, nature: 0, perception: 3,
+      performance: 3, persuasion: 5, religion: 2, sleight_of_hand: 0, stealth: 0, survival: 1,
+    },
+    passive_perception: 13,
+    passive_investigation: 10,
+    passive_insight: 13,
+    stealth_disadvantage: true,
+    spellcasting_ability: 'cha',
+    spell_save_dc: 13,
+    spell_attack_bonus: 5,
+    weapon_proficiencies: ['simple_weapons', 'martial_weapons'],
+  };
+}
+
+const PREVIEW_STORE = {
+  spellSlots: {
+    standard_slots: [{ slot_level: 1, max: 2, available: 2 }],
+    pact_magic_slots: [],
+  },
+  characters: [
+    {
+      id: 'preview-garrik',
+      name: 'Garrik ojo de hierro',
+      alignment: 'lawful_good',
+      xp: 25,
+      current_hp: 8,
+      temp_hp: 8,
+      base_str: 15,
+      base_dex: 9,
+      base_con: 13,
+      base_int: 9,
+      base_wis: 11,
+      base_cha: 15,
+      gp: 121203,
+      sp: 1230,
+      cp: 3212,
+      is_dead: false,
+      personality_traits: 'A pesar de mi origen noble no me considero por encima de los demás. Todos tenemos la misma sangre.',
+      ideals: 'Deber de la nobleza. Es mi deber proteger y cuidar de aquellos bajo mi cargo.',
+      bonds: 'Mi lealtad hacia el soberano es inquebrantable.',
+      flaws: 'Percibo insultos velados y amenazas en todas las palabras que me dirigen. Además, me enfado rápidamente.',
+      race: { race_id: 'human', name: 'Human', base_speed: 30 },
+      background: { background_id: 'noble', name: 'Noble', tool_proficiencies: ['dragonchess_set'], languages: ['elvish'] },
+      character_classes: [
+        { class_id: 'paladin', class_level: 2, is_primary: true, class: { class_id: 'paladin', name: 'Paladin', hit_die: 10, spellcasting_ability: 'cha' } },
+      ],
+      character_skills: [
+        { skill_id: 'athletics', is_proficient: true, is_expertise: false },
+        { skill_id: 'history', is_proficient: true, is_expertise: false },
+        { skill_id: 'insight', is_proficient: true, is_expertise: false },
+        { skill_id: 'intimidation', is_proficient: true, is_expertise: false },
+        { skill_id: 'persuasion', is_proficient: true, is_expertise: false },
+        { skill_id: 'perception', is_proficient: true, is_expertise: false },
+      ],
+      character_tools: [{ tool_id: 'dragonchess_set', tool: { name: 'Juego de dragón ajedrez' } }],
+      character_traits: [],
+      inventory_items: [
+        previewInventoryItem('longsword', 1, true),
+        previewInventoryItem('shield', 1, true),
+        previewInventoryItem('chain_mail', 1, true),
+        previewInventoryItem('shortbow', 1, false),
+        previewInventoryItem('arrows', 20, true),
+        previewInventoryItem('healing_potion', 2, false),
+        previewInventoryItem('backpack', 1, false),
+        previewInventoryItem('rations', 5, false),
+        previewInventoryItem('holy_symbol', 1, true),
+        previewInventoryItem('terrible_helm', 1, false),
+      ],
+      hit_dice_trackers: [{ die_type: 10, max_dice: 2, expended_dice: 0 }],
+      computed: previewComputed(),
+    },
+  ],
+};
+
+function previewClone(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function previewCharacter(id = 'preview-garrik') {
+  return PREVIEW_STORE.characters.find(c => c.id === id) ?? PREVIEW_STORE.characters[0];
+}
+
+function previewCharacterResponse(id = 'preview-garrik') {
+  const character = previewCharacter(id);
+  character.computed = { ...previewComputed(), max_hp: character.computed?.max_hp ?? 20 };
+  return previewClone(character);
+}
+
+function previewAddInventory(character, itemId, quantity = 1) {
+  const item = previewFindItem(itemId);
+  if (!item) throw new Error('Objeto de preview no encontrado');
+  const existing = character.inventory_items.find(inv => inv.item_id === item.item_id);
+  if (existing) existing.quantity += quantity;
+  else character.inventory_items.push(previewInventoryItem(item.item_id, quantity, false));
+}
+
+async function previewApi(method, path, body) {
+  await delay(120);
+  const [rawPath, rawQuery = ''] = String(path).split('?');
+  const query = new URLSearchParams(rawQuery);
+
+  if (rawPath === '/health') return { status: 'preview' };
+  if (rawPath === '/auth/me') return { user: PREVIEW_PROFILE };
+  if (rawPath === '/auth/logout') return { status: 'ok' };
+  if (rawPath === '/catalog/items') return previewClone(PREVIEW_ITEMS);
+  if (rawPath === '/catalog/races') return previewClone(PREVIEW_CATALOG.races);
+  if (rawPath === '/catalog/classes') return previewClone(PREVIEW_CATALOG.classes);
+  if (rawPath === '/catalog/backgrounds') return previewClone(PREVIEW_CATALOG.backgrounds);
+  if (rawPath === '/catalog/languages') return previewClone(PREVIEW_LANGUAGES);
+  if (rawPath === '/catalog/spells') {
+    const level = query.get('level');
+    const spells = PREVIEW_SPELLS.map(ks => ks.spell).filter(sp => level === null || Number(sp.level) === Number(level));
+    return previewClone(spells);
+  }
+
+  if (rawPath === '/characters' && method === 'GET') return previewClone(PREVIEW_STORE.characters);
+  if (rawPath === '/characters' && method === 'POST') {
+    const newId = `preview-${Date.now()}`;
+    const base = previewCharacterResponse();
+    base.id = newId;
+    base.name = body?.name || 'Nuevo personaje preview';
+    base.xp = 0;
+    base.current_hp = 10;
+    base.temp_hp = 0;
+    base.inventory_items = [];
+    PREVIEW_STORE.characters.push(base);
+    return previewClone(base);
+  }
+
+  const charMatch = rawPath.match(/^\/characters\/([^/]+)(?:\/(.+))?$/);
+  if (!charMatch) throw new Error(`Preview sin endpoint: ${method} ${path}`);
+  const [, id, tail = ''] = charMatch;
+  const character = previewCharacter(id);
+  if (!character) throw new Error('Personaje preview no encontrado');
+
+  if (!tail && method === 'GET') return previewCharacterResponse(id);
+  if (!tail && method === 'PATCH') {
+    if (body?.name) character.name = body.name;
+    if (body?.alignment) character.alignment = body.alignment;
+    if (Number.isFinite(body?.current_hp)) character.current_hp = body.current_hp;
+    if (Number.isFinite(body?.temp_hp)) character.temp_hp = body.temp_hp;
+    if (body?.ability_scores) {
+      Object.entries(body.ability_scores).forEach(([stat, value]) => {
+        character[`base_${stat}`] = Number(value);
+      });
+    }
+    return previewCharacterResponse(id);
+  }
+  if (!tail && method === 'DELETE') {
+    PREVIEW_STORE.characters = PREVIEW_STORE.characters.filter(c => c.id !== id);
+    return { message: 'Personaje preview eliminado' };
+  }
+  if (tail === 'hydrated' && method === 'GET') return previewCharacterResponse(id);
+  if (tail === 'image' && method === 'PATCH') {
+    character.image_data = body?.image_data || '';
+    return { message: 'Imagen guardada en preview', image_data: character.image_data };
+  }
+  if (tail === 'skills' && method === 'GET') return previewClone(character.character_skills);
+  if (tail.startsWith('skills/') && method === 'DELETE') {
+    const skillId = decodeURIComponent(tail.split('/')[1]);
+    character.character_skills = character.character_skills.filter(skill => skill.skill_id !== skillId);
+    return { message: 'Habilidad eliminada en preview' };
+  }
+  if (tail === 'skills' && method === 'POST') {
+    character.character_skills = character.character_skills.filter(skill => skill.skill_id !== body.skill_id);
+    character.character_skills.push({ skill_id: body.skill_id, is_proficient: !!body.is_proficient, is_expertise: !!body.is_expertise });
+    return { message: 'Habilidad agregada en preview' };
+  }
+  if (tail === 'languages' && method === 'GET') return previewClone(PREVIEW_LANGUAGES.slice(0, 2));
+  if (tail === 'languages' && method === 'POST') return { message: 'Idioma agregado en preview' };
+  if (tail === 'known-spells' && method === 'GET') return previewClone(PREVIEW_SPELLS);
+  if (tail.startsWith('known-spells/') && method === 'DELETE') return { message: 'Conjuro olvidado en preview' };
+  if (tail === 'known-spells' && method === 'POST') {
+    const spell = PREVIEW_SPELLS.map(ks => ks.spell).find(sp => sp.spell_id === body.spell_id) || PREVIEW_SPELLS[0].spell;
+    return { id: `preview-ks-${spell.spell_id}`, spell, is_prepared: !!body.is_prepared };
+  }
+  if (tail === 'spell-slots' && method === 'GET') return previewClone(PREVIEW_STORE.spellSlots);
+  if (tail === 'cast' && method === 'POST') {
+    const slot = PREVIEW_STORE.spellSlots.standard_slots.find(s => s.slot_level === body.slot_level);
+    if (slot) slot.available = Math.max(0, slot.available - 1);
+    const spell = PREVIEW_SPELLS.find(ks => ks.id === body.known_spell_id)?.spell ?? PREVIEW_SPELLS[0].spell;
+    return { cast: spell.name, requires_concentration: !!spell.requires_concentration, previous_concentration_ended: false };
+  }
+  if (tail === 'concentration' && method === 'DELETE') return { message: 'Concentración terminada' };
+  if (tail === 'damage' && method === 'POST') {
+    let remaining = Math.max(0, Number(body?.damage) || 0);
+    const tempSpent = Math.min(character.temp_hp || 0, remaining);
+    character.temp_hp = Math.max(0, (character.temp_hp || 0) - tempSpent);
+    remaining -= tempSpent;
+    character.current_hp = Math.max(0, (character.current_hp || 0) - remaining);
+    return { current_hp: character.current_hp, temp_hp: character.temp_hp, concentration_save_dc: remaining ? Math.max(10, Math.floor(remaining / 2)) : null };
+  }
+  if (tail === 'heal' && method === 'POST') {
+    const maxHp = character.computed?.max_hp || 20;
+    character.current_hp = Math.min(maxHp, (character.current_hp || 0) + (Number(body?.amount) || 0));
+    return { current_hp: character.current_hp };
+  }
+  if (tail === 'temp-hp' && method === 'POST') {
+    const amount = Math.max(0, Number(body?.amount) || 0);
+    const replaced = amount >= (character.temp_hp || 0);
+    if (replaced) character.temp_hp = amount;
+    return { temp_hp: character.temp_hp, replaced };
+  }
+  if (tail === 'death-save' && method === 'POST') return { successes: 1, failures: 0, isDead: false, isStable: false, regainedHP: false };
+  if (tail === 'exhaustion' && method === 'PATCH') return { exhaustion_level: Math.max(0, Number(body?.delta) || 0), character_died: false };
+  if (tail === 'reaction' && method === 'PATCH') return { reaction_available: !!body?.reaction_available };
+  if (tail === 'short-rest' && method === 'POST') return { hp_recovered: 7, new_current_hp: character.current_hp };
+  if (tail === 'long-rest' && method === 'POST') {
+    character.current_hp = character.computed?.max_hp || 20;
+    PREVIEW_STORE.spellSlots.standard_slots.forEach(slot => { slot.available = slot.max; });
+    return { message: 'Descanso largo aplicado en preview' };
+  }
+  if (tail === 'inventory' && method === 'POST') {
+    previewAddInventory(character, body.item_id, Math.max(1, Number(body.quantity) || 1));
+    return { message: 'Objeto agregado en preview' };
+  }
+  if (tail.startsWith('inventory/')) {
+    const itemId = decodeURIComponent(tail.split('/')[1] || '');
+    const action = tail.split('/')[2] || '';
+    const inv = character.inventory_items.find(entry => entry.item_id === itemId);
+    if (!inv) throw new Error('Objeto de inventario preview no encontrado');
+    if (method === 'DELETE') {
+      character.inventory_items = character.inventory_items.filter(entry => entry.item_id !== itemId);
+      return { message: 'Objeto eliminado en preview' };
+    }
+    if (method === 'PATCH') {
+      if (Number.isFinite(body?.quantity)) inv.quantity = body.quantity;
+      if (typeof body?.is_equipped === 'boolean') inv.is_equipped = body.is_equipped;
+      return previewClone(inv);
+    }
+    if (action === 'use' && method === 'POST') {
+      const amount = Number(body?.effect_total) || 0;
+      if (amount > 0) character.current_hp = Math.min(character.computed?.max_hp || 20, character.current_hp + amount);
+      inv.quantity = Math.max(0, (inv.quantity || 1) - 1);
+      if (inv.quantity <= 0) character.inventory_items = character.inventory_items.filter(entry => entry.item_id !== itemId);
+      return { message: 'Objeto usado en preview', current_hp: character.current_hp, effect: amount ? { type: 'healing', amount } : null };
+    }
+  }
+
+  throw new Error(`Preview sin endpoint: ${method} ${path}`);
 }
 
 function showAuthScreen(mode = authMode) {
@@ -675,7 +1078,7 @@ function showAuthScreen(mode = authMode) {
         <label>Contraseña
           <input id="auth-password" type="password" autocomplete="${isRegister ? 'new-password' : 'current-password'}" placeholder="Mínimo 10 caracteres">
         </label>
-        <button class="btn btn-accent btn-full auth-submit figma-btn figma-btn--regular figma-btn--primary" onclick="submitAuthForm()">${isRegister ? 'Crear perfil' : 'Entrar'}</button>
+        <button class="primary-btn" onclick="submitAuthForm()">${isRegister ? 'Crear perfil' : 'Entrar'}</button>
       </div>
       <button class="auth-switch" onclick="showAuthScreen('${isRegister ? 'login' : 'register'}')">
         ${isRegister ? 'Ya tengo perfil' : 'Crear un perfil nuevo'}
@@ -713,6 +1116,15 @@ async function submitAuthForm() {
 }
 
 async function initAuth() {
+  if (PREVIEW_MODE) {
+    document.body.classList.add('preview-mode');
+    currentProfile = PREVIEW_PROFILE;
+    showAuthenticatedApp();
+    showPanel('roster');
+    await loadRoster();
+    toast('Vista de prueba local: datos demo, sin login ni API real.', 'info');
+    return;
+  }
   const token = authToken();
   if (!token) {
     showAuthScreen('login');
@@ -732,6 +1144,11 @@ async function initAuth() {
 }
 
 async function logoutProfile() {
+  if (PREVIEW_MODE) {
+    toast('La vista de prueba no usa sesión real.', 'info');
+    showPanel('roster');
+    return;
+  }
   try { if (authToken()) await api('POST', '/auth/logout'); } catch(e) {}
   clearAuthSession();
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -745,7 +1162,7 @@ async function loadRoster() {
   if (!currentProfile) return;
   updateProfileChrome();
   const grid = document.getElementById('roster-grid');
-  const addBtn = document.querySelector('.roster-add-btn');
+  const addBtn = document.getElementById('roster-add-btn');
   if (addBtn) addBtn.style.display = 'none';
   grid.innerHTML = '<span style="color:var(--muted);font-size:0.9rem">Cargando personajes…</span>';
   try {
@@ -754,7 +1171,7 @@ async function loadRoster() {
       grid.innerHTML = `<div class="roster-empty">
         <h3>No tienes personajes creados</h3>
         <p style="margin-bottom:20px">Crea tu primer aventurero para comenzar.</p>
-        <button class="btn btn-accent figma-btn figma-btn--regular figma-btn--primary" onclick="wizardOpen()">Agregar nuevo personaje</button>
+        <button class="primary-btn" onclick="wizardOpen()">Agregar nuevo personaje</button>
       </div>`;
       return;
     }
@@ -874,29 +1291,33 @@ function escapeText(value) {
   return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 }
 
-const MINI_BUTTON_CLASS_HINTS = [
-  'btn-sm',
+const BUTTON_ATOM_CLASSES = [
+  'primary-btn',
+  'primary-btn-mini',
+  'secondary-btn',
+  'secondary-btn-mini',
+  'ghost-btn',
+  'ghost-btn-mini',
+];
+
+const BUTTON_ATOM_IGNORE_CLASS_HINTS = [
   'auth-switch',
+  'caret-btn',
   'detail-back',
   'detail-image-upload',
-  'detail-roll',
-  'detail-xp-btn',
-  'dice-disabled-btn',
   'dice-info-link',
-  'hp-adjust-back',
-  'inventory-add-object-btn',
-  'inventory-add-submit',
-  'inventory-collapse-btn',
-  'inventory-equip-btn',
-  'inventory-remove-btn',
-  'inventory-sell-btn',
   'item-description-close',
   'item-use-close',
   'pb-btn',
   'profile-logout',
+  'rc-menu-btn',
+];
+
+const MINI_BUTTON_CLASS_HINTS = [
+  'btn-sm',
+  'hp-adjust-back',
   'rc-del',
   'rc-edit',
-  'rc-menu-btn',
   'wiz-top-back',
 ];
 
@@ -910,24 +1331,15 @@ const MINI_BUTTON_PARENT_SELECTORS = [
 ];
 
 const REGULAR_BUTTON_CLASS_HINTS = [
-  'auth-submit',
   'btn-full',
-  'dice-primary-btn',
-  'detail-hp-adjust-btn',
-  'inventory-apply-btn',
-  'inventory-search-btn',
-  'roster-add-btn',
+];
+
+const SECONDARY_BUTTON_CLASS_HINTS = [
+  'btn-ghost',
 ];
 
 const GHOST_BUTTON_CLASS_HINTS = [
-  'auth-switch',
-  'btn-ghost',
-  'detail-back',
-  'inventory-collapse-btn',
-  'inventory-remove-btn',
-  'inventory-sell-btn',
-  'profile-logout',
-  'rc-menu-btn',
+  'equipped',
 ];
 
 function buttonHasClassHint(button, hints) {
@@ -940,29 +1352,33 @@ function buttonShouldBeMini(button) {
   return MINI_BUTTON_PARENT_SELECTORS.some(selector => button.closest(selector));
 }
 
-function setAtomButtonSize(button, sizeClass) {
-  const otherSize = sizeClass === 'figma-btn--mini' ? 'figma-btn--regular' : 'figma-btn--mini';
-  if (button.classList.contains(otherSize)) button.classList.remove(otherSize);
-  if (!button.classList.contains(sizeClass)) button.classList.add(sizeClass);
+function buttonHasAtom(button) {
+  return BUTTON_ATOM_CLASSES.some(className => button.classList.contains(className));
+}
+
+function setButtonAtom(button, atomClass) {
+  BUTTON_ATOM_CLASSES.forEach(className => button.classList.remove(className));
+  button.classList.add(atomClass);
 }
 
 function applyButtonAtom(button) {
   if (!button || button.dataset.atomIgnore === 'true') return;
-  button.classList.add('figma-btn');
-  setAtomButtonSize(button, buttonShouldBeMini(button) ? 'figma-btn--mini' : 'figma-btn--regular');
-  const hasTone = button.classList.contains('figma-btn--primary')
-    || button.classList.contains('figma-btn--secondary')
-    || button.classList.contains('figma-btn--ghost');
-  if (!hasTone) {
-    button.classList.add(buttonHasClassHint(button, GHOST_BUTTON_CLASS_HINTS) ? 'figma-btn--ghost' : 'figma-btn--primary');
-  }
+  if (buttonHasClassHint(button, BUTTON_ATOM_IGNORE_CLASS_HINTS)) return;
+  if (buttonHasAtom(button)) return;
+  const size = buttonShouldBeMini(button) ? 'mini' : 'regular';
+  const tone = buttonHasClassHint(button, GHOST_BUTTON_CLASS_HINTS)
+    ? 'ghost'
+    : buttonHasClassHint(button, SECONDARY_BUTTON_CLASS_HINTS)
+      ? 'secondary'
+      : 'primary';
+  setButtonAtom(button, `${tone}-btn${size === 'mini' ? '-mini' : ''}`);
 }
 
 function applyInputAtom(control) {
   if (!control || control.dataset.atomIgnore === 'true') return;
   const type = (control.getAttribute('type') || '').toLowerCase();
   if (['checkbox', 'radio', 'file', 'hidden'].includes(type)) return;
-  control.classList.add('figma-input-control');
+  control.classList.add('input-control');
 }
 
 function applyUiAtoms(root = document) {
@@ -1131,7 +1547,7 @@ function renderAttackWeaponCard(inv, index) {
     </div>
     <div class="dice-tag-row">${chips.map(c => `<span>${escapeText(c)}</span>`).join('')}</div>
     <p>${escapeText(itemDescription(item))}</p>
-    <button class="dice-primary-btn" onclick="selectAttackWeapon('${inv.item_id}')">Atacar</button>
+    <button class="primary-btn" onclick="selectAttackWeapon('${inv.item_id}')">Atacar</button>
   </article>`;
 }
 
@@ -1249,10 +1665,10 @@ function renderAttackCheck() {
       <div><span>${escapeText(itemLabel(item.name))}</span><span>x${weapon.quantity ?? 1}</span></div>
       <p>Se descontará 1 unidad de tu inventario al lanzarla</p>
     </div>` : ''}
-    <button class="dice-primary-btn" ${isRolled || diceFlow.rolling ? 'disabled aria-disabled="true"' : ''} onclick="rollAttackD20()">${diceFlow.rolling ? 'Lanzando...' : 'Lanzar dado'}</button>
-    ${diceFlow.attackRoll === 20 ? `<button class="dice-primary-btn" onclick="startAttackDamage(true)">Calcular daño</button>` : ''}
-    ${diceFlow.attackRoll === 1 ? `<button class="dice-primary-btn" onclick="openDiceFlowScreen('attack-weapons')">Terminar</button>` : ''}
-    ${isRolled && diceFlow.attackRoll > 1 && diceFlow.attackRoll < 20 ? `<button class="dice-primary-btn" onclick="openDiceFlowScreen('attack-outcome', 'attack-check')">Comprobar</button>` : `<button class="dice-disabled-btn" disabled>Comprobar</button>`}
+    <button class="primary-btn" ${isRolled || diceFlow.rolling ? 'disabled aria-disabled="true"' : ''} onclick="rollAttackD20()">${diceFlow.rolling ? 'Lanzando...' : 'Lanzar dado'}</button>
+    ${diceFlow.attackRoll === 20 ? `<button class="primary-btn" onclick="startAttackDamage(true)">Calcular daño</button>` : ''}
+    ${diceFlow.attackRoll === 1 ? `<button class="primary-btn" onclick="openDiceFlowScreen('attack-weapons')">Terminar</button>` : ''}
+    ${isRolled && diceFlow.attackRoll > 1 && diceFlow.attackRoll < 20 ? `<button class="primary-btn" onclick="openDiceFlowScreen('attack-outcome', 'attack-check')">Comprobar</button>` : `<button class="primary-btn" disabled>Comprobar</button>`}
   </section>`;
 }
 
@@ -1374,7 +1790,7 @@ function renderAttackOutcome() {
       <button class="${selected === 'fail' ? 'selected' : ''}" onclick="chooseAttackOutcome('fail')">Fallo</button>
       <button class="${selected === 'success' ? 'selected' : ''}" onclick="chooseAttackOutcome('success')">Éxito</button>
     </div>
-    <button class="dice-primary-btn" ${selected ? '' : 'disabled aria-disabled="true"'} onclick="${selected === 'success' ? 'startAttackDamage(false)' : "openDiceFlowScreen('attack-weapons')"}">Confirmar</button>
+    <button class="primary-btn" ${selected ? '' : 'disabled aria-disabled="true"'} onclick="${selected === 'success' ? 'startAttackDamage(false)' : "openDiceFlowScreen('attack-weapons')"}">Confirmar</button>
   </section>`;
 }
 
@@ -1399,8 +1815,8 @@ function renderAttackDamage() {
     <div class="dice-copy"><h1>Cálculo de daño</h1><p>No olvides describirle a tu DM como realizas tu ataque sin perder la esencia del Rol</p></div>
     ${diceDieView(rolled?.total ?? 0, sidesToDieClass(diceFormulaSides(formula)))}
     ${rolled ? `<div class="dice-result-row"><span>Daño total inflingido</span><strong>${escapeText(resultText)}</strong></div>` : ''}
-    <button class="dice-primary-btn" ${rolled || diceFlow.rolling ? 'disabled aria-disabled="true"' : ''} onclick="rollAttackDamage('${formula}')">${diceFlow.rolling ? 'Lanzando...' : 'Lanzar dado'}</button>
-    <button class="dice-primary-btn" ${rolled ? '' : 'disabled aria-disabled="true"'} onclick="finishDiceFlowAfterChange()">Terminar</button>
+    <button class="primary-btn" ${rolled || diceFlow.rolling ? 'disabled aria-disabled="true"' : ''} onclick="rollAttackDamage('${formula}')">${diceFlow.rolling ? 'Lanzando...' : 'Lanzar dado'}</button>
+    <button class="primary-btn" ${rolled ? '' : 'disabled aria-disabled="true"'} onclick="finishDiceFlowAfterChange()">Terminar</button>
   </section>`;
 }
 
@@ -1474,7 +1890,7 @@ function renderCastSpellCard(knownSpell) {
     <div class="dice-tag-row">${chips.map(c => `<span>${escapeText(c)}</span>`).join('')}</div>
     <p>${escapeText(spellEffectSummary(s) || spellDescription(s, getKnownSpellLevel(knownSpell) === 0 ? 'Truco' : `Nivel ${getKnownSpellLevel(knownSpell)}`, school))}</p>
     <button class="dice-info-link" onclick="showSpellInfo('${encodeURIComponent(s.name ?? 'Conjuro')}', '${encodeURIComponent(spellDescription(s, 'Conjuro', school))}')">Ver más información</button>
-    <button class="dice-primary-btn" onclick="selectSpellForRoll('${knownSpell.id}')">Atacar</button>
+    <button class="primary-btn" onclick="selectSpellForRoll('${knownSpell.id}')">Atacar</button>
   </article>`;
 }
 
@@ -1522,8 +1938,8 @@ function renderSpellDie() {
     ${diceDieView(rolled?.total ?? 0, sidesToDieClass(diceFormulaSides(diceFlow.selectedDie || '1d20')))}
     ${rolled ? `<div class="dice-result-row"><span>${resultLabel}</span><strong>${rolled.total} ${resultUnit}</strong></div>
       ${save ? `<p class="dice-dm-note">Pide a tu DM que la criatura haga una tirada de salvación de ${escapeText(save)} que supere tu CD de conjuros (${dc ?? '—'}) si la criatura no lo supera aplica daño ${escapeText(damageType || 'del conjuro')}.</p>` : ''}` : ''}
-    <button class="dice-primary-btn" onclick="rollSpellDie()" ${rolled || diceFlow.rolling ? 'disabled aria-disabled="true"' : ''}>${diceFlow.rolling ? 'Lanzando...' : 'Lanzar dado'}</button>
-    ${rolled ? `<button class="dice-primary-btn" onclick="finishDiceFlowAfterChange()">Terminar</button>` : ''}
+    <button class="primary-btn" onclick="rollSpellDie()" ${rolled || diceFlow.rolling ? 'disabled aria-disabled="true"' : ''}>${diceFlow.rolling ? 'Lanzando...' : 'Lanzar dado'}</button>
+    ${rolled ? `<button class="primary-btn" onclick="finishDiceFlowAfterChange()">Terminar</button>` : ''}
   </section>`;
 }
 
@@ -1591,7 +2007,7 @@ function renderStoryResolutionSkills() {
   return `<section class="dice-card-list story-skill-picker">
     <p class="story-skill-hint">La resolución de historia siempre compete a una habilidad en específico, elige la habilidad a usar.</p>
     <div class="story-skill-list">${rows}</div>
-    <button class="dice-primary-btn" ${selected ? '' : 'disabled aria-disabled="true"'}
+    <button class="primary-btn" ${selected ? '' : 'disabled aria-disabled="true"'}
       onclick="confirmStorySkill()">Lanzar dado</button>
   </section>`;
 }
@@ -1659,8 +2075,8 @@ function renderStoryResolutionRoll() {
       ? `<div class="dice-result-row"><span>Resultado final</span><strong>${finalTotal}</strong></div>`
       : ''}
     ${!rolled
-      ? `<button class="dice-primary-btn" onclick="rollStoryDice()" ${diceFlow.rolling ? 'disabled aria-disabled="true"' : ''}>${diceFlow.rolling ? 'Lanzando...' : 'Lanzar dado'}</button>`
-      : `<button class="dice-primary-btn" onclick="closeDiceFlow()">Terminar</button>`}
+      ? `<button class="primary-btn" onclick="rollStoryDice()" ${diceFlow.rolling ? 'disabled aria-disabled="true"' : ''}>${diceFlow.rolling ? 'Lanzando...' : 'Lanzar dado'}</button>`
+      : `<button class="primary-btn" onclick="closeDiceFlow()">Terminar</button>`}
   </section>`;
 }
 
@@ -1706,8 +2122,8 @@ function renderGenericRoll() {
     <div class="dice-copy"><h1>${escapeText(title)}</h1><p>Lanza ${escapeText(formula)} y comparte el resultado con tu Dungeon Master.</p></div>
     ${diceDieView(diceFlow.genericRoll?.total ?? 0, sidesToDieClass(diceFormulaSides(formula)))}
     ${diceFlow.genericRoll ? `<div class="dice-result-row"><span>Resultado</span><strong>${diceFlow.genericRoll.total}</strong></div>` : ''}
-    <button class="dice-primary-btn" onclick="rollGenericDice()" ${diceFlow.genericRoll || diceFlow.rolling ? 'disabled aria-disabled="true"' : ''}>${diceFlow.rolling ? 'Lanzando...' : 'Lanzar dado'}</button>
-    ${diceFlow.genericRoll ? `<button class="dice-primary-btn" onclick="closeDiceFlow()">Terminar</button>` : ''}
+    <button class="primary-btn" onclick="rollGenericDice()" ${diceFlow.genericRoll || diceFlow.rolling ? 'disabled aria-disabled="true"' : ''}>${diceFlow.rolling ? 'Lanzando...' : 'Lanzar dado'}</button>
+    ${diceFlow.genericRoll ? `<button class="primary-btn" onclick="closeDiceFlow()">Terminar</button>` : ''}
   </section>`;
 }
 
@@ -3067,7 +3483,7 @@ function wizardStatSuggestionHTML() {
         <small>Sugerencia óptima</small>
         <strong>${suggestion.priority.slice(0, 3).map(stat => STAT_NAMES[stat]).join(' / ')}</strong>
       </div>
-      <button type="button" class="inventory-equip-btn" onclick="wizApplySuggestedAbilities()">Aplicar</button>
+      <button type="button" class="primary-btn-mini" onclick="wizApplySuggestedAbilities()">Aplicar</button>
     </div>
     <div class="attr-suggestion-grid">
       ${STATS.map(stat => `<span><b>${STAT_NAMES[stat]}</b>${suggestion.scores[stat]} → ${suggestion.finalScores[stat]}</span>`).join('')}
@@ -4872,6 +5288,7 @@ function endLoading() {
 async function api(method, path, body){
   beginLoading(method === 'GET' ? 'Cargando información...' : 'Guardando cambios...');
   try {
+    if (PREVIEW_MODE) return await previewApi(method, path, body);
     const opts = { method, headers:{'Content-Type':'application/json'} };
     const token = authToken();
     if (token) opts.headers.Authorization = `Bearer ${token}`;
@@ -4888,6 +5305,10 @@ async function api(method, path, body){
 // Health check
 async function checkAPI(){
   const el = document.getElementById('api-status');
+  if (PREVIEW_MODE) {
+    el.textContent='● Preview local'; el.className='ok';
+    return;
+  }
   try{
     await fetch(API+'/health');
     el.textContent='● Conectado'; el.className='ok';
@@ -5027,7 +5448,6 @@ function syncCharacterHeaderAction(tab) {
   const header = action.closest('.character-detail-header');
   const isInventory = tab === 'inventory';
   header?.classList.toggle('inventory-header', isInventory);
-  action.classList.toggle('inventory-action', isInventory);
   if (isInventory) {
     action.textContent = 'Agregar objeto';
     action.onclick = openInventoryAddObject;
@@ -5147,14 +5567,14 @@ function renderInventoryBackpackView(items) {
   return `
     ${renderInventoryCarryCard(load, coins)}
     <div class="inventory-backpack-search">
-      <label class="inventory-search-field figma-input figma-input--search" aria-label="Buscar objeto">
+      <label class="input input-icon inventory-search-field" aria-label="Buscar objeto">
         <svg class="inventory-search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <circle cx="11" cy="11" r="7"></circle>
           <path d="M16.5 16.5 21 21"></path>
         </svg>
-        <input class="figma-input-control" value="${escapeText(detailBackpackSearch)}" placeholder="Buscar objeto" oninput="setBackpackSearch(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();refreshDetailInventoryPanel()}">
+        <input class="input-control" value="${escapeText(detailBackpackSearch)}" placeholder="Buscar objeto" oninput="setBackpackSearch(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();refreshDetailInventoryPanel()}">
       </label>
-      <button class="inventory-search-btn figma-btn figma-btn--regular figma-btn--primary" onclick="refreshDetailInventoryPanel()">Buscar</button>
+      <button class="primary-btn" onclick="refreshDetailInventoryPanel()">Buscar</button>
     </div>
     ${visibleItems.length ? `
       <div class="inventory-rich-list">
@@ -5226,7 +5646,7 @@ function renderInventoryStashView(items) {
         <small>Alijo</small>
         <strong>${stashItems.length} objeto${stashItems.length === 1 ? '' : 's'} guardado${stashItems.length === 1 ? '' : 's'}</strong>
       </div>
-      <button class="inventory-add-object-btn figma-btn figma-btn--mini figma-btn--primary" onclick="openInventoryAddObject()">Agregar objeto</button>
+      <button class="primary-btn-mini" onclick="openInventoryAddObject()">Agregar objeto</button>
     </div>
     <p class="inventory-section-copy">El alijo agrupa objetos no equipados ni consumibles para revisar tesoro, herramientas y piezas de rol sin mezclarlas con el equipo activo.</p>
     ${stashItems.length ? `
@@ -5319,7 +5739,7 @@ function renderDetailEquipmentChooser(cls) {
         <span>Este personaje aún no tiene equipamiento de ${CLASS_NAME_ES[cls?.name] ?? cls?.name ?? 'clase'} asignado.</span>
       </div>
       ${groups.map(group => detailEquipmentGroupHTML(group)).join('')}
-      <button class="btn btn-accent btn-full inventory-apply-btn figma-btn figma-btn--regular figma-btn--primary" ${equipmentCompleteForClass(cls, detailEquipmentChoices) ? '' : 'disabled aria-disabled="true"'} onclick="applyDetailEquipment()">Guardar equipamiento</button>
+      <button class="primary-btn" ${equipmentCompleteForClass(cls, detailEquipmentChoices) ? '' : 'disabled aria-disabled="true"'} onclick="applyDetailEquipment()">Guardar equipamiento</button>
     </section>`;
 }
 
@@ -5430,11 +5850,11 @@ function renderInventoryItemCard(inv, options = {}) {
   const detailRows = inventoryCardRows(item);
   const collapsed = options.expanded ? false : true;
   const actionCta = pack
-    ? `<button class="inventory-equip-btn figma-btn figma-btn--mini figma-btn--primary" onclick="useInventoryItem(event, '${itemRef}')">Abrir kit</button>`
+    ? `<button class="primary-btn-mini" onclick="useInventoryItem(event, '${itemRef}')">Abrir kit</button>`
     : usable
-      ? `<button class="inventory-equip-btn figma-btn figma-btn--mini figma-btn--primary" onclick="useInventoryItem(event, '${itemRef}')">Usar</button>`
+      ? `<button class="primary-btn-mini" onclick="useInventoryItem(event, '${itemRef}')">Usar</button>`
       : equippable
-        ? `<button class="inventory-equip-btn figma-btn figma-btn--mini ${inv.is_equipped ? 'equipped figma-btn--ghost' : 'figma-btn--primary'}" onclick="toggleInventoryEquip(event, '${itemRef}', ${inv.is_equipped ? 'false' : 'true'})">${inv.is_equipped ? 'Desequipar' : 'Equipar'}</button>`
+        ? `<button class="${inv.is_equipped ? 'ghost-btn-mini equipped' : 'primary-btn-mini'}" onclick="toggleInventoryEquip(event, '${itemRef}', ${inv.is_equipped ? 'false' : 'true'})">${inv.is_equipped ? 'Desequipar' : 'Equipar'}</button>`
         : '';
   return `
     <article class="inventory-item-card ${options.compact ? 'inventory-slot-card' : ''} ${collapsed ? 'collapsed' : ''}" onclick="openItemDescriptionDrawer('${itemRef}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openItemDescriptionDrawer('${itemRef}')}">
@@ -5445,7 +5865,7 @@ function renderInventoryItemCard(inv, options = {}) {
           <small>${escapeText(item.item_type ? itemTypeLabel(item) : 'Objeto')}</small>
         </div>
         ${headerStatus.length ? `<div class="inventory-head-status">${headerStatus.map(s => `<em>${escapeText(s)}</em>`).join('')}</div>` : ''}
-        <button class="inventory-collapse-btn" onclick="toggleInventoryCard(event, this)" aria-label="${collapsed ? 'Expandir objeto' : 'Colapsar objeto'}" aria-expanded="${String(!collapsed)}">${collapsed ? '▼' : '▲'}</button>
+        <button class="caret-btn inventory-collapse-btn" onclick="toggleInventoryCard(event, this)" aria-label="${collapsed ? 'Expandir objeto' : 'Colapsar objeto'}" aria-expanded="${String(!collapsed)}"><span class="caret-icon" aria-hidden="true"></span></button>
       </div>
       <div class="inventory-card-body">
         <div class="figma-red-divider" aria-hidden="true"></div>
@@ -5453,12 +5873,12 @@ function renderInventoryItemCard(inv, options = {}) {
         <div class="figma-red-divider" aria-hidden="true"></div>
         <p>${escapeText(itemDescription(item))}</p>
         <div class="inventory-card-actions">
-          <div class="inventory-action-buttons inventory-secondary-actions">
+          <div class="inventory-card-controls inventory-secondary-controls">
             ${status.length ? `<div class="inventory-status-row">${status.map(s => `<em>${escapeText(s)}</em>`).join('')}</div>` : ''}
-            <button class="inventory-remove-btn figma-btn figma-btn--mini figma-btn--ghost" onclick="deleteInventoryItem(event, '${itemRef}')">Eliminar</button>
-            <button class="inventory-sell-btn figma-btn figma-btn--mini figma-btn--ghost" onclick="sellInventoryItem(event, '${itemRef}')">Vender</button>
+            <button class="secondary-btn-mini" onclick="deleteInventoryItem(event, '${itemRef}')">Eliminar</button>
+            <button class="secondary-btn-mini" onclick="sellInventoryItem(event, '${itemRef}')">Vender</button>
           </div>
-        <div class="inventory-action-buttons">
+        <div class="inventory-card-controls">
             ${actionCta}
           </div>
         </div>
@@ -5488,7 +5908,6 @@ function toggleInventoryCard(event, button) {
   const card = button?.closest?.('.inventory-item-card');
   if (!card) return;
   const collapsed = card.classList.toggle('collapsed');
-  button.textContent = collapsed ? '▼' : '▲';
   button.setAttribute('aria-expanded', String(!collapsed));
   button.setAttribute('aria-label', collapsed ? 'Expandir objeto' : 'Colapsar objeto');
 }
@@ -5739,7 +6158,7 @@ function renderInventoryCatalogCard(item) {
     <p>${itemDescription(item)}</p>
     <div class="inventory-card-actions">
       <span></span>
-      <button class="inventory-equip-btn" onclick="openInventoryQuantityScreen('${item.item_id}')">Agregar</button>
+      <button class="primary-btn-mini" onclick="openInventoryQuantityScreen('${item.item_id}')">Agregar</button>
     </div>
   </article>`;
 }
@@ -5762,7 +6181,7 @@ function openInventoryQuantityScreen(itemId) {
       <p style="margin-top:4px;opacity:0.7;font-size:0.85em">Agrega la cantidad de objetos de este tipo que vas a agregar a tu inventario</p>
     </div>
     <input id="inventory-add-qty" class="inventory-qty-input" type="number" min="1" value="${ammunitionBundleSize(item) || 1}" placeholder="Cantidad">
-    <button class="inventory-add-submit" onclick="confirmInventoryAddObject()">Agregar</button>
+      <button class="primary-btn" onclick="confirmInventoryAddObject()">Agregar</button>
   </section>`;
 }
 
@@ -5888,8 +6307,8 @@ function openUseItemModal(itemId, item, formula) {
         <div id="virtual-dice-rolls" class="virtual-dice-rolls">Lanza los dados para resolver el efecto.</div>
       </div>
       <div class="item-use-actions">
-        <button class="inventory-equip-btn" id="roll-use-item-btn" onclick="rollUseItemDice()">Lanzar dados</button>
-        <button class="inventory-equip-btn equipped" id="apply-use-item-btn" disabled aria-disabled="true" onclick="confirmUseItemDice()">Aplicar efecto</button>
+        <button class="primary-btn" id="roll-use-item-btn" onclick="rollUseItemDice()">Lanzar dados</button>
+        <button class="ghost-btn" id="apply-use-item-btn" disabled aria-disabled="true" onclick="confirmUseItemDice()">Aplicar efecto</button>
       </div>
     </div>`;
 }

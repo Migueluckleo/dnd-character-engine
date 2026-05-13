@@ -1842,8 +1842,10 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 - The `Descripción` modal item header must follow the Figma `--module-item-header` architecture: item art on the left, `item summary` on the right, `main information` grouping `titleAndCategory` plus `price`, then red divider and `advantages` / highlighted rule below. Price must not be implemented as a disconnected third column.
 - The `Descripción` modal highlighted rule row must allow long advantage/attribute text to wrap across multiple lines. It must never hide rule content with ellipsis, `nowrap`, or clipped overflow.
 - The `Descripción` modal must derive item rarity from `item.rarity` or `item.properties.rarity`, whichever exists.
-- Buttons in New Style screens must use the shared button atom `figma-btn` and exactly one size variant: `figma-btn--mini` (`24px`) or `figma-btn--regular` (`44px`). Visual tone may use `figma-btn--primary`, `figma-btn--secondary`, or `figma-btn--ghost`, but component-specific button sizing/padding must not be recreated locally.
-- Inputs, selects, and textareas in New Style screens must use the shared input atom `figma-input-control`. Search or composed fields may wrap the control with `figma-input` / `figma-input--search`; component-specific input borders, padding or typography must not be recreated without extending the atom.
+- Buttons in New Style screens must use the shared canonical button atoms. Regular buttons must use `primary-btn`, `secondary-btn` or `ghost-btn`; mini buttons must use `primary-btn-mini`, `secondary-btn-mini` or `ghost-btn-mini`. Component-specific action names must not define button size, padding, color or typography.
+- Primary regular buttons must be `44px` high with `Source Serif Pro`, `16px`, `#FFFFFF` text and `12px` horizontal padding. Primary mini buttons must be `24px` high with `Source Serif Pro`, `10px`, `#FFFFFF` text and `8px` horizontal padding.
+- Inputs, selects, and textareas in New Style screens must use `input-control`. Search or composed fields may wrap the control with `input`; icon fields must use `input input-icon` so the icon is part of the input variant and the inner control does not render a second input border.
+- Caret controls for collapsed/expanded inventory cards must use `caret-btn`, not a mini button. The caret hitbox is `24x24px`; the internal vector is `12x6px`, centered, and uses `#720000`.
 - The UI must include a consistency layer that normalizes dynamically rendered buttons and form controls to these atoms, so wizard, inventory, dice, auth, modals and future screens inherit the same control system.
 - Existing data flows must remain intact: character opening, image upload, inventory equip/use, dice flows, spell/skill tabs, and API calls.
 - Any visual approximation or missing Figma screen must be marked as pending visual QA rather than treated as a 100% match.
@@ -1852,4 +1854,22 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 |----|--------|-------|
 | US-146 | En progreso / pendiente de validación visual en navegador | Current `ui.html` and `style.css` add the first New Style template pass for home, opened character, inventory templates, Figma-derived CSS tokens, the roster card three-dot dropdown, the opened-character section card with stealth-penalty state, separate biography card, `.character-card-stats` aligned to Figma `--module-xp`, mini/regular/close button tokens, global reusable button/input atoms, and the inventory item `Descripción` modal using `src/images/page bg.png`, `src/images/ficha bg.png`, and `src/images/dnd_card_bg.png`. The item modal now supports `--module-item-header`, multiline advantage/attribute rows and rarity from `properties.rarity`. JS syntax and TypeScript validation pass. Pending: browser QA against Figma pages `specs` and `Prototipo`, node `2086:824`, and remaining modal/detail screens. |
 
-*End of requirements.md — Total User Stories: US-01 through US-146.*
+### US-147: Local Production-Mirror Preview Without Login
+
+**Goal:** Provide a local-only preview route that reflects the current production UI structure and styling, but lets the user inspect unpushed UI changes without logging in, touching production data, or replacing the deployed GitHub Pages app.
+
+**Acceptance criteria:**
+- The project must expose a separate preview entrypoint, `preview.html`, that opens `ui.html?preview=1`.
+- Preview mode must be opt-in and must not replace `index.html`, `ui.html`, `config.public.js`, or the deployed production route.
+- Preview mode must bypass real authentication and use a local demo profile clearly labelled as a preview/test profile.
+- Preview mode must not call the production API for characters, inventory, auth, spells, skills, or catalog data. It must use in-memory demo data suitable for UI validation.
+- The preview must reuse the same `ui.html`, `style.css`, assets and components as production so visual changes are representative of the deployed app.
+- The preview data must include at least one opened-character-ready demo with sheet stats, inventory, conjuros, habilidades, PG/PG temporales and item interactions sufficient to validate major UI surfaces.
+- The project must include a local command to serve the preview without requiring `git push`; current command: `npm run preview`, then open `http://127.0.0.1:5500/preview.html`.
+- Any missing mock endpoint or data shape must fail as preview-only and be documented/extended, not silently call production.
+
+| US | Estado | Notas |
+|----|--------|-------|
+| US-147 | Implementada / pendiente de validación visual en navegador local | Current `preview.html` redirects to `ui.html?preview=1`; `ui.html` defines `PREVIEW_MODE`, local profile, in-memory mock API and demo data; `package.json` adds `npm run preview`. Pending: local visual QA because automated in-app browser may block file/localhost navigation. |
+
+*End of requirements.md — Total User Stories: US-01 through US-147.*

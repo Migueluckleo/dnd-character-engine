@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "ts-node src/index.ts",
+    "preview": "python3 -m http.server 5500 --bind 127.0.0.1",
     "build": "tsc",
     "start": "node dist/index.js",
     "postinstall": "prisma generate",

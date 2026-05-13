@@ -9,6 +9,29 @@
 - El wizard de creación está orientado a mobile-first y debe seguir `docs/Create Character.pdf` y el Figma `DM-Dnd-App--Copy-`.
 - La documentación viva principal está en `docs/requirements.md`, `docs/plan.md`, `docs/tasks.md`, `.claude.md`, `CHANGELOG.md` y este archivo.
 
+## Últimos cambios realizados (2026-05-13) — Vista de prueba local sin login (US-147)
+- Se agregó `preview.html`, que redirige a `ui.html?preview=1`.
+- `ui.html` ahora soporta `PREVIEW_MODE`. Cuando está activo, usa un perfil local falso (`Vista de prueba`) y un mock API en memoria con personaje, inventario, conjuros, habilidades, PG, catálogo básico y acciones comunes.
+- El modo preview no llama a la API real, no usa login, no lee personajes reales y no modifica producción. Sirve para revisar cambios de UI localmente antes de hacer `git push`.
+- Se agregó `npm run preview` para levantar un servidor estático local en `http://127.0.0.1:5500`.
+- Flujo recomendado: ejecutar `npm run preview` y abrir `http://127.0.0.1:5500/preview.html`.
+
+### Archivos modificados
+- `ui.html`
+- `preview.html`
+- `package.json`
+- `README.md`
+- `SETUP.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+- `docs/requirements.md`
+- `docs/tasks.md`
+- `docs/behavioral_design.md`
+
+### Pendientes inmediatos
+- Validar visualmente `preview.html` en navegador normal o Live Server, ya que la prueba automatizada del navegador integrado puede bloquear `file://`/`localhost`.
+- Ampliar el mock preview si una nueva pantalla necesita endpoints o datos que todavía no estén simulados.
+
 ## Últimos cambios realizados (2026-05-12) — Réplica de pantalla de personaje abierto (US-117 / US-125 / US-146)
 
 ### Qué se implementó
@@ -36,9 +59,12 @@
 - El header del modal `Descripción` debe conservar la anatomía Figma `--module-item-header`: arte del item a la izquierda; `item summary` a la derecha; `main information` con `titleAndCategory` y `price`; luego divider rojo y `advantages`. No volver a separar el precio como tercera columna independiente.
 - Las cards de inventario en `Equipo`, `Mochila` y `Alijo` deben nacer colapsadas para maximizar escaneo. El caret expande/colapsa el detalle inline; tocar la card completa sigue abriendo el modal `Descripción`.
 - La pantalla `Mochila` debe seguir el spec `--dndCharacterEngine-character-backpack`: tabs parchment, módulo `Carga`/PO/PP/PC, buscador `Buscar objeto` + botón `Buscar`, y cards de objeto con strips y gaps de 16px. La acción `Agregar objeto` vive en el header superior cuando el tab activo es `Inventario`, no como encabezado interno de Mochila. El subtab inicial de `Inventario` debe ser `Mochila`.
-- Botones e inputs New Style deben usar átomos reutilizables: `figma-btn` + una sola variante de tamaño (`figma-btn--mini` o `figma-btn--regular`) + variante visual (`figma-btn--primary`, `figma-btn--secondary` o `figma-btn--ghost`). Inputs, selects y textareas deben usar `figma-input-control`; wrappers visuales pueden usar `figma-input`. No crear estilos locales de botón/input sin reutilizar estos átomos.
-- `ui.html` instala un normalizador global de átomos (`installUiAtomObserver`) que aplica estas clases a controles existentes y a controles renderizados por JS. Al construir nuevas pantallas, se debe seguir declarando el átomo correcto en markup cuando sea posible; el normalizador es una red de consistencia, no una excusa para inventar clases nuevas.
-- `Agregar objeto` en el header de inventario es botón mini (`figma-btn--mini`), no regular.
+- Botones e inputs New Style deben usar átomos reutilizables con nombres canónicos simples. Botones regulares: `primary-btn`, `secondary-btn` o `ghost-btn`; botones mini: `primary-btn-mini`, `secondary-btn-mini` o `ghost-btn-mini`. No combinar nombres de acción con variantes visuales como contrato de estilo.
+- Los botones regulares usan `Source Serif Pro`, `16px`, color `#FFFFFF` en la variante primaria, alto `44px` y padding horizontal de `12px`. Los botones mini usan `Source Serif Pro`, `10px`, color `#FFFFFF` en la variante primaria, alto `24px` y padding horizontal de `8px`.
+- Inputs, selects y textareas deben usar `input-control`. Campos compuestos usan el wrapper `input`; si llevan ícono usan `input input-icon`, sin crear un segundo borde de input en el control interno.
+- El caret de colapsar/desplegar no es botón mini. Debe usar `caret-btn`, hitbox `24x24px`, vector interno `12x6px`, color `#720000` y centrado.
+- `ui.html` instala un normalizador global de átomos (`installUiAtomObserver`) que aplica estas clases canónicas a controles existentes y a controles renderizados por JS. Al construir nuevas pantallas, se debe declarar el átomo correcto en markup cuando sea posible; el normalizador es una red de consistencia, no una excusa para inventar clases nuevas.
+- `Agregar objeto` en el header de inventario es botón mini (`primary-btn-mini`), no regular.
 
 ### Archivos modificados
 - `ui.html`

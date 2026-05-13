@@ -29,6 +29,7 @@ npm run dev
 | Command | Description |
 |---|---|
 | `npm run dev` | Start server with ts-node (hot reload) |
+| `npm run preview` | Serve the static local preview on port 5500 without login/API calls |
 | `npm run build` | Compile TypeScript to dist/ |
 | `npm run test` | Run all tests |
 | `npm run test:unit` | Unit tests only (services) |
@@ -43,6 +44,22 @@ npm run dev
 ```
 http://localhost:3000
 ```
+
+## Local UI preview without login
+
+Use this when you need to inspect UI changes before publishing:
+
+```bash
+npm run preview
+```
+
+Open:
+
+```text
+http://127.0.0.1:5500/preview.html
+```
+
+This loads `ui.html?preview=1`, uses an in-memory demo profile and mock data, and does not call the deployed API or production data.
 
 ## Key endpoints
 - `GET  /health` — Server health check

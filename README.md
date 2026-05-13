@@ -42,6 +42,18 @@ npm run dev
 
 Luego abre `ui.html`.
 
+## Preview local sin login
+
+Para revisar cambios visuales sin hacer `git push`, sin iniciar sesión y sin tocar producción:
+
+```bash
+npm run preview
+```
+
+Luego abre `http://127.0.0.1:5500/preview.html`.
+
+Esta vista usa los mismos archivos de UI (`ui.html`, `style.css` y assets), pero activa `?preview=1` con datos demo locales en memoria. No consulta ni modifica la API real.
+
 ## Revisión antes de publicar
 
 ```bash

@@ -612,9 +612,17 @@
 - **Notas 2026-05-12:** El header del modal `Descripción` se reestructuró como Figma `--module-item-header`: arte + `item summary`; `main information` contiene título/categoría y precio; debajo quedan divider rojo y `advantages`. Falta QA visual fina contra la page `specs`.
 - **Notas 2026-05-12:** Se corrigió la visibilidad de `Biografía` para que solo aparezca en el tab `Personaje`; también se fijó la navbar principal e interna con padding horizontal de 16px. La navbar interna ahora usa columnas flexibles para no invadir el padding.
 - **Notas 2026-05-12:** Las cards de inventario ahora nacen colapsadas en `Equipo`, `Mochila` y `Alijo` para mejorar escaneo; el caret expande el detalle inline y el tap de card mantiene el modal `Descripción`.
-- **Notas 2026-05-12:** Se formalizaron átomos globales de controles: botones `figma-btn` con tamaño único `figma-btn--mini` o `figma-btn--regular`, e inputs/selects/textareas `figma-input-control`. `ui.html` incluye normalización global para controles renderizados por JS; futuras pantallas deben reutilizar estos átomos en lugar de crear estilos locales.
+- **Notas 2026-05-12:** Se formalizaron átomos globales de controles con nombres canónicos simples: botones regulares `primary-btn` / `secondary-btn` / `ghost-btn`, botones mini `primary-btn-mini` / `secondary-btn-mini` / `ghost-btn-mini`, inputs `input-control` y variantes compuestas `input` / `input-icon`. `ui.html` incluye normalización global para controles renderizados por JS; futuras pantallas deben reutilizar estos átomos en lugar de crear estilos locales o clases de acción como contrato visual.
+- **Notas 2026-05-13:** Se corrigió el contrato de caret: `caret-btn` no es botón mini, usa hitbox 24x24px y vector interno 12x6px color `#720000`. También se sustituyó el buscador de Mochila por la variante `input input-icon` para evitar doble borde/input visual.
 - **Notas 2026-05-12:** `Mochila` fue homologada al spec visual: header con `Agregar objeto`, tabs parchment, módulo `Carga`/monedas, buscador, cards con strips, status en header y gaps de 16px. `Inventario` abre por defecto en `Mochila`. Falta QA visual fina contra Figma.
 - **Status:** `[~]`
+
+### T-078: Crear preview local sin login
+- **Spec:** US-147
+- **Action:** Agregar un entrypoint `preview.html`, un modo `PREVIEW_MODE` en `ui.html`, un mock API en memoria con datos demo y un comando local para servir la app sin push ni login.
+- **Done when:** `npm run preview` levanta `http://127.0.0.1:5500/preview.html`; el usuario ve Home/personaje/inventario/conjuros/habilidades con datos demo; no se llama a la API real ni se reemplaza producción.
+- **Notas 2026-05-13:** Implementado con `ui.html?preview=1`, perfil local `Vista de prueba`, mock API en memoria y catálogo demo mínimo. Pendiente QA visual local en navegador normal.
+- **Status:** `[x]`
 
 ---
 

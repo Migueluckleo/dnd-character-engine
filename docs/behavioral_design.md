@@ -479,12 +479,24 @@
 - US146.3b: `Mochila` sigue el spec visual `--module-inventory` / `--dndCharacterEngine-character-backpack`: tabs superiores, módulo `Carga`/PO/PP/PC, buscador, cards parchment con strips, status en header y gaps de 16px. El CTA `Agregar objeto` se muestra en el header superior del tab `Inventario`. Al abrir `Inventario`, el subtab inicial es `Mochila`.
 - US146.4: Los colores, tipografías, tamaños, espacios, radios y sombras del template viven como tokens CSS derivados del Figma para evitar valores sueltos.
 - US146.4a: Las navbars New Style usan padding horizontal de 16px. Sus columnas internas deben ser flexibles para respetar el ancho útil; no deben sumar el ancho total de pantalla antes de aplicar padding.
-- US146.4b: Los controles interactivos deben construirse con átomos reutilizables. Todo botón usa `figma-btn` y solo una variante de tamaño (`figma-btn--mini` o `figma-btn--regular`); todo input/select/textarea usa `figma-input-control`. Los wrappers compuestos pueden usar `figma-input`. No se deben crear botones o inputs con tamaños, padding o tipografías locales fuera de estos átomos.
+- US146.4b: Los controles interactivos deben construirse con átomos reutilizables y nombres canónicos simples. Botones regulares: `primary-btn`, `secondary-btn`, `ghost-btn`. Botones mini: `primary-btn-mini`, `secondary-btn-mini`, `ghost-btn-mini`. Inputs/selects/textareas: `input-control`; campos compuestos: `input`; campos con icono: `input input-icon`. El caret usa `caret-btn` y no hereda estilo de botón mini. No se deben crear botones o inputs con tamaños, padding, color o tipografías locales fuera de estos átomos.
 - US146.5: Al tocar una tarjeta de inventario, se abre el drawer `Descripción` con arte del ítem, nombre, tipo/rareza, valor, atributos clave y descripción completa.
 - US146.5a: En el modal `Descripción`, la regla destacada debe mostrar etiqueta (`Ventaja` o `Atributo`) y valor completo. Los textos largos como ventajas, inmunidades o atributos múltiples pueden ocupar varios renglones; no deben truncarse ni ocultarse.
 - US146.5b: El header del modal `Descripción` debe mapear al componente Figma `--module-item-header`: arte a la izquierda, `item summary` a la derecha, `main information` con `titleAndCategory` + `price`, divider rojo y bloque `advantages`. El precio no debe separarse como una tercera columna independiente.
 - US146.6: La migración visual no rompe autenticación, apertura de personaje, carga de imagen, inventario, dados, habilidades, conjuros ni llamadas API.
 - US146.7: Cualquier pantalla secundaria no migrada al nuevo template se mantiene como pendiente explícito de validación visual.
+
+### US-147 — Vista de prueba local sin login
+*Como creador del producto, quiero abrir una versión de prueba local que refleje la UI de producción para revisar cambios sin hacer push ni iniciar sesión.*
+
+**Estado:** 🟢 Implementada / pendiente de QA visual local
+
+**Criterios de aceptación:**
+- US147.1: `preview.html` abre `ui.html?preview=1` como entrada separada y no reemplaza la app deployada.
+- US147.2: El modo preview usa un perfil local falso y omite el login real.
+- US147.3: El modo preview usa datos demo en memoria para personajes, inventario, conjuros, habilidades, PG y catálogos necesarios; no debe consultar ni modificar datos de producción.
+- US147.4: La preview reutiliza los mismos componentes, CSS y assets de producción para que los cambios visuales sean representativos.
+- US147.5: El comando `npm run preview` levanta un servidor local para revisar `http://127.0.0.1:5500/preview.html` antes de hacer `git push`.
 
 ---
 
@@ -492,8 +504,9 @@
 
 | Fecha | Cambio | US relacionada |
 |---|---|---|
+| 2026-05-13 | US-147 creada — preview local sin login con mock API en memoria | US-147 |
 | 2026-05-12 | US-146 extendida — `Mochila` homologada al spec `--module-inventory` y `--dndCharacterEngine-character-backpack` | US-127 / US-146 |
-| 2026-05-12 | US-146 extendida — átomos globales `figma-btn` y `figma-input-control` obligatorios para botones e inputs | US-146 |
+| 2026-05-12 | US-146 extendida — átomos globales `primary-btn`, `primary-btn-mini` e `input-control` obligatorios para botones e inputs | US-146 |
 | 2026-05-12 | US-146 ajustada — cards de inventario colapsadas por defecto en Equipo/Mochila/Alijo | US-127 / US-146 |
 | 2026-05-12 | US-146 ajustada — biografía solo visible en tab `Personaje` y navbar con padding horizontal de 16px | US-117 / US-146 |
 | 2026-05-12 | US-146 extendida — modal `Descripción` alineado a arquitectura Figma `--module-item-header` | US-127 / US-146 |
