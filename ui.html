@@ -498,31 +498,16 @@
 <!-- ═══ WIZARD OVERLAY ═══ -->
 <div id="wizard-overlay">
   <div id="wizard-box">
-    <div class="wiz-title">Crear personaje</div>
-    <div class="wiz-sub" id="wiz-sub-text">Datos generales</div>
-    <!-- Step dots -->
-    <div class="wiz-dots">
-      <div class="wiz-dot active" id="wdot-1">1</div>
-      <div class="wiz-line" id="wline-1"></div>
-      <div class="wiz-dot" id="wdot-2">2</div>
-      <div class="wiz-line" id="wline-2"></div>
-      <div class="wiz-dot" id="wdot-3">3</div>
-      <div class="wiz-line" id="wline-3"></div>
-      <div class="wiz-dot" id="wdot-4">4</div>
-      <div class="wiz-line" id="wline-4"></div>
-      <div class="wiz-dot" id="wdot-5">5</div>
-      <div class="wiz-line" id="wline-5"></div>
-      <div class="wiz-dot" id="wdot-6">6</div>
-      <div class="wiz-line" id="wline-6"></div>
-      <div class="wiz-dot" id="wdot-7">7</div>
+    <div class="wiz-shell-head">
+      <div class="wiz-sub" id="wiz-sub-text"></div>
+      <div class="wiz-dots" id="wiz-progress-bars"></div>
     </div>
     <!-- Dynamic body -->
     <div class="wiz-body" id="wiz-body"></div>
     <!-- Nav buttons -->
-    <div class="wiz-nav">
-      <button class="btn btn-ghost" id="wiz-btn-back" onclick="wizardPrev()" style="display:none">← Atrás</button>
-      <button class="btn btn-ghost" onclick="wizardClose()" style="margin-left:auto;margin-right:12px">Cancelar</button>
-      <button class="btn btn-accent" id="wiz-btn-next" onclick="wizardNext()">Siguiente →</button>
+    <div class="wiz-nav" hidden>
+      <button class="ghost-btn" id="wiz-btn-back" onclick="wizardPrev()" style="display:none">Atrás</button>
+      <button class="ghost-btn" onclick="wizardClose()">Cancelar</button>
     </div>
   </div>
 </div>
@@ -2264,7 +2249,7 @@ function wizPBAdj(stat, delta) {
   }
   const left = 27 - STATS.reduce((t,k) => t + (COSTS[s[k]]??0), 0);
   const el = document.getElementById('wpb-left');
-  if (el) { el.textContent = left; el.style.color = left < 0 ? 'var(--red-soft)' : 'var(--accent2)'; }
+  if (el) { el.textContent = left; el.style.color = '#720000'; }
   if (typeof wizUpdateNextState === 'function') wizUpdateNextState();
 }
 
@@ -3246,7 +3231,7 @@ function spellChoiceBlock(type, spells, max, selected, maxSpellLevel) {
   const gridId = isCantrip ? 'wiz-cantrip-grid' : 'wiz-spell-grid';
   const counterId = isCantrip ? 'wiz-cantrip-count' : 'wiz-spell-count';
   const toggle = isCantrip ? 'wizToggleCantrip' : 'wizToggleSpell';
-  const title = isCantrip ? 'Trucos' : 'Conjuros';
+  const title = isCantrip ? 'Elige trucos' : 'Elige conjuros nivel 1';
   const atMax = selected.length >= max;
 
   // For spell (non-cantrip) blocks at higher levels, group by spell level
@@ -3299,7 +3284,7 @@ function spellChoiceBlock(type, spells, max, selected, maxSpellLevel) {
   return `
     <div class="skill-title-row">
       <div class="pdf-section-title">${title}</div>
-      <div class="skill-count">Elige ${max} <strong id="${counterId}">${selected.length}/${max}</strong></div>
+      <div class="skill-count"><strong id="${counterId}">${selected.length}/${max}</strong></div>
     </div>
     ${isCantrip ? '<p class="pdf-help" style="margin-top:-12px;margin-bottom:16px">Los trucos se lanzan sin gastar espacios de conjuro.</p>' : ''}
     ${spellRows}`;
@@ -3477,18 +3462,17 @@ function wizardStatSuggestion() {
 
 function wizardStatSuggestionHTML() {
   const suggestion = wizardStatSuggestion();
-  return `<section class="attr-suggestion-card">
-    <div class="attr-suggestion-head">
-      <div>
-        <small>Sugerencia óptima</small>
-        <strong>${suggestion.priority.slice(0, 3).map(stat => STAT_NAMES[stat]).join(' / ')}</strong>
+  return `<section class="cc-attribute-section">
+    <div class="cc-section-head">
+      <h2>Atributos recomendados</h2>
+    </div>
+    <div class="attr-suggestion-card">
+      <div class="attr-suggestion-grid">
+        ${STATS.map(stat => `<span><b>${STAT_NAMES[stat]}</b>${suggestion.finalScores[stat]}</span>`).join('')}
       </div>
-      <button type="button" class="primary-btn-mini" onclick="wizApplySuggestedAbilities()">Aplicar</button>
+      <button type="button" class="primary-btn" onclick="wizApplySuggestedAbilities()">Aplicar puntos recomendados</button>
     </div>
-    <div class="attr-suggestion-grid">
-      ${STATS.map(stat => `<span><b>${STAT_NAMES[stat]}</b>${suggestion.scores[stat]} → ${suggestion.finalScores[stat]}</span>`).join('')}
-    </div>
-    <p>${suggestion.reasons.join(' ')}</p>
+    <p class="cc-helper">${suggestion.reasons.join(' ')}</p>
   </section>`;
 }
 
@@ -4489,26 +4473,26 @@ function itemDescription(item) {
 function wizFlow() {
   const flow = [
     { key:'general', title:'Datos generales' },
-    { key:'race', title:'Selección de Raza' },
-    { key:'raceReview', title:'Tu selección' },
-    { key:'background', title:'Trasfondo' },
-    { key:'backgroundReview', title:'Tu selección' },
+    { key:'race', title:'Elección de Raza' },
+    { key:'raceReview', title:'Confirmación de Raza' },
+    { key:'background', title:'Elección de Trasfondo' },
+    { key:'backgroundReview', title:'Confirmación de Trasfondo' },
     { key:'personality', title:'Rasgos de personalidad' },
-    { key:'class', title:'Clase' },
-    { key:'classReview', title:'Tu selección' },
+    { key:'class', title:'Selección de Clase' },
+    { key:'classReview', title:'Confirmación de Clase' },
   ];
   if (wizNeedsSubclass()) {
-    flow.push({ key:'subclass', title:'Elige Subclase' });
-    flow.push({ key:'subclassReview', title:'Tu selección' });
+    flow.push({ key:'subclass', title:'Elección de Subclase' });
+    flow.push({ key:'subclassReview', title:'Confirmación de Subclase' });
   }
-  flow.push({ key:'equipment', title:'Equipamiento' });
+  flow.push({ key:'equipment', title:'Confirmación de Clase' });
+  flow.push({ key:'skills', title:'Elección de habilidades' });
+  flow.push({ key:'cantrips', title:'Elección de conjuros' });
   flow.push({ key:'attributes', title:'Atributos del personaje' });
   const asiCount = wizAsiCount();
   if (asiCount > 0) {
     flow.push({ key:'asi', title:`Mejora de Atributos (${asiCount} ASI)` });
   }
-  flow.push({ key:'skills', title:'Habilidades y conjuros' });
-  flow.push({ key:'cantrips', title:'Habilidades y conjuros' });
   flow.push({ key:'hp', title:'Puntos de golpe' });
   return flow;
 }
@@ -4518,13 +4502,25 @@ function wizCurrentKey() {
 }
 
 function wizProgressIndex() {
-  const key = wizCurrentKey();
-  if (['general'].includes(key)) return 0;
-  if (['race','raceReview'].includes(key)) return 1;
-  if (['background','backgroundReview','personality'].includes(key)) return 2;
-  if (['class','classReview','subclass','subclassReview'].includes(key)) return 3;
-  if (['equipment','attributes','asi','skills','cantrips','hp'].includes(key)) return 4;
-  return 0;
+  const map = {
+    general: 0,
+    race: 1,
+    raceReview: 2,
+    background: 3,
+    backgroundReview: 4,
+    personality: 4,
+    class: 5,
+    classReview: 6,
+    subclass: 6,
+    subclassReview: 6,
+    equipment: 6,
+    skills: 7,
+    cantrips: 7,
+    attributes: 8,
+    asi: 8,
+    hp: 9,
+  };
+  return map[wizCurrentKey()] ?? 0;
 }
 
 async function wizardOpen() {
@@ -4554,19 +4550,25 @@ function wizUpdateDots() {
   const progress = wizProgressIndex();
   const dots = document.querySelector('.wiz-dots');
   if (dots) {
-    dots.innerHTML = Array.from({ length: 5 }, (_, i) => `
+    dots.innerHTML = Array.from({ length: 10 }, (_, i) => `
       <div class="wiz-line ${i < progress ? 'done' : ''} ${i === progress ? 'active' : ''}"></div>
     `).join('');
   }
   const sub = document.getElementById('wiz-sub-text');
   if (sub) {
     sub.innerHTML = `
-      <button class="wiz-top-back" onclick="wizHeaderBack()" aria-label="${wiz.step <= 1 ? 'Cancelar creación' : 'Volver al paso anterior'}">‹</button>
-      <span>${current?.title ?? ''}</span>
-      <span class="wiz-top-spacer"></span>`;
+      <button class="wiz-top-back" onclick="wizHeaderBack()" aria-label="${wiz.step <= 1 ? 'Cancelar creación' : 'Volver al paso anterior'}">
+        <span class="wiz-back-icon" aria-hidden="true">‹</span>
+        <span>Atrás</span>
+      </button>
+      <div class="wiz-heading">
+        <span>Nuevo personaje</span>
+        <strong>${current?.title ?? ''}</strong>
+      </div>
+      <button class="primary-btn-mini" id="wiz-btn-next" onclick="wizardNext()">Siguiente</button>`;
   }
-  document.getElementById('wiz-btn-back').style.display = wiz.step > 1 ? '' : 'none';
-  document.getElementById('wiz-btn-next').textContent = wiz.step >= flow.length ? 'Agregar nuevo personaje' : 'Siguiente';
+  const back = document.getElementById('wiz-btn-back');
+  if (back) back.style.display = wiz.step > 1 ? '' : 'none';
   wizUpdateNextState();
 }
 
@@ -4646,22 +4648,26 @@ function wizPdfGeneralHTML() {
     lawful_evil:'Legal Malvado',neutral_evil:'Neutral Malvado',chaotic_evil:'Caotico Malvado',
   };
   return `
-    <div class="form-group">
-      <label>Nombre del personaje</label>
-      <input id="w-name" value="${d.name}" placeholder="Ej: Aragorn" oninput="wiz.data.name=this.value; wizUpdateNextState()">
-    </div>
-    <div class="form-group">
-      <label>Alineamiento</label>
-      <select id="w-align" onchange="wiz.data.alignment=this.value; document.getElementById('alignment-copy').textContent=WIZ_ALIGN_DESC[this.value]; wizUpdateNextState()">
-        ${Object.entries(labels).map(([k,v]) => `<option value="${k}" ${d.alignment===k?'selected':''}>${v}</option>`).join('')}
-      </select>
-      <div id="alignment-copy" class="choice-copy">${WIZ_ALIGN_DESC[d.alignment]}</div>
-    </div>
-    <div class="form-group">
-      <label>Nivel inicial</label>
-      <select id="w-level" onchange="wizSetLevel(+this.value); wizUpdateNextState()">
-        ${Array.from({length:20},(_,i)=>i+1).map(n=>`<option value="${n}" ${n===(d.initial_level??1)?'selected':''}>Nv. ${n}${n===1?' (inicio estandar)':''}</option>`).join('')}
-      </select>
+    <div class="wiz-form-card">
+      <div class="form-group">
+        <label for="w-name">Nombre del personaje</label>
+        <input class="input-control" id="w-name" value="${d.name}" placeholder="Nombre del personaje" autocomplete="off" oninput="wiz.data.name=this.value; wizUpdateNextState()">
+      </div>
+      <div class="form-group">
+        <label for="w-align">Alineamiento</label>
+        <select class="input-control" id="w-align" onchange="wiz.data.alignment=this.value; document.getElementById('alignment-copy').textContent=WIZ_ALIGN_DESC[this.value]; wizUpdateNextState()">
+          <option value="" disabled ${d.alignment?'':'selected'}>Alineamiento</option>
+          ${Object.entries(labels).map(([k,v]) => `<option value="${k}" ${d.alignment===k?'selected':''}>${v}</option>`).join('')}
+        </select>
+        <div id="alignment-copy" class="choice-copy">${WIZ_ALIGN_DESC[d.alignment]}</div>
+      </div>
+      <div class="form-group">
+        <label for="w-level">Nivel inicial</label>
+        <select class="input-control" id="w-level" onchange="wizSetLevel(+this.value); wizUpdateNextState()">
+          <option value="" disabled>Nivel inicial</option>
+          ${Array.from({length:20},(_,i)=>i+1).map(n=>`<option value="${n}" ${n===(d.initial_level??1)?'selected':''}>Nivel ${n}${n===1?' (inicio estandar)':''}</option>`).join('')}
+        </select>
+      </div>
     </div>`;
 }
 
@@ -4722,11 +4728,15 @@ function wizPdfAttributesHTML() {
     </div>`;
   }).join('');
   return `
-    <div class="pdf-section-title">Atributos del personaje</div>
     ${wizardStatSuggestionHTML()}
-    <div class="attr-budget" style="justify-content:flex-end;margin-top:-12px;margin-bottom:8px">Puntos a distribuir: <span id="wpb-left" style="color:${pbLeft<0?'var(--red-soft)':'var(--accent2)'}">${pbLeft}</span></div>
-    <div class="wiz-3col" id="wpb-grid">${rows}</div>
-    <p class="pdf-help">Los puntos se han adaptado a tu selección de raza, clase y trasfondo. Cada atributo muestra el total final que usará el personaje: puntuación base + bono racial. Recuerda que no se podrán asignar más de 7 puntos a una característica.</p>`;
+    <section class="cc-attribute-section">
+      <div class="cc-section-head">
+        <h2>Atributos del personaje</h2>
+        <span><strong id="wpb-left">${pbLeft}</strong>/27</span>
+      </div>
+      <div class="wiz-3col" id="wpb-grid">${rows}</div>
+      <p class="cc-helper">Los puntos se han adaptado a tu selección de raza, clase y trasfondo, por favor solo asigna el resto de tus puntos (27) recuerda que no se podrán asignar más de 7 puntos a una característica.</p>
+    </section>`;
 }
 
 async function wizPdfBackgroundHTML() {
@@ -4770,10 +4780,12 @@ function wizSelectBg(bgId, el) {
 function wizPdfPersonalityHTML() {
   const d = wiz.data;
   return `
-    <div class="form-group"><label>Rasgo</label><textarea placeholder="Ej: La justicia debe ser impartida sin favoritismos" oninput="wiz.data.personality_traits=this.value">${d.personality_traits}</textarea></div>
-    <div class="form-group"><label>Vinculo</label><textarea placeholder="Ej: Protejo a mi templo por sobre todas las cosas" oninput="wiz.data.bonds=this.value">${d.bonds}</textarea></div>
-    <div class="form-group"><label>Ideal</label><textarea placeholder="Ej: Intento ayudar a los demas con fuerza" oninput="wiz.data.ideals=this.value">${d.ideals}</textarea></div>
-    <div class="form-group"><label>Defecto</label><textarea placeholder="Ej: Mi orgullo me hace confiar demasiado" oninput="wiz.data.flaws=this.value">${d.flaws}</textarea></div>`;
+    <div class="wiz-form-card">
+      <div class="form-group"><label>Rasgo</label><textarea class="input-control" placeholder="Rasgo de personalidad" oninput="wiz.data.personality_traits=this.value">${d.personality_traits}</textarea></div>
+      <div class="form-group"><label>Vinculo</label><textarea class="input-control" placeholder="Vínculo" oninput="wiz.data.bonds=this.value">${d.bonds}</textarea></div>
+      <div class="form-group"><label>Ideal</label><textarea class="input-control" placeholder="Ideal" oninput="wiz.data.ideals=this.value">${d.ideals}</textarea></div>
+      <div class="form-group"><label>Defecto</label><textarea class="input-control" placeholder="Defecto" oninput="wiz.data.flaws=this.value">${d.flaws}</textarea></div>
+    </div>`;
 }
 
 async function wizPdfClassHTML() {
@@ -5039,12 +5051,15 @@ async function wizPdfEquipmentHTML() {
   try { await ensureItemCatalog(); } catch(e) { wiz.catalog.items = []; }
   const groups = equipmentGroupsForClass(c);
   if (!groups.length) return '<div class="detail-empty">Esta clase no tiene equipamiento configurado.</div>';
+  const info = CLASS_DESC[c.name] ?? { role:'', desc:'' };
   return `
     <div class="equipment-flow">
-      <div class="equipment-intro">
-        <h2>Elige las opciones de equipamiento</h2>
-        <p>Equipamiento de clase</p>
-        <span>El equipamiento otorgado por ser ${CLASS_NAME_ES[c.name] ?? c.name}</span>
+      <div class="review-card class-summary-card">
+        <h2>${CLASS_NAME_ES[c.name] ?? c.name}</h2>
+        <div class="oc-badges">
+          ${info.role ? `<span class="oc-badge">${info.role}</span>` : ''}
+          ${c.spellcasting_ability ? `<span class="oc-badge">Magia, ${STAT_NAMES[c.spellcasting_ability]}</span>` : `<span class="oc-badge">Dado de golpe d${c.hit_die}</span>`}
+        </div>
       </div>
       ${groups.map(group => wizEquipmentGroupHTML(group)).join('')}
     </div>`;

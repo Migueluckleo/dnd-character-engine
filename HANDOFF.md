@@ -6,8 +6,20 @@
 - Backend en Node.js/TypeScript con Express, Prisma y PostgreSQL.
 - Motor de reglas organizado en servicios puros: Point Buy, modificadores, HP, AC, combate, descansos, condiciones, concentración, inventario, multiclase, iniciativa, habilidades, pasivas, espacios de conjuro y XP.
 - UI standalone en `ui.html` que consume `http://localhost:3000` y usa `style.css`.
-- El wizard de creación está orientado a mobile-first y debe seguir `docs/Create Character.pdf` y el Figma `DM-Dnd-App--Copy-`.
+- El wizard de creación está orientado a mobile-first y ahora debe seguir el Figma `DnD Character Engine`, sección `Creación de personaje` (`2196:11249`). Ese Figma supersede el look anterior de `docs/Create Character.pdf` / `DM-Dnd-App--Copy-` para estilo, header, progreso, cards y orden visual.
 - La documentación viva principal está en `docs/requirements.md`, `docs/plan.md`, `docs/tasks.md`, `.claude.md`, `CHANGELOG.md` y este archivo.
+
+## Últimos cambios realizados (2026-05-13) — Wizard de creación alineado al Figma actual (US-112 / US-113 / US-115 / US-122 / US-135 / US-146)
+- Se usó Figma `DnD Character Engine`, node `2196:11249`, como fuente visual activa para el flujo `Creación de personaje`.
+- `ui.html` cambió la estructura del wizard: header Figma con `Atrás`, eyebrow `Nuevo personaje`, título centrado y `Siguiente` como `primary-btn-mini`; la navegación inferior vieja queda oculta.
+- `style.css` agrega una capa específica para el wizard con tokens Figma: red `#720000`, completed progress `#a26f6f`, inactive progress `#c7c7c7`, disabled button `#c2c2c2`, border brown `#76532e`, card strips de 5px, `page bg` y `dnd_card_bg`.
+- El progreso del wizard usa diez barras horizontales y el flujo visual queda: datos generales, raza, confirmación, trasfondo, confirmación, personalidad, clase, confirmación/subclase, equipamiento, habilidades/conjuros, atributos, ASI si aplica y PG.
+- `Equipamiento` ahora muestra una card resumen de clase y cards de selección tipo Figma con checkbox/caret; atributos recomendados y point buy usan grilla 3x2 con CTA regular.
+- Validación ejecutada: sintaxis JS embebida OK, balance CSS OK y `npm run build` OK.
+
+### Pendientes inmediatos
+- Validar visualmente en navegador real o `preview.html` contra Figma node `2196:11249`, especialmente las pantallas largas de raza/equipamiento/conjuros y el ancho real de 390px.
+- Si el usuario quiere paridad 100% también de la barra de estado iOS del prototipo, decidir explícitamente si debe renderizarse dentro de la app web o mantenerse como parte del mock Figma solamente.
 
 ## Últimos cambios realizados (2026-05-13) — Vista de prueba local sin login (US-147)
 - Se agregó `preview.html`, que redirige a `ui.html?preview=1`.
@@ -687,7 +699,7 @@
 
 1. ~~Aplicar la migración `20260430161500_add_level_1_hp_roll`~~ **PENDIENTE DE CONFIRMAR** — El SQL tenía `ALTER TABLE "character"` (minúscula) pero la tabla real es `"Character"` (mayúscula, creada en la primera migración). Se corrigió el archivo SQL. Para aplicar: `npx prisma migrate resolve --rolled-back 20260430161500_add_level_1_hp_roll` y luego `npx prisma migrate deploy`. Sin esta migración, abrir cualquier personaje falla con error 500 (P3018 / 42P01).
 2. **Validar hidratación completa en navegador** — Equipar una armadura a un personaje y confirmar que la ficha muestra CA correcta (no `10 + DEX`), velocidad con penalización de armadura pesada cuando STR es baja, y card de Carga/Monedas con valores reales. Requiere que la migración `20260430161500_add_level_1_hp_roll` esté aplicada.
-3. Validar visualmente el wizard, roster y microflujo de detalle contra `docs/Create Character.pdf` y Figma en navegador real, especialmente screenshots de autoavance, cards `Tu selección`, card `beast-card-B`, bottom nav, personaje abierto, tabs, textos, tipografías, paleta, espaciados y orden de pantallas.
+3. Validar visualmente el wizard contra Figma `DnD Character Engine` node `2196:11249`, y validar roster/microflujo de detalle contra sus nodos Figma vigentes en navegador real, especialmente autoavance, cards de confirmación, card `beast-card-B`, bottom nav, personaje abierto, tabs, textos, tipografías, paleta, espaciados y orden de pantallas.
 4. Validar visualmente la nueva sección de PG y el modal `Puntos de golpe Modal` contra los nodos Figma `2052:305` y `2052:472`, incluyendo edición con steppers, guardado de PG actuales y guardado de PG temporales.
 5. Validar visualmente el loader global durante cargas lentas y guardados, especialmente que no bloquee demasiado rápido la lectura del estado cuando la respuesta es inmediata.
 6. ~~Limpiar `ui.html`~~ **COMPLETADO** — Se eliminaron 425 líneas de código muerto. Cada función del wizard ahora tiene exactamente una definición.

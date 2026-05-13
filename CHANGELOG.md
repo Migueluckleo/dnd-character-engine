@@ -2,6 +2,40 @@
 
 Registro retroactivo del proyecto. El código actual es la fuente principal de verdad; las fechas previas se basan en marcas de archivo y documentación disponible, por lo que algunas entradas se indican como estimadas.
 
+## [2026-05-13] - Wizard de creación alineado al Figma actual
+
+### Cambios
+- Se tomó como fuente visual activa el Figma `DnD Character Engine`, sección `Creación de personaje` (`2196:11249`).
+- Se reestructuró el encabezado del wizard para usar el patrón Figma: `Atrás`, eyebrow `Nuevo personaje`, título de pantalla centrado y botón mini `Siguiente` con estado disabled/enabled.
+- Se reemplazó la barra previa por diez segmentos de progreso con colores Figma (`#720000`, `#a26f6f`, `#c7c7c7`).
+- Se aplicó el look parchment del Figma a formularios, cards de selección/review, equipamiento, conjuros, habilidades, atributos y puntos de golpe usando `page bg` y `dnd_card_bg`.
+- Se ajustó el flujo visual para que `Equipamiento` ocurra antes de habilidades/conjuros y `Atributos del personaje` quede en la fase tardía antes de puntos de golpe.
+- Se actualizó la sección de atributos recomendados con card 3x2 y CTA regular `Aplicar puntos recomendados`.
+- Se normalizaron los inputs del wizard con `input-control` y el botón del header con `primary-btn-mini`.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+- `docs/requirements.md`
+
+### Historias de usuario relacionadas
+- US-112: Figma-Matched Character Creation Flow & Ability Score Preview
+- US-113: Figma Visual Language for Mobile Character Creation
+- US-115: Wizard Navigation State and External Styling
+- US-122: Figma-Matched Creation Equipment and Inventory Detail
+- US-135: Hardcore Race Ordering and Late Attribute Allocation
+- US-146: New Style Template UI from Figma
+
+### Fuente / certeza
+- Confirmado por código actual
+- Confirmado por Figma `DnD Character Engine` node `2196:11249`
+- Basado en solicitud directa del usuario
+- Pendiente de validación visual fina en navegador contra Figma
+
+---
+
 ## [2026-05-13] - Limpieza de átomos de UI y caret
 
 ### Cambios

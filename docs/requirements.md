@@ -1331,11 +1331,11 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 
 ---
 
-### US-112: PDF-Matched Character Creation Flow & Ability Score Preview
+### US-112: Figma-Matched Character Creation Flow & Ability Score Preview
 
-**As a** player creating a character from the mobile-first flow, **I want** the wizard screens to match the approved `Create Character.pdf` architecture **so that** each choice is made, reviewed, and explained in the same order as the product design.
+**As a** player creating a character from the mobile-first flow, **I want** the wizard screens to match the approved Figma `DnD Character Engine` section `Creación de personaje` **so that** each choice is made, reviewed, and explained in the same order as the product design.
 
-- **AC 112.1 (Creation Flow Order):** The creation wizard UI must follow the approved PDF/Figma architecture, with the US-135 advanced-user override applied: Datos generales → Selección de raza → Tu selección (raza) → Trasfondo → Tu selección (trasfondo) → Rasgos de personalidad → Clase → Tu selección (clase) → Subclase when applicable per US-96 → Equipamiento → Atributos del personaje → ASI when applicable per US-121 → Habilidades de clase → Trucos / Conjuros when applicable per US-94 and US-95 → Cálculo de puntos de golpe.
+- **AC 112.1 (Creation Flow Order):** The creation wizard UI must follow the approved Figma architecture from node `2196:11249`, with the US-135 advanced-user override applied: Datos generales → Elección de Raza → Confirmación de Raza → Elección de Trasfondo → Confirmación de Trasfondo → Rasgos de personalidad → Selección de Clase → Confirmación de Clase → Subclase when applicable per US-96 → Confirmación de Clase / Equipamiento → Elección de habilidades → Elección de conjuros when applicable per US-94 and US-95 → Atributos recomendados / Atributos del personaje → ASI when applicable per US-121 → Cálculo de puntos de golpe.
 - **AC 112.2 (Review Screens):** Every catalog choice represented in the PDF with a "Tu selección" screen must show a read-only review card before continuing. The review must include the selected option name, relevant badges, and Spanish explanatory copy without mutating wizard state.
 - **AC 112.3 (Point Buy Base vs Final Score):** During "Atributos del personaje", controls still modify the Point Buy base score only, constrained to 8–15 and 27 points per US-85. The primary number shown to the user must be the final preview score: `base_score + racial_bonus`.
 - **AC 112.4 (Explicit Racial Bonus Reasoning):** Each ability score row must display the exact reasoning used for the preview, e.g. `Base 8 + +2 raza = 10`. If the selected race has no bonus for that ability, the row must show `Base 8 + 0 raza = 8`.
@@ -1344,17 +1344,17 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 
 ---
 
-### US-113: PDF Visual Language for Mobile Character Creation
+### US-113: Figma Visual Language for Mobile Character Creation
 
-**As a** player using the mobile creation wizard, **I want** colors, typography, cards, labels, and call-to-action styling to match the approved PDF **so that** the implemented UI preserves the intended fantasy product identity.
+**As a** player using the mobile creation wizard, **I want** colors, typography, cards, labels, progress, and call-to-action styling to match the approved Figma **so that** the implemented UI preserves the intended fantasy product identity.
 
-- **AC 113.1 (Palette):** The mobile wizard must use the PDF palette: deep brown page background, medium brown cards, warm cream/gold text accents, muted tan body copy, and red primary CTA buttons.
-- **AC 113.2 (Typography):** Wizard titles and selected-option names must use a fantasy/editorial serif treatment; form labels, cards, and body copy use a compact sans-serif treatment.
-- **AC 113.3 (Cards):** Race, class, background, subclass, skill, spell, and review cards must use brown surfaces with subtle tan borders and compact badges, not the previous black/blue dashboard look.
-- **AC 113.4 (Primary CTA):** The main wizard action must be a red full-width "Siguiente" button in the footer area. Secondary actions must remain visually subordinate.
-- **AC 113.5 (Text Matching):** Wizard screen titles and labels must use the same Spanish product wording represented in `Create Character.pdf` whenever the backend catalog allows it.
-- **AC 113.6 (Figma Token Match):** When Figma access is available, the wizard must prefer the `DM-Dnd-App--Copy-` Create Character token values over inferred approximations: `#332115` page, `#462f20` cards, `#64422b` active/card chips, `#92752b` decorative border, `#bbbbbb` field/card outlines, `#ffd7ad` primary heading text, `#c4c4c4` secondary text, and `#720000` primary button.
-- **AC 113.7 (Figma Layout Match):** The top wizard header must use the Figma pattern of back control + centered screen title + five horizontal progress bars. The ability editor must remain a 3-column mobile grid and not collapse to 2 columns.
+- **AC 113.1 (Palette):** The mobile wizard must use the current `DnD Character Engine` Figma palette: parchment/page background, card texture, red `#720000`, completed progress `#a26f6f`, inactive progress `#c7c7c7`, disabled button `#c2c2c2` / `#838383`, border brown `#76532e`, strip fill `rgba(231,154,68,.7)`, black body text, and white primary button text.
+- **AC 113.2 (Typography):** Wizard header subtitles and card titles must use `Source Serif Pro`; back text uses `Prata`; body/help copy uses `Source Sans Pro` / `Source Sans 3`; attribute numeric values may use `Roboto` as shown in Figma.
+- **AC 113.3 (Cards):** Race, class, background, subclass, equipment, skill, spell, review, HP, and attribute cards must use the parchment card system: 358px mobile width, `dnd_card_bg` texture, 5px top/bottom segmented borders, 16px internal padding, and Figma shadows.
+- **AC 113.4 (Primary CTA):** The wizard action belongs in the header as a mini `Siguiente` button, 24px high, 8px horizontal padding, `Source Serif Pro` 10px, red when enabled and gray when disabled. It must not regress to a footer full-width CTA.
+- **AC 113.5 (Text Matching):** Wizard screen titles and labels must use the same Spanish product wording represented in the Figma section whenever the backend catalog allows it: `Datos generales`, `Elección de Raza`, `Confirmación de Raza`, `Elección de Trasfondo`, `Selección de Clase`, `Confirmación de Clase`, `Elección de conjuros`, `Atributos recomendados`, and `Atributos del personaje`.
+- **AC 113.6 (Figma Token Match):** When Figma access is available, the wizard must prefer the `DnD Character Engine` file key `kwyCppseLygq4bUhYdFD7j`, section node `2196:11249`, over prior `DM-Dnd-App--Copy-` or PDF token approximations.
+- **AC 113.7 (Figma Layout Match):** The top wizard header must use the Figma pattern of back control + centered `Nuevo personaje` / current screen title + header mini action, followed by ten horizontal progress bars. The ability editor must remain a 3-column mobile grid and not collapse to 2 columns.
 
 ---
 
@@ -1458,8 +1458,8 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 
 **As a** player creating or reviewing a character, **I want** class equipment choices to be part of the creation flow and visible in the inventory with useful item details **so that** the character starts play with complete, understandable gear.
 
-- **AC 122.1:** The creation wizard must include an `Equipamiento` screen after skills/spells and before hit points.
-- **AC 122.2:** The `Equipamiento` screen must follow the Figma layout: title, class-equipment caption, grouped choice cards, per-group `Elige 1` counter, selected card state, item chips, and red full-width continuation CTA.
+- **AC 122.1:** The creation wizard must include an `Equipamiento` / `Confirmación de Clase` screen after class confirmation and before skills/conjuros, matching the current Figma `Creación de personaje` flow.
+- **AC 122.2:** The `Equipamiento` screen must follow the Figma layout: selected class parchment card, grouped choice cards, per-group counter, selected card state, 24px checkbox, 24px caret hitbox, and header mini continuation CTA.
 - **AC 122.3:** Each class-equipment group must require one selected option before the wizard can continue.
 - **AC 122.4:** Equipment choices must be submitted to the backend during character creation and persisted in inventory.
 - **AC 122.5:** Equipment packs must unpack into their contained items while preserving quantities.
@@ -1633,7 +1633,7 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 - **AC 135.1:** The race selection UI must group selectable variants by race family, keeping related options adjacent: dwarves, elves, halflings, gnomes, humans, dragonborn, half-elves, half-orcs, tieflings, and other future families.
 - **AC 135.2:** Elf variants must render together with `Drow`, `Elfo Alto`, and `Elfo del Bosque` in the configured family order rather than being separated alphabetically.
 - **AC 135.3:** The grouping logic must support future tiefling subraces when the catalog contains validated rows, but must not invent unsupported tiefling mechanics if the current catalog only contains base `tiefling`.
-- **AC 135.4:** The creation wizard must move `Atributos del personaje` out of the early race section and place it in the late creation phase after race/background/class/equipment context, before skills/conjuro validation and hit point rolling.
+- **AC 135.4:** The creation wizard must move `Atributos del personaje` out of the early race section and place it in the late creation phase after race/background/class/equipment/skills/conjuro context and before hit point rolling, matching the current Figma flow.
 - **AC 135.5:** Attribute controls must continue to show final scores as `base + bono racial` with explicit reasoning and must still submit only base Point Buy values to the API.
 
 ### US-136: Ability Score Recommendation Engine
@@ -1746,7 +1746,7 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 | US-132 | Implementada / pendiente de migración en base remota y validación E2E | Current backend adds `User`, `/auth/register`, `/auth/login`, `/auth/me`, optional bearer auth, owner guard for character subroutes, profile-filtered roster, scrypt+pepper password hashing, legacy PBKDF2 verification, production `AUTH_SECRET` guard, and minimal token payload. Current `ui.html` adds login/register/logout and sends tokens through `api()`. Migration file exists; applying it to Supabase remoto es pendiente por restricción de red del entorno. |
 | US-133 | Implementada / pendiente de configuración real en GitHub | Current repo adds `.gitignore` hardening, `.env.example`, public `config.public.js`, `index.html`, `.nojekyll`, `README.md`, `SECURITY.md`, GitHub Pages workflow, and `npm run prepublish:check`. Runtime Figma MCP asset URLs were removed from UI/CSS. Validated with `npm run prepublish:check`. |
 | US-134 | Implementada / pendiente de despliegue real | Current backend has env-based production CORS, Render blueprint `render.yaml`, build/migrate/start scripts, safe env placeholders, and `/health`. Validated locally with typecheck, tests, build, and security check. Pending: create Render service and update `config.public.js` with the backend HTTPS URL. |
-| US-135 | Implementada / pendiente de validación visual en navegador | Current `ui.html` groups race cards by inferred parent/family order, keeps elf variants adjacent, leaves tiefling subraces as catalog-supported/pending validation, and moves Point Buy attributes into the late creation phase before skills/conjuros and HP. Current `style.css` adds family section styling. |
+| US-135 | Implementada / pendiente de validación visual en navegador | Current `ui.html` groups race cards by inferred parent/family order, keeps elf variants adjacent, leaves tiefling subraces as catalog-supported/pending validation, and moves Point Buy attributes into the late creation phase after skills/conjuros and before HP per the current Figma flow. Current `style.css` adds family section styling. |
 | US-136 | Implementada / pendiente de validación visual en navegador | Current `ui.html` suggests valid Point Buy distributions based on class priority, background hint, and racial bonuses; users can apply the suggested base scores while preserving the no-double-racial-bonus contract. |
 | US-137 | Implementada parcial / pendiente de validación visual y modelo de monedas/alijo | Current `ui.html` and `style.css` add Figma-style `Equipo`, `Mochila`, `Alijo`, equipped-slot cards, dashed empty states, add-object search/filter/list flow, and quantity confirmation. Coin persistence and true storage locations remain pending backend modeling. |
 | US-138 | Implementada / pendiente de validación visual en navegador | Current `ui.html` adds `renderInventoryCarryCard()` with SVG bag/coin icons, progress bar, and PO/PP/PC columns in the Mochila tab. Weight is derived from the hydration engine (`h.carriedWeight`, `h.carryingCapacity`). Coin values read directly from the character record (`gp`, `sp`, `cp`). |
@@ -1821,6 +1821,7 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 
 **Acceptance criteria:**
 - The roster/home screen uses the new parchment page background, red welcome heading, Figma bottom navigation order, Figma character card hierarchy, and full-width red add-character CTA.
+- The creation wizard must use the current Figma `DnD Character Engine` section `Creación de personaje` (`2196:11249`) as its active visual source: 390px mobile frame, `page bg`, 16px horizontal page padding, 32px vertical rhythm, header mini CTA, ten progress bars, parchment cards, grouped race families, equipment item-selection cards, spell-selection cards, and late attribute grids.
 - Created-character cards must preserve the Figma information architecture: character name first, race/class subtitle, red divider, quick stats row (`CA`, speed in feet, HP, level), biography, and a top-right three-dot menu that reveals `Editar` and `Eliminar`.
 - Created-character card typography must match the refined Figma spec: title in `Source Serif Pro` 20px regular, race/class in the same font 10px italic, attributes in `Source Sans 3` 14px regular, and description in `Source Sans Pro` 14px regular. The red divider must fade/taper horizontally instead of rendering as a uniform solid line.
 - The opened-character screen uses the `ficha bg` background, Figma header, bottom character navigation, parchment detail card, visible CA, Velocidad and Bonificador de competencia, XP/level block, character image, attributes, magic stats, and HP adjustment block.
@@ -1852,7 +1853,7 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 
 | US | Estado | Notas |
 |----|--------|-------|
-| US-146 | En progreso / pendiente de validación visual en navegador | Current `ui.html` and `style.css` add the first New Style template pass for home, opened character, inventory templates, Figma-derived CSS tokens, the roster card three-dot dropdown, the opened-character section card with stealth-penalty state, separate biography card, `.character-card-stats` aligned to Figma `--module-xp`, mini/regular/close button tokens, global reusable button/input atoms, and the inventory item `Descripción` modal using `src/images/page bg.png`, `src/images/ficha bg.png`, and `src/images/dnd_card_bg.png`. The item modal now supports `--module-item-header`, multiline advantage/attribute rows and rarity from `properties.rarity`. JS syntax and TypeScript validation pass. Pending: browser QA against Figma pages `specs` and `Prototipo`, node `2086:824`, and remaining modal/detail screens. |
+| US-146 | En progreso / pendiente de validación visual en navegador | Current `ui.html` and `style.css` add the first New Style template pass for home, opened character, inventory templates, the creation wizard pass against Figma section `2196:11249`, Figma-derived CSS tokens, the roster card three-dot dropdown, the opened-character section card with stealth-penalty state, separate biography card, `.character-card-stats` aligned to Figma `--module-xp`, mini/regular/close button tokens, global reusable button/input atoms, and the inventory item `Descripción` modal using `src/images/page bg.png`, `src/images/ficha bg.png`, and `src/images/dnd_card_bg.png`. The item modal now supports `--module-item-header`, multiline advantage/attribute rows and rarity from `properties.rarity`. JS syntax and TypeScript validation pass. Pending: browser QA against Figma pages `specs`, `Prototipo`, node `2086:824`, and creation wizard node `2196:11249`. |
 
 ### US-147: Local Production-Mirror Preview Without Login
 
