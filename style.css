@@ -6370,6 +6370,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
   width: auto;
   min-width: 0;
   border: 1px solid transparent;
@@ -6393,6 +6394,7 @@
   height: var(--figma-button-mini-height, 24px);
   min-height: var(--figma-button-mini-height, 24px);
   max-height: var(--figma-button-mini-height, 24px);
+  min-width: 0;
   padding: 0 8px;
   font-size: 10px;
 }
@@ -6425,6 +6427,7 @@
 .figma-input {
   display: flex;
   align-items: center;
+  box-sizing: border-box;
   min-width: 0;
   min-height: var(--figma-button-regular-height, 44px);
   border: 1px solid var(--figma-color-image-border, #bbbbbb);
@@ -6439,6 +6442,7 @@
 }
 
 .figma-input-control {
+  box-sizing: border-box;
   width: 100%;
   min-width: 0;
   border: 0;
@@ -6450,9 +6454,99 @@
   font-weight: 400;
 }
 
+input.figma-input-control:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]),
+select.figma-input-control,
+textarea.figma-input-control {
+  min-height: var(--figma-button-regular-height, 44px);
+  border: 1px solid var(--figma-color-image-border, #bbbbbb);
+  border-radius: var(--figma-radius-control, 4px);
+  background: rgba(255,255,255,.82);
+  padding: 0 16px;
+}
+
+textarea.figma-input-control {
+  min-height: 96px;
+  padding: 12px 16px;
+  resize: vertical;
+}
+
+.figma-input .figma-input-control {
+  min-height: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.auth-form input.figma-input-control {
+  min-height: 56px;
+  margin-top: var(--figma-space-xs);
+  border: 1px solid var(--figma-color-border-brown);
+  border-radius: var(--figma-radius-card);
+  background: var(--figma-color-input-dark);
+  color: var(--figma-color-text-inverse);
+  font-family: var(--figma-font-primary);
+  font-size: var(--figma-font-size-md);
+}
+
 .figma-input-control::placeholder {
   color: var(--figma-color-text-muted, #6f5d4e);
   opacity: 1;
+}
+
+.profile-logout.figma-btn,
+.rc-menu-btn.figma-btn,
+.detail-back.figma-btn {
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.profile-logout.figma-btn,
+.rc-menu-btn.figma-btn {
+  width: 24px;
+  min-width: 24px;
+  height: 24px;
+  min-height: 24px;
+  max-height: 24px;
+  padding: 0;
+  color: var(--figma-color-brand-primary, #720000);
+}
+
+.inventory-collapse-btn.figma-btn {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  min-height: 34px;
+  max-height: 34px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--figma-color-brand-primary, #720000);
+}
+
+.item-description-close.figma-btn,
+.item-use-close.figma-btn {
+  width: var(--figma-button-close-size, 32px);
+  min-width: var(--figma-button-close-size, 32px);
+  height: var(--figma-button-close-size, 32px);
+  min-height: var(--figma-button-close-size, 32px);
+  max-height: var(--figma-button-close-size, 32px);
+  border: 0;
+  border-radius: var(--figma-radius-control, 4px);
+  background: var(--figma-color-brand-primary, #720000);
+  color: #ffffff;
+  padding: 0;
+}
+
+.pb-btn.figma-btn,
+.hp-stepper-control .figma-btn {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+  max-height: 32px;
+  padding: 0;
 }
 
 @media (max-width: 760px) {

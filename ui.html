@@ -874,6 +874,120 @@ function escapeText(value) {
   return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 }
 
+const MINI_BUTTON_CLASS_HINTS = [
+  'btn-sm',
+  'auth-switch',
+  'detail-back',
+  'detail-image-upload',
+  'detail-roll',
+  'detail-xp-btn',
+  'dice-disabled-btn',
+  'dice-info-link',
+  'hp-adjust-back',
+  'inventory-add-object-btn',
+  'inventory-add-submit',
+  'inventory-collapse-btn',
+  'inventory-equip-btn',
+  'inventory-remove-btn',
+  'inventory-sell-btn',
+  'item-description-close',
+  'item-use-close',
+  'pb-btn',
+  'profile-logout',
+  'rc-del',
+  'rc-edit',
+  'rc-menu-btn',
+  'wiz-top-back',
+];
+
+const MINI_BUTTON_PARENT_SELECTORS = [
+  '.dice-flow-header',
+  '.dice-tabs',
+  '.dice-outcome-grid',
+  '.hp-stepper-control',
+  '.inventory-coin-row',
+  '.inventory-filter-chips',
+];
+
+const REGULAR_BUTTON_CLASS_HINTS = [
+  'auth-submit',
+  'btn-full',
+  'dice-primary-btn',
+  'detail-hp-adjust-btn',
+  'inventory-apply-btn',
+  'inventory-search-btn',
+  'roster-add-btn',
+];
+
+const GHOST_BUTTON_CLASS_HINTS = [
+  'auth-switch',
+  'btn-ghost',
+  'detail-back',
+  'inventory-collapse-btn',
+  'inventory-remove-btn',
+  'inventory-sell-btn',
+  'profile-logout',
+  'rc-menu-btn',
+];
+
+function buttonHasClassHint(button, hints) {
+  return hints.some(hint => button.classList.contains(hint));
+}
+
+function buttonShouldBeMini(button) {
+  if (buttonHasClassHint(button, REGULAR_BUTTON_CLASS_HINTS)) return false;
+  if (buttonHasClassHint(button, MINI_BUTTON_CLASS_HINTS)) return true;
+  return MINI_BUTTON_PARENT_SELECTORS.some(selector => button.closest(selector));
+}
+
+function setAtomButtonSize(button, sizeClass) {
+  const otherSize = sizeClass === 'figma-btn--mini' ? 'figma-btn--regular' : 'figma-btn--mini';
+  if (button.classList.contains(otherSize)) button.classList.remove(otherSize);
+  if (!button.classList.contains(sizeClass)) button.classList.add(sizeClass);
+}
+
+function applyButtonAtom(button) {
+  if (!button || button.dataset.atomIgnore === 'true') return;
+  button.classList.add('figma-btn');
+  setAtomButtonSize(button, buttonShouldBeMini(button) ? 'figma-btn--mini' : 'figma-btn--regular');
+  const hasTone = button.classList.contains('figma-btn--primary')
+    || button.classList.contains('figma-btn--secondary')
+    || button.classList.contains('figma-btn--ghost');
+  if (!hasTone) {
+    button.classList.add(buttonHasClassHint(button, GHOST_BUTTON_CLASS_HINTS) ? 'figma-btn--ghost' : 'figma-btn--primary');
+  }
+}
+
+function applyInputAtom(control) {
+  if (!control || control.dataset.atomIgnore === 'true') return;
+  const type = (control.getAttribute('type') || '').toLowerCase();
+  if (['checkbox', 'radio', 'file', 'hidden'].includes(type)) return;
+  control.classList.add('figma-input-control');
+}
+
+function applyUiAtoms(root = document) {
+  const scope = root.nodeType === Node.ELEMENT_NODE || root.nodeType === Node.DOCUMENT_NODE ? root : document;
+  if (scope.matches?.('button')) applyButtonAtom(scope);
+  scope.querySelectorAll?.('button').forEach(applyButtonAtom);
+  if (scope.matches?.('input, select, textarea')) applyInputAtom(scope);
+  scope.querySelectorAll?.('input, select, textarea').forEach(applyInputAtom);
+}
+
+let uiAtomFrame = null;
+function scheduleUiAtomRefresh() {
+  if (uiAtomFrame) return;
+  uiAtomFrame = requestAnimationFrame(() => {
+    uiAtomFrame = null;
+    applyUiAtoms(document);
+  });
+}
+
+function installUiAtomObserver() {
+  applyUiAtoms(document);
+  const observer = new MutationObserver(scheduleUiAtomRefresh);
+  observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'type'] });
+}
+
 function jsArg(value) {
   return encodeURIComponent(String(value ?? ''));
 }
@@ -6927,6 +7041,7 @@ const dice3D = (() => {
 })();
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
+installUiAtomObserver();
 initAuth();
 </script>
 </body>

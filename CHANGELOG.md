@@ -10,12 +10,14 @@ Registro retroactivo del proyecto. El código actual es la fuente principal de v
 - Se agregaron variantes/base de input: `figma-input`, `figma-input--search` y `figma-input-control`.
 - Se aplicaron los átomos a acciones clave: `Agregar nuevo personaje`, `Tirar dado`, `Agregar objeto`, `Agregar experiencia`, `Ajustar puntos de golpe`, buscador de mochila, acciones de inventario y guardado de equipamiento.
 - El CTA `Agregar objeto` del header de inventario quedó como botón mini, no regular.
+- Se agregó una normalización global en UI para aplicar automáticamente `figma-btn` y `figma-input-control` a botones, inputs, selects y textareas ya existentes o renderizados por JS, usando solo los tamaños `mini` y `regular` para botones.
 
 ### Archivos modificados
 - `ui.html`
 - `style.css`
 - `CHANGELOG.md`
 - `HANDOFF.md`
+- `.claude.md`
 - `docs/requirements.md`
 - `docs/tasks.md`
 - `docs/behavioral_design.md`

@@ -479,6 +479,7 @@
 - US146.3b: `Mochila` sigue el spec visual `--module-inventory` / `--dndCharacterEngine-character-backpack`: tabs superiores, módulo `Carga`/PO/PP/PC, buscador, cards parchment con strips, status en header y gaps de 16px. El CTA `Agregar objeto` se muestra en el header superior del tab `Inventario`. Al abrir `Inventario`, el subtab inicial es `Mochila`.
 - US146.4: Los colores, tipografías, tamaños, espacios, radios y sombras del template viven como tokens CSS derivados del Figma para evitar valores sueltos.
 - US146.4a: Las navbars New Style usan padding horizontal de 16px. Sus columnas internas deben ser flexibles para respetar el ancho útil; no deben sumar el ancho total de pantalla antes de aplicar padding.
+- US146.4b: Los controles interactivos deben construirse con átomos reutilizables. Todo botón usa `figma-btn` y solo una variante de tamaño (`figma-btn--mini` o `figma-btn--regular`); todo input/select/textarea usa `figma-input-control`. Los wrappers compuestos pueden usar `figma-input`. No se deben crear botones o inputs con tamaños, padding o tipografías locales fuera de estos átomos.
 - US146.5: Al tocar una tarjeta de inventario, se abre el drawer `Descripción` con arte del ítem, nombre, tipo/rareza, valor, atributos clave y descripción completa.
 - US146.5a: En el modal `Descripción`, la regla destacada debe mostrar etiqueta (`Ventaja` o `Atributo`) y valor completo. Los textos largos como ventajas, inmunidades o atributos múltiples pueden ocupar varios renglones; no deben truncarse ni ocultarse.
 - US146.5b: El header del modal `Descripción` debe mapear al componente Figma `--module-item-header`: arte a la izquierda, `item summary` a la derecha, `main information` con `titleAndCategory` + `price`, divider rojo y bloque `advantages`. El precio no debe separarse como una tercera columna independiente.
@@ -492,6 +493,7 @@
 | Fecha | Cambio | US relacionada |
 |---|---|---|
 | 2026-05-12 | US-146 extendida — `Mochila` homologada al spec `--module-inventory` y `--dndCharacterEngine-character-backpack` | US-127 / US-146 |
+| 2026-05-12 | US-146 extendida — átomos globales `figma-btn` y `figma-input-control` obligatorios para botones e inputs | US-146 |
 | 2026-05-12 | US-146 ajustada — cards de inventario colapsadas por defecto en Equipo/Mochila/Alijo | US-127 / US-146 |
 | 2026-05-12 | US-146 ajustada — biografía solo visible en tab `Personaje` y navbar con padding horizontal de 16px | US-117 / US-146 |
 | 2026-05-12 | US-146 extendida — modal `Descripción` alineado a arquitectura Figma `--module-item-header` | US-127 / US-146 |
