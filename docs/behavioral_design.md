@@ -514,6 +514,7 @@
 - US148.3: `ui.html` puede mantener wrappers temporales para no reescribir renderizadores grandes en el mismo corte.
 - US148.4: Nuevos helpers puros del frontend deben vivir en módulos de `src/client`, no crecer dentro del script inline.
 - US148.5: Cada fase debe actualizar documentación viva antes de cerrarse.
+- US148.6: Cada fase que conecte UI, helpers, Figma, API o reglas debe actualizar `docs/traceability.md` y/o `docs/architecture_map.md` con US, tareas, archivos, funciones y validaciones explícitas para evitar silos en Graphify.
 
 ---
 
@@ -522,6 +523,7 @@
 | Fecha | Cambio | US relacionada |
 |---|---|---|
 | 2026-05-15 | Wizard creación — primer pase Figma: labels ES robustos para preview/API, header back especializado y cards de raza localizadas | US-146 |
+| 2026-05-15 | Graphify — creados `docs/traceability.md` y `docs/architecture_map.md` para conectar requerimientos, Figma, UI, helpers, backend y validación | US-146 / US-148 |
 | 2026-05-15 | Fix inventario — normalización compartida para nombres/IDs y fallback inline de imágenes/filtros cuando helpers Vite cargan tarde | US-145 / US-146 / US-148 |
 | 2026-05-15 | UI atoms — normalizado color de texto e iconos en botones primary/mini; tabs/chips quedan fuera del normalizador CTA | US-146 |
 | 2026-05-15 | Proceso Figma — contratos de componentes y cards enriquecidos con source, node, variants, mapping, reglas y anti-patrones | US-146 |

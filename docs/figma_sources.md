@@ -26,6 +26,8 @@ Origen inicial: `/Users/migueleo/Downloads/figma sources.docx`, creado por el us
 - `docs/component_contracts.md`: contrato por componentes y módulos reutilizables.
 - `docs/card_contracts.md`: contrato específico de cards y estructuras repetidas.
 - `docs/qa_checklist.md`: checklist de QA visual, funcional y de documentación.
+- `docs/traceability.md`: mapa de relación entre US, tareas, Figma, renderizadores, helpers y validación.
+- `docs/architecture_map.md`: mapa de capas runtime/backend/UI/docs para evitar silos en Graphify.
 
 ## Cómo Pedir Un Cambio UI
 

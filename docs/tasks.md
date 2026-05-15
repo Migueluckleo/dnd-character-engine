@@ -690,6 +690,13 @@
 - **Notas 2026-05-15:** Implementado para Button/Input/Checkbox/Caret/Tag/Divider/Navigation/Modal/Item Header/Description y para las cards Home Character, Inventory Item, Catalog Item, Equipment Selection, Race, Class, Background y Spell. Pendiente extraer specs numéricos exactos con Figma MCP.
 - **Status:** `[x]`
 
+### T-091: Crear puentes de trazabilidad para Graphify
+- **Spec:** US-146 / US-148 / proceso de continuidad
+- **Action:** Crear documentos que conecten explícitamente requerimientos, tareas, Figma sources, contratos, archivos, funciones y validaciones para reducir silos en Graphify.
+- **Done when:** `docs/traceability.md` y `docs/architecture_map.md` existen, están enlazados desde fuentes canónicas y contienen mapas para inventario, wizard, preview/runtime, Figma governance, backend rule engine, seguridad y validación.
+- **Notas 2026-05-15:** Implementado como capa documental de puente para que Graphify relacione documentación, UI, helpers, servicios y contratos visuales. Debe mantenerse en cada cambio significativo.
+- **Status:** `[x]`
+
 ### T-089: Normalizar color de tipografía e iconos en botones atomizados
 - **Spec:** US-146 / proceso de consistencia visual
 - **Action:** Ajustar el normalizador de botones y la capa CSS de átomos para que primary/secondary/ghost mantengan color de texto e icono consistente, sin contaminar tabs/chips/controles especializados.

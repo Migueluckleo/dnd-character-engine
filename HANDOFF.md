@@ -1,5 +1,26 @@
 # HANDOFF
 
+## Últimos cambios realizados (2026-05-15) — Puentes de trazabilidad para Graphify
+
+### Qué se implementó
+- `docs/traceability.md`: mapa explícito de relaciones entre US, tareas, Figma sources, contratos, archivos, funciones y validaciones.
+- `docs/architecture_map.md`: mapa de capas docs/UI/client/backend/data/validación con diagramas Mermaid y puntos de unión para Graphify.
+- Los nuevos documentos cubren inventario, wizard de creación, preview/runtime readiness, gobierno Figma, backend rule engine, seguridad/publicación y validación.
+- `docs/figma_sources.md` ahora los lista como documentos contractuales.
+- `docs/requirements.md` agrega la obligación de mantener estos bridge docs.
+- `docs/tasks.md` agrega `T-091`.
+- `docs/behavioral_design.md` agrega `US148.6`.
+
+### Por qué
+- Graphify estaba mostrando silos porque muchas relaciones eran implícitas: las docs hablaban de US/tareas/Figma y el código hablaba de funciones/renderers, pero no existía una capa que dijera claramente qué se conecta con qué.
+- Estos archivos actúan como índices semánticos para humanos, agentes y Graphify.
+
+### Pendientes
+- Ejecutar extracción semántica completa con backend LLM para que Graphify incorpore estos puentes como relaciones documentales, no sólo como cambios AST.
+- Mantener `docs/traceability.md` al cerrar cualquier cambio grande de UI, helpers, API, Figma o validación.
+
+---
+
 ## Últimos cambios realizados (2026-05-15) — Blindaje de inventario ante helpers tardíos
 
 ### Qué se corrigió

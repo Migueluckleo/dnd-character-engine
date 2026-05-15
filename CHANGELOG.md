@@ -2,6 +2,31 @@
 
 Registro retroactivo del proyecto. El código actual es la fuente principal de verdad; las fechas previas se basan en marcas de archivo y documentación disponible, por lo que algunas entradas se indican como estimadas.
 
+## [2026-05-15] - Puentes de trazabilidad para Graphify
+
+### Cambios
+- Se creó `docs/traceability.md` como mapa vivo entre US, tareas, Figma sources, contratos, archivos, funciones y validaciones.
+- Se creó `docs/architecture_map.md` como mapa de capas runtime/backend/UI/docs con diagramas Mermaid y puntos de unión para Graphify.
+- Se enlazaron los nuevos documentos desde `docs/figma_sources.md`.
+- Se agregó nota de requerimiento en `docs/requirements.md` para mantener trazabilidad explícita en cambios que conecten producto, Figma, UI, backend, preview o validación.
+- Se agregó `T-091` en `docs/tasks.md`.
+- Se agregó criterio `US148.6` en `docs/behavioral_design.md`.
+
+### Propósito
+- Reducir comunidades aisladas en Graphify haciendo explícitas las relaciones que antes sólo estaban implícitas: inventario, wizard, preview/runtime, Figma governance, backend rule engine, seguridad y validación.
+
+### Archivos creados
+- `docs/traceability.md`
+- `docs/architecture_map.md`
+
+### Archivos modificados
+- `docs/figma_sources.md`
+- `docs/requirements.md`
+- `docs/tasks.md`
+- `docs/behavioral_design.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
 ## [2026-05-15] - Blindaje de inventario ante helpers tardíos
 
 ### Cambios
