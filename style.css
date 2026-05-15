@@ -6576,6 +6576,47 @@ body.character-detail-mode .ghost-btn-mini {
   color: var(--figma-color-brand-primary, #720000);
 }
 
+button.primary-btn,
+button.primary-btn-mini {
+  border-color: transparent;
+  background: var(--figma-color-brand-primary, #720000);
+  color: #ffffff;
+}
+
+button.secondary-btn,
+button.secondary-btn-mini {
+  border-color: var(--figma-color-text-primary, #090604);
+  color: var(--figma-color-text-primary, #090604);
+}
+
+button.ghost-btn,
+button.ghost-btn-mini {
+  border-color: transparent;
+  color: var(--figma-color-brand-primary, #720000);
+}
+
+button.primary-btn :where(svg, .add-icon, [class*="icon"]),
+button.primary-btn-mini :where(svg, .add-icon, [class*="icon"]),
+button.secondary-btn :where(svg, .add-icon, [class*="icon"]),
+button.secondary-btn-mini :where(svg, .add-icon, [class*="icon"]),
+button.ghost-btn :where(svg, .add-icon, [class*="icon"]),
+button.ghost-btn-mini :where(svg, .add-icon, [class*="icon"]) {
+  color: currentColor;
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+#roster-add-btn.primary-btn .add-icon {
+  color: currentColor;
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+body.character-detail-mode #detail-header-action.primary-btn-mini,
+body.character-detail-mode .detail-hp-section > button.primary-btn {
+  color: #ffffff;
+}
+
 button.primary-btn[class*="btn-"],
 button.secondary-btn[class*="btn-"],
 button.ghost-btn[class*="btn-"] {
@@ -7317,7 +7358,8 @@ button.ghost-btn-mini[class*="btn-"] {
 }
 
 #wizard-box .equipment-option.selected {
-  opacity: .5;
+  outline: 1px solid var(--cc-red);
+  outline-offset: -1px;
 }
 
 #wizard-box .equipment-chip-row,

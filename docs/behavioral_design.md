@@ -520,6 +520,10 @@
 
 | Fecha | Cambio | US relacionada |
 |---|---|---|
+| 2026-05-15 | Wizard creación — primer pase Figma: labels ES robustos para preview/API, header back especializado y cards de raza localizadas | US-146 |
+| 2026-05-15 | UI atoms — normalizado color de texto e iconos en botones primary/mini; tabs/chips quedan fuera del normalizador CTA | US-146 |
+| 2026-05-15 | Proceso Figma — contratos de componentes y cards enriquecidos con source, node, variants, mapping, reglas y anti-patrones | US-146 |
+| 2026-05-15 | Proceso Figma — creado registro canónico de sources, tokens, contratos y QA visual | US-146 |
 | 2026-05-15 | Fix inventario — fallbacks ES e icono rojo si helpers Vite cargan tarde | US-145 / US-146 / US-148 |
 | 2026-05-15 | Ajuste visual — iconos fallback de inventario alineados al rojo brand `#720000` | US-145 / US-146 / US-148 |
 | 2026-05-15 | Fix sesión — refresh con token existente vuelve a iniciar auth sin depender sólo del evento Vite | US-147 / US-148 |

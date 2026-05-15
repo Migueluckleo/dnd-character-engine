@@ -2,6 +2,189 @@
 
 Registro retroactivo del proyecto. El código actual es la fuente principal de verdad; las fechas previas se basan en marcas de archivo y documentación disponible, por lo que algunas entradas se indican como estimadas.
 
+## [2026-05-15] - Brain Graph: dashboard completo con diseño de referencia
+
+### Cambios
+- Se reescribió `graphify-out/brain-graph.html` con dashboard completo de 4 zonas: header, sidebar izquierdo, canvas 3D central, panel derecho y barra inferior.
+- Header: logo, título "VISTA CEREBRAL DEL PROYECTO", subtítulo e iconos (⚙ ? 🌙).
+- Sidebar izquierdo: nombre del proyecto, descripción, búsqueda de nodos con resultados en vivo, lista de tipos de nodo con íconos y conteos (Documentación, Código, Configuración, Tests, Base de Datos, UI, Motor, Otros), estadísticas (nodos, relaciones, comunidades, cruzadas), botón "Ver Reporte".
+- Panel derecho: ícono + nombre + badge de tipo del nodo seleccionado, descripción derivada, ruta de archivo con botón copiar, tabs Entrantes/Salientes con lista de conexiones (máx. 8 + contador de más), métricas (tipo, comunidad, centralidad en %, hemisferio), botón "Enfocar Nodo".
+- Barra inferior: joystick D-pad de cámara (8 direcciones + centro = reset), presets de vista (Frontal / Lateral / Superior), opciones (toggle links, partículas, labels), toggle de rotación, indicador "Pulsos neuronales activos" con EKG SVG animado.
+- Labels de comunidades: se muestran a los 4 s de carga en 8 posiciones fijas alrededor del canvas, coloreadas según hemisferio.
+- Label "Cuerpo Calloso" centrado en el canvas con contador de conexiones cruzadas.
+- Filtrado por tipo de nodo vía `nodeVisibility` / `linkVisibility` (sin reiniciar simulación).
+- Se añadió precomputación de adyacencia (O(E)) para mostrar conexiones in/out sin iterar links por clic.
+- Centralidad de grado: `(in+out)/(N-1)`, mostrada en porcentaje con calificación Alta/Baja.
+- Botón "Ver Reporte" abre `GRAPH_REPORT.md` en nueva pestaña.
+
+### Archivos modificados
+- `graphify-out/brain-graph.html` — reescritura completa
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Fuente / certeza
+- Confirmado: `nodeVisibility` y `linkVisibility` disponibles en 3d-force-graph v1.73.4.
+- Confirmado: adyacencia precomputada correctamente para 6,631 nodos y 9,043 links.
+- Pendiente: QA visual con servidor local; validar rendimiento del panel de conexiones con nodos de grado muy alto.
+
+## [2026-05-15] - Visualización 3D Brain Graph para Graphify
+
+### Cambios
+- Se creó `graphify-out/brain-graph.html`: visualización alternativa del grafo de conocimiento en 3D con estética de cerebro digital, usando la librería `3d-force-graph` (v1.73.4).
+- El grafo se distribuye en una forma bilobulada: hemisferio izquierdo (nodos warm: naranja/rojo/ámbar) y hemisferio derecho (nodos cool: azul/violeta/cyan).
+- Las comunidades se asignan a hemisferios alternando por tamaño (mayor a menor), dividiendo el grafo en dos masas visuales equilibradas.
+- Los nodos se inicializan dentro de elipsoides separadas por hemisferio (`ax=100, ay=75, az=60`), seeding la forma cerebral antes de que actúe la simulación física.
+- Se añadió una fuerza custom de atracción hemisférica (`d3Force('hemisphere')`) que mantiene la forma bilobulada durante la simulación.
+- Links cross-hemisferio (cuerpo calloso) se destacan en dorado (`#ffd54f`) con 3 partículas de pulso y grosor mayor.
+- Links intra-hemisferio: 1 partícula de pulso, color derivado de la comunidad del nodo fuente.
+- La cámara orbita lentamente con movimiento orgánico (velocidad 0.00055 rad/frame, oscilación vertical suave).
+- Sidebar con: búsqueda por nombre, panel de nodo seleccionado, stats, controles de cámara, leyenda.
+- Manejo de errores CORS: overlay con instrucciones de servidor local (`python3 -m http.server 8080`) y opción de carga manual de `graph.json` via File API.
+- Adaptador validado: `graph.json` ya coincide con el formato esperado por `3d-force-graph` (`{nodes:[{id}], links:[{source,target}]}`). El adaptador filtra links huérfanos.
+- No se modificaron `graph.html`, `graph.json` ni el core de Graphify.
+
+### Archivos creados
+- `graphify-out/brain-graph.html` — visualización 3D standalone
+
+### Archivos modificados
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Historias de usuario relacionadas
+- (Tooling interno — no aplica US de producto)
+
+### Fuente / certeza
+- Confirmado: `graph.json` tiene `{nodes, links}` con `id` en nodos y `source/target` en links (strings).
+- Confirmado: 6,631 nodos, 9,043 links, 177 comunidades.
+- Pendiente: validar rendimiento en máquinas de gama baja con los 6,631 nodos en WebGL.
+
+## [2026-05-15] - Primer pase de homologación Figma del wizard de creación
+
+### Cambios
+- Se agregó normalización de keys de catálogo para que raza, clase y trasfondo traduzcan igual si llegan como `snake_case` o como nombres en inglés con espacios desde preview/API.
+- Las cards de raza del wizard ahora muestran nombres y descripciones en español en preview (`High Elf` -> `Elfo Alto`, `Human` -> `Humano`, etc.).
+- Se corrigieron acentos en copy visible del wizard: `Caótico`, `estándar`, `catálogo`, `validación`, habilidades y textos de trasfondo/clase.
+- El botón `Atrás` del header del wizard dejó de recibir el átomo CTA automático y conserva su contrato especializado.
+- El paso final del wizard usa `Crear personaje` sin emoji embebido.
+- La selección de equipamiento ya no apaga la card seleccionada con opacidad; usa contorno rojo para mantener legibilidad.
+- Se ignoró el stub vacío `Prisma Character Repository.md` generado por navegación Obsidian/Graphify.
+- Se documentó en `docs/card_contracts.md` que las cards del wizard deben normalizar keys antes de caer a texto crudo.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `.gitignore`
+- `docs/card_contracts.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+- `docs/tasks.md`
+- `docs/requirements.md`
+- `docs/behavioral_design.md`
+
+### Validación
+- `npm run typecheck:web`
+- Verificación en preview `http://127.0.0.1:5173/ui.html?preview=1`: entrada del wizard y cards de raza.
+
+### Fuente / certeza
+- Sources Figma/contratos usados: `--flow-characterCreation`, `--characterCreation-generalInformation-*`, `--characterCreation-raceSelection`, `--characterCreation-raceCard`, `--characterCreation-itemSelection`.
+- Pendiente: segundo pase visual limpio para clase, trasfondo, equipamiento, conjuros, atributos y HP contra Figma MCP.
+
+---
+
+## [2026-05-15] - Normalización inicial de botones e iconos
+
+### Cambios
+- Se ajustó el normalizador de UI para que tabs, chips, steppers, dados y choice cards no reciban clases CTA como `primary-btn` por accidente.
+- Se fijó la herencia de color en iconos/glifos internos de botones atomizados, incluyendo el `+` de `Agregar nuevo personaje`.
+- Se normalizó el texto de botones primary/mini visibles en preview a blanco `#ffffff`, evitando mezclas entre `#ffffff` y `#fff4dc`.
+- Se documentó la regla en `docs/component_contracts.md`: los iconos dentro de botones usan `currentColor` y no color local.
+
+### Archivos modificados
+- `ui.html`
+- `style.css`
+- `docs/component_contracts.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+- `docs/tasks.md`
+- `docs/requirements.md`
+- `docs/behavioral_design.md`
+
+### Validación
+- `npm run typecheck:web`
+- `npm run build:web`
+- Verificación en preview `http://127.0.0.1:5173/ui.html?preview=1`: CTA `Agregar nuevo personaje`, `Tirar dado`, `Agregar experiencia` y `Ajustar puntos de golpe` usan color de texto/icono consistente.
+- `/Users/migueleo/.local/bin/graphify update .`
+
+### Fuente / certeza
+- Basado en reporte directo del usuario: algunos botones diferían en color de tipografía y del icono.
+
+---
+
+## [2026-05-15] - Contratos Figma explícitos para componentes y cards
+
+### Cambios
+- Se enriqueció `docs/component_contracts.md` con formato operativo por componente: Figma source, node, variants, implementation mapping, rules, anti-patterns y pendientes.
+- Se reescribió `docs/card_contracts.md` con contratos explícitos para Home Character Card, Inventory Item Card, Catalog Item Card, Equipment Selection Card, Race Card, Class Card, Background Card y Spell Card.
+- Se documentó el patrón esperado por el usuario para que los agentes mapeen variantes Figma a clases/funciones concretas y no creen estilos locales como contrato visual.
+- Se agregaron reglas específicas para evitar regresiones: labels crudos en inglés, iconos fallback amarillos, descripciones inventadas, acciones fuera del menú y botones/inputs fuera de átomos canónicos.
+
+### Archivos modificados
+- `docs/component_contracts.md`
+- `docs/card_contracts.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+- `docs/tasks.md`
+- `docs/requirements.md`
+- `docs/behavioral_design.md`
+
+### Validación
+- Revisión manual contra `docs/figma_sources.md` y mappings actuales en `ui.html`.
+- `/Users/migueleo/.local/bin/graphify update .`
+
+### Fuente / certeza
+- Basado en aclaración directa del usuario: Figma Sources debe documentar cada componente/card con source, node, variantes, mapping, reglas y anti-patrones.
+- Pendiente: extraer specs numéricos exactos desde Figma MCP node por node.
+
+---
+
+## [2026-05-15] - Registro canónico de Figma Sources
+
+### Cambios
+- Se creó `docs/figma_sources.md` como fuente viva de URLs Figma, normalizada desde `/Users/migueleo/Downloads/figma sources.docx`.
+- Se creó el set companion propuesto por el usuario: `docs/design_tokens.md`, `docs/screen_contracts.md`, `docs/component_contracts.md`, `docs/card_contracts.md` y `docs/qa_checklist.md`.
+- Se organizaron sources por `flows`, `screens`, `components/modules`, `navigation` y `atoms`.
+- Se separaron responsabilidades: sources = URLs/índice; design tokens = valores visuales; screen/component/card contracts = reglas implementables; QA checklist = validación.
+- Se agregó workflow obligatorio para agentes: consultar source key antes de tocar UI, extraer specs explícitos y documentar aproximaciones.
+- Se agregaron pendientes para flujos que existen en requirements/HANDOFF pero no estaban en el `.docx`: dados, conjuros, resolución de historia, HP modal, habilidades, diario, tienda, glosario y razas/clases.
+- Se actualizó `AGENTS.md` y `CLAUDE.md` para exigir lectura de `docs/figma_sources.md` antes de cambios UI/layout/style/componentes.
+
+### Archivos modificados
+- `docs/figma_sources.md`
+- `docs/design_tokens.md`
+- `docs/screen_contracts.md`
+- `docs/component_contracts.md`
+- `docs/card_contracts.md`
+- `docs/qa_checklist.md`
+- `AGENTS.md`
+- `CLAUDE.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+- `docs/tasks.md`
+- `docs/requirements.md`
+- `docs/behavioral_design.md`
+
+### Validación
+- Fuente extraída del `.docx` del usuario.
+- Normalización manual de keys y categorización revisada contra requirements/HANDOFF existentes.
+- `/Users/migueleo/.local/bin/graphify update .` actualizó `graph.json` y `GRAPH_REPORT.md`; `graph.html` se omitió porque el grafo superó el límite local de 5000 nodos.
+
+### Fuente / certeza
+- Basado en solicitud directa del usuario para completar el Figma Sources y preparar el flujo de consistencia Figma.
+- Pendiente: usar MCP/Figma para extraer specs técnicos de cada node, enriquecer los contratos y completar las variantes faltantes.
+- Pendiente: actualización semántica completa de docs en Graphify; `graphify extract . --backend openai` no corrió porque `OPENAI_API_KEY` no está disponible en esta terminal.
+
+---
+
 ## [2026-05-15] - Fix normalización defensiva de inventario cuando Vite carga tarde
 
 ### Cambios

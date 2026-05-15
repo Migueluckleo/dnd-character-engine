@@ -675,6 +675,34 @@
 - **Notas 2026-05-15:** Implementado en `ui.html` con fallbacks ES para labels/chips/arte y `refreshItemDisplaysAfterHelpersReady()`. Verificado con typecheck frontend, build Vite y búsqueda en `_site/ui.html`.
 - **Status:** `[x]`
 
+### T-087: Crear registro canónico de Figma Sources y contratos companion
+- **Spec:** US-146 / proceso de consistencia visual
+- **Action:** Convertir el `.docx` del usuario con sources Figma en documentos versionados del repo: índice de sources, tokens, contratos por pantalla, contratos por componente, contratos por cards y checklist QA.
+- **Done when:** `docs/figma_sources.md`, `docs/design_tokens.md`, `docs/screen_contracts.md`, `docs/component_contracts.md`, `docs/card_contracts.md` y `docs/qa_checklist.md` existen, y las guías de agente obligan a consultarlos antes de cambios visuales.
+- **Notas 2026-05-15:** Implementado desde `/Users/migueleo/Downloads/figma sources.docx` y la lista propuesta por el usuario. También actualizados `AGENTS.md` y `CLAUDE.md`.
+- **Status:** `[x]`
+
+### T-088: Enriquecer contratos Figma con formato operativo explícito
+- **Spec:** US-146 / proceso de consistencia visual
+- **Action:** Documentar componentes y cards en formato implementable: Figma source, node, variants, implementation mapping, content/data contract, rules, anti-patterns y pending extraction.
+- **Done when:** `docs/component_contracts.md` y `docs/card_contracts.md` permiten mapear cada variante Figma a funciones/clases concretas sin inventar colores, medidas, copy, acciones o jerarquía.
+- **Notas 2026-05-15:** Implementado para Button/Input/Checkbox/Caret/Tag/Divider/Navigation/Modal/Item Header/Description y para las cards Home Character, Inventory Item, Catalog Item, Equipment Selection, Race, Class, Background y Spell. Pendiente extraer specs numéricos exactos con Figma MCP.
+- **Status:** `[x]`
+
+### T-089: Normalizar color de tipografía e iconos en botones atomizados
+- **Spec:** US-146 / proceso de consistencia visual
+- **Action:** Ajustar el normalizador de botones y la capa CSS de átomos para que primary/secondary/ghost mantengan color de texto e icono consistente, sin contaminar tabs/chips/controles especializados.
+- **Done when:** Los CTA visibles en Home y ficha abierta usan `Source Serif Pro`, color atomizado, iconos con `currentColor`, y tabs/chips ya no reciben clases CTA por normalización automática.
+- **Notas 2026-05-15:** Implementado en `ui.html` y `style.css`. Validado en preview local; pendiente siguiente pase para botones legacy con emoji en pantallas antiguas.
+- **Status:** `[x]`
+
+### T-090: Primer pase de homologación Figma del wizard de creación
+- **Spec:** US-146 / proceso de consistencia visual
+- **Action:** Alinear la entrada del wizard y las cards de raza con el contrato Figma: header, botón Atrás especializado, localización ES, copy con acentos, cards legibles y keys de catálogo normalizadas.
+- **Done when:** `--characterCreation-generalInformation-*` y `--characterCreation-raceSelection` renderizan labels/descripciones en español aunque preview/API entregue nombres en inglés con espacios, y los controles no se contaminan con átomos incorrectos.
+- **Notas 2026-05-15:** Implementado `catalogLookupKey()` y helpers `raceNameEs`, `classNameEs`, `backgroundNameEs`; validado en preview para Datos generales y Elección de raza. Pendiente segundo pase para clase, trasfondo, equipamiento, conjuros, atributos y HP.
+- **Status:** `[x]`
+
 ### T-080: Extraer utilidades puras legacy a módulo cliente
 - **Spec:** US-148
 - **Action:** Mover helpers puros de `ui.html` a `src/client/legacy-utils.ts`, exponerlos temporalmente como `window.DND_UTILS` y mantener wrappers globales en `ui.html`.

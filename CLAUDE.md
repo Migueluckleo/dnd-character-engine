@@ -44,6 +44,8 @@ Además, cuando cambien comportamiento, requerimientos, UX, criterios de aceptac
 - `docs/tasks.md`
 - `docs/behavioral_design.md`
 
+Para cualquier cambio de UI/layout/estilos/componentes, también revisar `docs/figma_sources.md` y el contrato companion relevante: `docs/design_tokens.md`, `docs/screen_contracts.md`, `docs/component_contracts.md`, `docs/card_contracts.md` y `docs/qa_checklist.md`. Registrar en `CHANGELOG.md` y `HANDOFF.md` qué source key(s) de Figma se usaron; si no se pudo verificar una medida/variante, marcarlo como pendiente de QA visual.
+
 ### 3a. `CHANGELOG.md`
 Agrega una entrada al inicio del archivo con este formato exacto:
 

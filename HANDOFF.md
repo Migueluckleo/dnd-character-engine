@@ -1,5 +1,47 @@
 # HANDOFF
 
+## Últimos cambios realizados (2026-05-15) — Brain Graph dashboard completo
+
+### Qué se implementó
+- `graphify-out/brain-graph.html` reescrito con diseño de 4 zonas (header / sidebar izq / canvas / panel der / bottom bar) siguiendo el mockup de referencia entregado por el usuario.
+- Sidebar izquierdo: tipos de nodo con íconos/conteos, filtrado por tipo vía `nodeVisibility`, stats, búsqueda en vivo, "Ver Reporte".
+- Panel derecho: ficha completa del nodo (icono, badge, descripción, ruta copiable, tabs in/out con hasta 8 peers + contador, métricas de centralidad), botón "Enfocar Nodo".
+- Barra inferior: D-pad de cámara, presets Frontal/Lateral/Superior, toggles de links/partículas/labels, toggle de rotación, EKG animado.
+- Labels de clusters a los 4 s, Cuerpo Calloso centrado a los 5 s.
+- Adyacencia precomputada O(E) para lookups O(1) por nodo.
+
+### Por qué
+- El primer intento de brain-graph.html no replicaba el layout del mockup de referencia (solo tenía sidebar derecho simple). Esta versión lo replica fielmente.
+
+### Pendientes
+- QA visual con `python3 -m http.server 8080` en el directorio `graphify-out/`.
+- Validar rendimiento con nodos de grado muy alto (>200 conexiones) en el panel derecho.
+- Posible: usar posiciones 3D→2D para los cluster labels en vez de posiciones fijas (requiere acceso a THREE.js del renderer).
+
+---
+
+## Últimos cambios realizados (2026-05-15) — Visualización 3D Brain Graph
+
+### Qué se implementó
+- `graphify-out/brain-graph.html`: página standalone que renderiza el grafo de conocimiento del proyecto en 3D con estética de cerebro digital.
+- Usa `3d-force-graph` (v1.73.4 via CDN) con `graph.json` como fuente de datos.
+- El grafo se distribuye en forma bilobulada: comunidades ordenadas por tamaño se asignan alternadamente a hemisferio izquierdo (warm) y derecho (cool).
+- Fuerza custom de atracción hemisférica mantiene la silueta cerebral durante la simulación física.
+- Links cross-hemisferio (cuerpo calloso) destacados en dorado con partículas adicionales.
+- Cámara en órbita lenta con oscilación vertical orgánica.
+- Sidebar con búsqueda, info de nodo, controles y leyenda.
+- Fallback CORS: overlay con instrucciones de servidor local + carga manual de `graph.json`.
+
+### Por qué
+- Herramienta de exploración visual del codebase; complementa `graph.html` (2D) con perspectiva 3D y metáfora neuronal.
+
+### Qué queda pendiente
+- Validar rendimiento WebGL en hardware de gama media/baja con 6,631 nodos.
+- Considerar sampling o LOD si el framerate baja de 30fps en la órbita.
+- Investigar si `3d-force-graph` expone THREE.js globalmente para agregar bloom/postprocessing en futuras versiones.
+
+---
+
 ## Estado actual del proyecto
 
 - Plataforma local para gestión de personajes DnD 5e SRD.
@@ -9,6 +51,82 @@
 - El wizard de creación está orientado a mobile-first y ahora debe seguir el Figma `DnD Character Engine`, sección `Creación de personaje` (`2196:11249`). Ese Figma supersede el look anterior de `docs/Create Character.pdf` / `DM-Dnd-App--Copy-` para estilo, header, progreso, cards y orden visual.
 - La documentación viva principal está en `docs/requirements.md`, `docs/plan.md`, `docs/tasks.md`, `.claude.md`, `CHANGELOG.md` y este archivo.
 - Regla obligatoria de continuidad: todo cambio de código, configuración, workflow, UI, documentación o tooling debe registrarse antes de cerrar la tarea. Mínimo actualizar `CHANGELOG.md` y `HANDOFF.md`; si cambia comportamiento, UX o alcance de producto, actualizar también `docs/requirements.md`, `docs/tasks.md` y `docs/behavioral_design.md`.
+- Fuente Figma canónica: `docs/figma_sources.md`. Antes de tocar UI/layout/style/componentes, usar los source keys de ese archivo y registrar cuáles se consultaron.
+- Contratos Figma companion: `docs/component_contracts.md` y `docs/card_contracts.md` deben mantenerse en formato explícito por elemento: source, node, variants, implementation mapping, rules, anti-patterns y pending extraction.
+
+## Últimos cambios realizados (2026-05-15) — Primer pase de homologación Figma del wizard de creación
+
+### Qué se corrigió
+- Se agregó `catalogLookupKey()` y helpers de localización para que preview/API puedan entregar `Human`, `High Elf`, `Fighter`, `Noble` o `snake_case` sin romper nombres/descripciones en español.
+- Las cards de raza del wizard ahora renderizan español en preview: `Drow (Elfo Oscuro)`, `Elfo Alto`, `Elfo del Bosque`, `Humano`, con velocidad en `pies`.
+- El header del wizard mantiene `wiz-top-back` como control especializado; ya no recibe `primary-btn-mini` por normalización automática.
+- Se corrigieron acentos visibles de alineamiento, nivel inicial, catálogo, validación, habilidades y textos fallback.
+- Los roles de clase dejaron de usar emojis dentro de badges/textos de cards.
+- El CTA final usa `Crear personaje`, sin emoji embebido.
+- La card de equipamiento seleccionada conserva legibilidad: ya no baja opacidad, ahora usa outline rojo.
+- `.gitignore` ignora el stub vacío `Prisma Character Repository.md`, generado por navegación Obsidian/Graphify.
+
+### Validación realizada
+- `npm run typecheck:web`
+- Preview local revisado en `http://127.0.0.1:5173/ui.html?preview=1`, entrada del wizard y cards de raza.
+
+### Pendientes inmediatos
+- Segundo pase del wizard en una sesión limpia: clase, trasfondo, equipamiento, conjuros, atributos y HP.
+- Extraer medidas/estados exactos con Figma MCP para `--characterCreation-*` antes de declarar paridad 1:1.
+
+## Últimos cambios realizados (2026-05-15) — Normalización inicial de botones e iconos
+
+### Qué se corrigió
+- El normalizador de átomos en `ui.html` ya no aplica clases CTA a tabs, chips, steppers, dados ni choice cards; esos controles mantienen su contrato especializado.
+- Los botones atomizados en `style.css` ahora hacen que SVGs, glifos y wrappers internos de icono hereden `currentColor`.
+- El `+` de `Agregar nuevo personaje` quedó blanco igual que el texto del botón.
+- Los primary/mini visibles en preview quedaron alineados a texto blanco `#ffffff`, evitando mezcla con `#fff4dc`.
+
+### Validación realizada
+- `npm run typecheck:web`
+- `npm run build:web`
+- Preview local revisado en `http://127.0.0.1:5173/ui.html?preview=1`: Home y ficha de personaje abierta.
+
+### Pendientes inmediatos
+- Continuar con un segundo pase para botones legacy con emoji/texto embebido (`btn btn-*`) en pantallas antiguas de combate, conjuros, habilidades y descanso.
+- Extraer estados hover/focus/disabled exactos desde Figma MCP para cerrar la paridad del átomo Button.
+
+## Últimos cambios realizados (2026-05-15) — Contratos Figma explícitos para componentes y cards
+
+### Qué se implementó
+- `docs/component_contracts.md` quedó en formato operativo por componente, incluyendo Button, Input, Checkbox, Caret, Tag/Chip, Separator, Navigation, Modal Layout, Item Header Module y Description Module.
+- `docs/card_contracts.md` fue reescrito en el mismo formato para Home Character Card, Inventory Item Card, Catalog Item Card, Equipment Selection Card, Race Card, Class Card, Background Card y Spell Card.
+- Cada contrato incluye Figma source, node, variants, implementation mapping, content/data contract, rules, anti-patterns y pending extraction cuando aplica.
+- Se incorporaron reglas para prevenir discrepancias repetidas: no usar labels crudos en inglés, no recolorear fallbacks fuera del rojo brand, no inventar descripciones, no crear clases locales para tamaño/color de botones y no separar acciones de su patrón Figma.
+
+### Por qué
+- El usuario aclaró que Figma Sources debe servir como contrato implementable, no solo como índice de URLs.
+- Esto reduce la ambigüedad para agentes que consultan Figma y luego implementan cards, botones, modales o pantallas con variaciones de color, medidas o contenido.
+
+### Pendientes inmediatos
+- Extraer con Figma MCP las medidas exactas, auto-layout, fills, strokes, radii, estados disabled/pressed/selected y screenshots por node.
+- Completar contratos nuevos cuando el usuario agregue sources de tienda, glosario, diario, dados y pantallas globales de razas/clases.
+
+## Últimos cambios realizados (2026-05-15) — Registro canónico de Figma Sources
+
+### Qué se implementó
+- Se creó `docs/figma_sources.md` desde el archivo del usuario `/Users/migueleo/Downloads/figma sources.docx`.
+- Se agregaron los documentos companion definidos por el usuario: `docs/design_tokens.md`, `docs/screen_contracts.md`, `docs/component_contracts.md`, `docs/card_contracts.md` y `docs/qa_checklist.md`.
+- El registro organiza el Figma actual por flows, screens, components/modules, navigation y atoms.
+- Los contratos separan responsabilidades: tokens, pantallas, componentes, cards y QA.
+- Se documentó un workflow operativo para agentes: consultar source key, extraer specs, comparar con implementación, documentar diferencias y marcar pendientes de QA visual.
+- Se añadieron pendientes explícitos para sources que aún faltan o deben confirmarse: dados, conjuros, resolución de historia, HP modal, habilidades, diario, tienda, glosario y razas/clases.
+- `AGENTS.md` y `CLAUDE.md` ahora obligan a revisar `docs/figma_sources.md` y el contrato companion relevante antes de cambios visuales.
+
+### Por qué
+- Para evitar discrepancias entre Figma y código cuando distintos agentes implementan colores, medidas, copy o contenido de cards desde memoria o capturas parciales.
+- Para convertir la lista de URLs del Word en un contrato de diseño versionado dentro del repo.
+
+### Pendientes inmediatos
+- Extraer specs técnicos nodo por nodo con Figma MCP cuando toque ajustar cada pantalla.
+- Enriquecer cada contrato con medidas/tokens reales extraídos del Figma MCP.
+- Completar URLs exactas de los flujos pendientes listados al final de `docs/figma_sources.md`.
+- Reintentar actualización semántica de Graphify para docs cuando `OPENAI_API_KEY` esté disponible; el update local actualizó `graph.json`/`GRAPH_REPORT.md`, pero `graphify extract . --backend openai` quedó bloqueado por falta de API key en esta terminal.
 
 ## Últimos cambios realizados (2026-05-15) — Normalización defensiva de inventario si Vite carga tarde
 

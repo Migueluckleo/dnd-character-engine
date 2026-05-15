@@ -1899,4 +1899,10 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 
 **Inventory helper readiness note (2026-05-15):** Inventory UI must never expose raw English item names, item types, attribute keys or blank art because `window.DND_ITEM_HELPERS` loads late. `ui.html` must keep defensive Spanish fallbacks for critical inventory labels and render a local red fallback icon until the modular helpers become available. When the Vite ready event arrives, visible inventory surfaces should re-render from the canonical helper module.
 
+**Figma source registry note (2026-05-15):** `docs/figma_sources.md` is the canonical registry for current Figma sources, supported by `docs/design_tokens.md`, `docs/screen_contracts.md`, `docs/component_contracts.md`, `docs/card_contracts.md`, and `docs/qa_checklist.md`. Any UI, layout, style, component, card, modal, navigation or visual-copy change must identify the relevant source key(s) and companion contract before implementation. If a source key is missing, the change must either add it to the registry or mark the implementation as pending visual QA. Component and card contracts must use explicit sections with Figma source, node, variants, implementation mapping, rules, anti-patterns and pending extraction; summary-only tables are not sufficient for implementation work.
+
+**Button atom consistency note (2026-05-15):** New Style primary buttons must use white `#ffffff` text and any internal SVG/span/icon must inherit `currentColor`. Specialized controls such as tabs, chips, steppers, dice controls and choice cards must not be auto-converted into CTA button atoms; they keep their own Figma component contracts.
+
+**Character creation Figma note (2026-05-15):** The character creation wizard must normalize catalog labels before rendering cards. Race, class and background values may arrive as snake_case IDs or title-case English names from preview/API, but UI labels, descriptions, skill names and speed text must render in Spanish. The wizard header back control is a specialized Figma header action, not a CTA button atom.
+
 *End of requirements.md — Total User Stories: US-01 through US-148.*

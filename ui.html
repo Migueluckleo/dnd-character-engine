@@ -778,10 +778,10 @@ async function loadRoster() {
 function renderRosterCard(c) {
   const cls = c.character_classes?.[0];
   const clsNameRaw = cls?.class?.name ?? '—';
-  const clsName = CLASS_NAME_ES[clsNameRaw] ?? clsNameRaw;
+  const clsName = classNameEs(clsNameRaw);
   const clsLevel = cls?.class_level ?? 1;
   const raceNameRaw = c.race?.name ?? '—';
-  const raceName = RACE_NAME_ES[raceNameRaw] ?? raceNameRaw;
+  const raceName = raceNameEs(raceNameRaw);
   const cur = c.current_hp ?? 0;
   const speed = c.race?.base_speed ?? 30;
   const dexMod = Math.floor(((c.base_dex ?? 10) - 10) / 2);
@@ -894,16 +894,31 @@ const BUTTON_ATOM_CLASSES = [
 ];
 
 const BUTTON_ATOM_IGNORE_CLASS_HINTS = [
+  'attack-mode-btn',
   'auth-switch',
   'caret-btn',
   'detail-back',
   'detail-image-upload',
+  'dice-choice-card',
   'dice-info-link',
+  'hp-die-art',
+  'hp-save-btn',
   'item-description-close',
   'item-use-close',
   'pb-btn',
   'profile-logout',
   'rc-menu-btn',
+  'story-skill-row',
+  'wiz-top-back',
+];
+
+const BUTTON_ATOM_IGNORE_PARENT_SELECTORS = [
+  '.detail-tabs',
+  '.inventory-section-tabs',
+  '.dice-tabs',
+  '.dice-outcome-grid',
+  '.hp-stepper-control',
+  '.inventory-filter-chips',
 ];
 
 const MINI_BUTTON_CLASS_HINTS = [
@@ -957,6 +972,7 @@ function setButtonAtom(button, atomClass) {
 function applyButtonAtom(button) {
   if (!button || button.dataset.atomIgnore === 'true') return;
   if (buttonHasClassHint(button, BUTTON_ATOM_IGNORE_CLASS_HINTS)) return;
+  if (BUTTON_ATOM_IGNORE_PARENT_SELECTORS.some(selector => button.closest(selector))) return;
   if (buttonHasAtom(button)) return;
   const size = buttonShouldBeMini(button) ? 'mini' : 'regular';
   const tone = buttonHasClassHint(button, GHOST_BUTTON_CLASS_HINTS)
@@ -1897,8 +1913,8 @@ async function wizStep3HTML() {
       : '';
     const langs = b.language_choices > 0 ? `<span class="oc-badge blue">+${b.language_choices} idioma${b.language_choices>1?'s':''}</span>` : '';
     const feat = b.feature_name ? `<span class="oc-badge purple">${b.feature_name}</span>` : '';
-    const desc = BG_DESC[b.name] ?? '';
-    const bgNameES = BG_NAME_ES[b.name] ?? b.name;
+    const desc = backgroundDescriptionEs(b.name);
+    const bgNameES = backgroundNameEs(b.name);
     return `<div class="wiz-option-card ${d.background_id===b.background_id?'selected':''}" onclick="wizSelectBg('${b.background_id}',this)">
       <div class="oc-name">${bgNameES}</div>
       <div class="oc-badges">${skills}${langs}${feat}</div>
@@ -2011,7 +2027,7 @@ const RACE_DESC = {
   'hill_dwarf':         'Resistente y longevo. PG extra por nivel, ventaja en salvaciones vs. veneno.',
   'mountain_dwarf':     'Guerrero nato. Armadura media gratis, perfecto para clases de combate cuerpo a cuerpo.',
   'high_elf':           'Intelecto feérico. Conoce un truco de mago desde el inicio, visión en la oscuridad.',
-  'wood_elf':           'Explorador sigiloso. Velocidad 35ft, enmascararse en naturaleza de forma innata.',
+  'wood_elf':           'Explorador sigiloso. Velocidad 35 pies, enmascararse en naturaleza de forma innata.',
   'drow':               'Magia innata oscura. Trucos de conjuro gratis, pero desventaja bajo luz solar directa.',
   'lightfoot_halfling': 'Pequeño e ilusivo. Puede esconderse detrás de criaturas. Redirige tiradas de 1.',
   'stout_halfling':     'Tenaz y resistente. Resistencia a venenos, perfecto para sobrevivientes.',
@@ -2023,13 +2039,56 @@ const RACE_DESC = {
   'tiefling':           'Toca infernal. Magia oscura innata, resistencia al fuego.',
 };
 
+function catalogLookupKey(value) {
+  return String(value ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/['’]/g, '')
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+}
+
+function localizedCatalogLabel(map, value, fallback = value) {
+  const raw = String(value ?? '');
+  return map[raw] ?? map[catalogLookupKey(raw)] ?? fallback ?? raw;
+}
+
+function catalogLookupValue(map, value, fallback = undefined) {
+  const raw = String(value ?? '');
+  return map[raw] ?? map[catalogLookupKey(raw)] ?? fallback;
+}
+
+function raceNameEs(value) {
+  return localizedCatalogLabel(RACE_NAME_ES, value, value);
+}
+
+function classNameEs(value) {
+  return localizedCatalogLabel(CLASS_NAME_ES, value, value);
+}
+
+function backgroundNameEs(value) {
+  return localizedCatalogLabel(BG_NAME_ES, value, value);
+}
+
+function raceDescriptionEs(value) {
+  return localizedCatalogLabel(RACE_DESC, value, 'Variante racial disponible en el catálogo actual.');
+}
+
+function classInfoEs(value) {
+  return catalogLookupValue(CLASS_DESC, value, { role: '', desc: '' });
+}
+
+function backgroundDescriptionEs(value) {
+  return localizedCatalogLabel(BG_DESC, value, '');
+}
+
 const RACE_FAMILY_LABEL_ES = {
   dwarf: 'Enanos',
   elf: 'Elfos',
   halfling: 'Medianos',
   gnome: 'Gnomos',
   human: 'Humanos',
-  dragonborn: 'Draconidos',
+  dragonborn: 'Dracónidos',
   half_elf: 'Semielfos',
   half_orc: 'Semiorcos',
   tiefling: 'Tieflings',
@@ -2058,7 +2117,7 @@ const RACE_VARIANT_ORDER = {
 };
 
 function raceFamilyKey(race) {
-  const name = race?.name ?? '';
+  const name = catalogLookupKey(race?.name ?? '');
   if (name.includes('dwarf')) return 'dwarf';
   if (['high_elf', 'wood_elf', 'drow'].includes(name)) return 'elf';
   if (name.includes('halfling')) return 'halfling';
@@ -2078,10 +2137,10 @@ function sortRaceCatalog(races = []) {
     const familySort = RACE_FAMILY_ORDER.indexOf(familyA) - RACE_FAMILY_ORDER.indexOf(familyB);
     if (familySort !== 0) return familySort;
     const variantOrder = RACE_VARIANT_ORDER[familyA] ?? [];
-    const posA = variantOrder.indexOf(a.name);
-    const posB = variantOrder.indexOf(b.name);
+    const posA = variantOrder.indexOf(catalogLookupKey(a.name));
+    const posB = variantOrder.indexOf(catalogLookupKey(b.name));
     if (posA !== posB) return (posA < 0 ? 999 : posA) - (posB < 0 ? 999 : posB);
-    return (RACE_NAME_ES[a.name] ?? a.name).localeCompare(RACE_NAME_ES[b.name] ?? b.name, 'es');
+    return raceNameEs(a.name).localeCompare(raceNameEs(b.name), 'es');
   });
 }
 
@@ -2105,21 +2164,21 @@ function raceBonusesHTML(race) {
 function raceOptionCardHTML(race) {
   const badges = [
     raceBonusesHTML(race),
-    `<span class="oc-badge blue">Vel.${race.base_speed}ft</span>`,
-    race.darkvision_radius ? `<span class="oc-badge">Oscuridad ${race.darkvision_radius}ft</span>` : '',
+    `<span class="oc-badge blue">Vel. ${race.base_speed} pies</span>`,
+    race.darkvision_radius ? `<span class="oc-badge">Oscuridad ${race.darkvision_radius} pies</span>` : '',
     race.is_subrace || race.parent_race_id ? `<span class="oc-badge green">Subraza</span>` : '',
   ].filter(Boolean).join('');
   return `<div class="wiz-option-card ${wiz.data.race_id===race.race_id?'selected':''}" onclick="wizSelectRace('${race.race_id}',this)">
-    <div class="oc-name">${RACE_NAME_ES[race.name] ?? race.name}</div>
+    <div class="oc-name">${raceNameEs(race.name)}</div>
     <div class="oc-badges">${badges}</div>
-    <div class="oc-desc">${RACE_DESC[race.name] ?? 'Variante racial disponible en el catalogo actual.'}</div>
+    <div class="oc-desc">${raceDescriptionEs(race.name)}</div>
   </div>`;
 }
 
 function raceFamilyGroupsHTML(races = []) {
   return groupRaceCatalog(races).map(([family, familyRaces]) => {
     const tieflingNote = family === 'tiefling' && familyRaces.length === 1
-      ? '<p class="race-family-note">El catalogo actual incluye el Tiefling base. Subrazas tiefling quedan pendientes de validacion de contenido antes de agregarlas.</p>'
+      ? '<p class="race-family-note">El catálogo actual incluye el Tiefling base. Subrazas tiefling quedan pendientes de validación de contenido antes de agregarlas.</p>'
       : '';
     return `<section class="race-family-group">
       <div class="race-family-title">${RACE_FAMILY_LABEL_ES[family] ?? RACE_FAMILY_LABEL_ES.other}</div>
@@ -2131,18 +2190,18 @@ function raceFamilyGroupsHTML(races = []) {
 
 // ── Class descriptions (keys = snake_case DB names) ───────────────────────────
 const CLASS_DESC = {
-  'barbarian': { role:'⚔️ Guerrero Físico',      desc:'Entra en Rabia para hacer daño masivo y resistir heridas. Sin armadura pesada — su cuerpo es su escudo. Fácil de jugar.' },
-  'bard':      { role:'🎭 Soporte / Comodín',    desc:'Música mágica que inspira a aliados o confunde a enemigos. Aprende cualquier conjuro, ideal si quieres flexibilidad.' },
-  'cleric':    { role:'🙏 Sanador / Apoyo',       desc:'Poder divino que cura, protege y castiga. Elige tu Deidad al inicio — define tu estilo de juego completamente.' },
-  'druid':     { role:'🌿 Naturaleza / Cambiaforma', desc:'Controla el clima, invoca bestias o se transforma en animal. Versátil pero complejo para principiantes.' },
-  'fighter':   { role:'🛡 Combatiente Versátil', desc:'Maestro de todas las armas y armaduras. Segunda Oportunidad y Oleada de Acción. La clase más accesible para nuevos jugadores.' },
-  'monk':      { role:'👊 Arte Marcial',          desc:'Lucha sin armas usando puntos de ki para ataques rápidos y habilidades especiales. Rápido y evasivo.' },
-  'paladin':   { role:'⚔️🙏 Guerrero Sagrado',   desc:'Combina la dureza de un guerrero con curación y auras de protección. El Smite divino inflige daño devastador.' },
-  'ranger':    { role:'🏹 Explorador / Cazador', desc:'Experto en rastrear, sobrevivir y combatir a distancia. Magia de naturaleza y un compañero animal.' },
-  'rogue':     { role:'🗡 Pícaro / Ladrón',      desc:'Daño masivo en un solo golpe (Ataque Furtivo). Experto en sigilo, trampas y habilidades sociales.' },
-  'sorcerer':  { role:'✨ Mago Instintivo',       desc:'Magia innata en la sangre. Metamagia para modificar conjuros en tiempo real. Menos conjuros pero más flexibles.' },
-  'warlock':   { role:'🌑 Pacto Oscuro',          desc:'Pocos espacios de conjuro, pero se recuperan en descanso corto. Poderes únicos del Patrón que te otorgó poder.' },
-  'wizard':    { role:'📚 Mago Erudito',          desc:'El mayor arsenal de conjuros del juego. Frágil pero devastador. Ideal para jugadores que disfrutan planificar.' },
+  'barbarian': { role:'Guerrero físico',      desc:'Entra en Rabia para hacer daño masivo y resistir heridas. Sin armadura pesada: su cuerpo es su escudo. Fácil de jugar.' },
+  'bard':      { role:'Soporte / comodín',    desc:'Música mágica que inspira a aliados o confunde a enemigos. Aprende cualquier conjuro, ideal si quieres flexibilidad.' },
+  'cleric':    { role:'Sanador / apoyo',      desc:'Poder divino que cura, protege y castiga. Elige tu deidad al inicio: define tu estilo de juego completamente.' },
+  'druid':     { role:'Naturaleza / cambiaforma', desc:'Controla el clima, invoca bestias o se transforma en animal. Versátil pero complejo para principiantes.' },
+  'fighter':   { role:'Combatiente versátil', desc:'Maestro de todas las armas y armaduras. Segunda Oportunidad y Oleada de Acción. La clase más accesible para nuevos jugadores.' },
+  'monk':      { role:'Arte marcial',         desc:'Lucha sin armas usando puntos de ki para ataques rápidos y habilidades especiales. Rápido y evasivo.' },
+  'paladin':   { role:'Guerrero sagrado',     desc:'Combina la dureza de un guerrero con curación y auras de protección. El Castigo divino inflige daño devastador.' },
+  'ranger':    { role:'Explorador / cazador', desc:'Experto en rastrear, sobrevivir y combatir a distancia. Magia de naturaleza y un compañero animal.' },
+  'rogue':     { role:'Pícaro / ladrón',      desc:'Daño masivo en un solo golpe (Ataque Furtivo). Experto en sigilo, trampas y habilidades sociales.' },
+  'sorcerer':  { role:'Mago instintivo',      desc:'Magia innata en la sangre. Metamagia para modificar conjuros en tiempo real. Menos conjuros pero más flexibles.' },
+  'warlock':   { role:'Pacto oscuro',         desc:'Pocos espacios de conjuro, pero se recuperan en descanso corto. Poderes únicos del Patrón que te otorgó poder.' },
+  'wizard':    { role:'Mago erudito',         desc:'El mayor arsenal de conjuros del juego. Frágil pero devastador. Ideal para jugadores que disfrutan planificar.' },
 };
 
 // ── Background descriptions (keys = snake_case DB names) ─────────────────────
@@ -2598,7 +2657,7 @@ async function wizardFinish() {
     openCharacter(char.id);
   } catch(e) {
     toast(e.message, 'err');
-    btn.disabled = false; btn.textContent = '⚔️ Crear Personaje';
+    btn.disabled = false; btn.textContent = 'Crear personaje';
   }
 }
 
@@ -2689,9 +2748,9 @@ async function wizStep4HTML() {
   const d = wiz.data;
   const selCls = selectedWizardClass();
   const classCards = classes.map(c => {
-    const info = CLASS_DESC[c.name] ?? { role: '', desc: '' };
+    const info = classInfoEs(c.name);
     const saves = Array.isArray(c.saving_throws) ? c.saving_throws.map(s=>STAT_NAMES[s]??s).join(' · ') : '';
-    const clsNameES = CLASS_NAME_ES[c.name] ?? c.name;
+    const clsNameES = classNameEs(c.name);
     return `<div class="wiz-option-card ${d.class_id===c.class_id?'selected':''}" onclick="wizSelectClass('${c.class_id}')">
       <div class="oc-name">${clsNameES}</div>
       <div class="oc-badges">
@@ -2756,7 +2815,7 @@ function wizStep5HTML() {
       <div class="pb-formula" id="wpbf-${s}">${formula}</div>
     </div>`;
   }).join('');
-  const raceName = race ? (RACE_NAME_ES[race.name] ?? race.name) : 'la raza seleccionada';
+  const raceName = race ? raceNameEs(race.name) : 'la raza seleccionada';
   return `
     <div class="card">
       <div class="card-title">Atributos del personaje</div>
@@ -3043,9 +3102,9 @@ function wizardStatSuggestion() {
   const finalScores = Object.fromEntries(STATS.map(stat => [stat, scores[stat] + (racial[stat] ?? 0)]));
   const raceBoosts = Object.entries(racial).filter(([, value]) => value).map(([stat, value]) => `${STAT_NAMES[stat]} ${value > 0 ? '+' : ''}${value}`).join(', ');
   const reasons = [
-    cls ? `Clase: ${CLASS_NAME_ES[cls.name] ?? cls.name} prioriza ${priority.slice(0, 3).map(stat => STAT_NAMES[stat]).join(', ')}.` : 'Clase: selecciona una clase para afinar la sugerencia.',
-    bg ? `Trasfondo: ${BG_NAME_ES[bg.name] ?? bg.name} refuerza ${bgHints.map(stat => STAT_NAMES[stat]).join(', ') || 'rol y competencias'}.` : 'Trasfondo: selecciona un trasfondo para ajustar el rol.',
-    race ? `Raza: ${RACE_NAME_ES[race.name] ?? race.name}${raceBoosts ? ` aporta ${raceBoosts}.` : ' no aporta bonos directos.'}` : 'Raza: selecciona una raza para calcular bonos finales.',
+    cls ? `Clase: ${classNameEs(cls.name)} prioriza ${priority.slice(0, 3).map(stat => STAT_NAMES[stat]).join(', ')}.` : 'Clase: selecciona una clase para afinar la sugerencia.',
+    bg ? `Trasfondo: ${backgroundNameEs(bg.name)} refuerza ${bgHints.map(stat => STAT_NAMES[stat]).join(', ') || 'rol y competencias'}.` : 'Trasfondo: selecciona un trasfondo para ajustar el rol.',
+    race ? `Raza: ${raceNameEs(race.name)}${raceBoosts ? ` aporta ${raceBoosts}.` : ' no aporta bonos directos.'}` : 'Raza: selecciona una raza para calcular bonos finales.',
   ];
   return { scores, finalScores, priority, reasons };
 }
@@ -3928,6 +3987,7 @@ function wizUpdateNextState() {
   const btn = document.getElementById('wiz-btn-next');
   if (!btn) return;
   const canContinue = wizCanContinue();
+  btn.textContent = wizCurrentKey() === 'hp' ? 'Crear personaje' : 'Siguiente';
   btn.disabled = !canContinue;
   btn.setAttribute('aria-disabled', String(!canContinue));
 }
@@ -3959,9 +4019,9 @@ async function wizRenderStep(n) {
 function wizPdfGeneralHTML() {
   const d = wiz.data;
   const labels = {
-    lawful_good:'Legal Bueno',neutral_good:'Neutral Bueno',chaotic_good:'Caotico Bueno',
-    true_neutral:'Neutral Verdadero',lawful_neutral:'Legal Neutral',chaotic_neutral:'Caotico Neutral',
-    lawful_evil:'Legal Malvado',neutral_evil:'Neutral Malvado',chaotic_evil:'Caotico Malvado',
+    lawful_good:'Legal Bueno',neutral_good:'Neutral Bueno',chaotic_good:'Caótico Bueno',
+    true_neutral:'Neutral Verdadero',lawful_neutral:'Legal Neutral',chaotic_neutral:'Caótico Neutral',
+    lawful_evil:'Legal Malvado',neutral_evil:'Neutral Malvado',chaotic_evil:'Caótico Malvado',
   };
   return `
     <div class="wiz-form-card">
@@ -3981,7 +4041,7 @@ function wizPdfGeneralHTML() {
         <label for="w-level">Nivel inicial</label>
         <select class="input-control" id="w-level" onchange="wizSetLevel(+this.value); wizUpdateNextState()">
           <option value="" disabled>Nivel inicial</option>
-          ${Array.from({length:20},(_,i)=>i+1).map(n=>`<option value="${n}" ${n===(d.initial_level??1)?'selected':''}>Nivel ${n}${n===1?' (inicio estandar)':''}</option>`).join('')}
+          ${Array.from({length:20},(_,i)=>i+1).map(n=>`<option value="${n}" ${n===(d.initial_level??1)?'selected':''}>Nivel ${n}${n===1?' (inicio estándar)':''}</option>`).join('')}
         </select>
       </div>
     </div>`;
@@ -3999,9 +4059,9 @@ function wizPdfRaceReviewHTML() {
   return `<div class="review-block">
     <div class="card-title">Tu selección</div>
     <div class="review-card">
-      <h2>${RACE_NAME_ES[r.name] ?? r.name}</h2>
-      <div class="oc-badges">${bonuses}<span class="oc-badge">Vel ${r.base_speed}ft</span>${r.darkvision_radius?`<span class="oc-badge">◉ Oscuridad ${r.darkvision_radius}ft</span>`:''}</div>
-      <p>${RACE_DESC[r.name] ?? 'Esta raza define tus rasgos iniciales y bonificaciones.'}</p>
+      <h2>${raceNameEs(r.name)}</h2>
+      <div class="oc-badges">${bonuses}<span class="oc-badge">Vel. ${r.base_speed} pies</span>${r.darkvision_radius?`<span class="oc-badge">Oscuridad ${r.darkvision_radius} pies</span>`:''}</div>
+      <p>${raceDescriptionEs(r.name)}</p>
     </div>
   </div>`;
 }
@@ -4058,16 +4118,16 @@ function wizPdfAttributesHTML() {
 async function wizPdfBackgroundHTML() {
   if (!wiz.catalog.backgrounds.length) wiz.catalog.backgrounds = await api('GET', '/catalog/backgrounds');
   const skillMap = {acrobatics:'Acrobacias',animal_handling:'T. Animales',arcana:'Arcanos',athletics:'Atletismo',
-    deception:'Engano',history:'Historia',insight:'Perspicacia',intimidation:'Intimidacion',
-    investigation:'Investigacion',medicine:'Medicina',nature:'Naturaleza',perception:'Percepcion',
-    performance:'Actuacion',persuasion:'Persuasion',religion:'Religion',sleight_of_hand:'J. Manos',
+    deception:'Engaño',history:'Historia',insight:'Perspicacia',intimidation:'Intimidación',
+    investigation:'Investigación',medicine:'Medicina',nature:'Naturaleza',perception:'Percepción',
+    performance:'Actuación',persuasion:'Persuasión',religion:'Religión',sleight_of_hand:'J. Manos',
     stealth:'Sigilo',survival:'Supervivencia'};
   return `<div class="wiz-option-grid">${wiz.catalog.backgrounds.map(b => {
     const skills = (Array.isArray(b.skill_proficiencies) ? b.skill_proficiencies : []).map(s=>`<span class="oc-badge green">${skillMap[s]??s}</span>`).join('');
     return `<div class="wiz-option-card ${wiz.data.background_id===b.background_id?'selected':''}" onclick="wizSelectBg('${b.background_id}',this)">
-      <div class="oc-name">${BG_NAME_ES[b.name] ?? b.name}</div>
+      <div class="oc-name">${backgroundNameEs(b.name)}</div>
       <div class="oc-badges">${skills}${b.language_choices?`<span class="oc-badge blue">+${b.language_choices} idioma</span>`:''}</div>
-      <div class="oc-desc">${BG_DESC[b.name] ?? ''}</div>
+      <div class="oc-desc">${backgroundDescriptionEs(b.name)}</div>
     </div>`;
   }).join('')}</div>`;
 }
@@ -4078,9 +4138,9 @@ function wizPdfBackgroundReviewHTML() {
   return `<div class="review-block">
     <div class="card-title">Tu selección</div>
     <div class="review-card">
-      <h2>${BG_NAME_ES[b.name] ?? b.name}</h2>
+      <h2>${backgroundNameEs(b.name)}</h2>
       <div class="oc-badges">${(b.skill_proficiencies || []).map(s=>`<span class="oc-badge">${SKILL_NAMES[s] ?? s}</span>`).join('')}</div>
-      <p>${BG_DESC[b.name] ?? 'Tu trasfondo define de donde vienes, contactos y equipo inicial.'}</p>
+      <p>${backgroundDescriptionEs(b.name) || 'Tu trasfondo define de dónde vienes, contactos y equipo inicial.'}</p>
     </div>
   </div>`;
 }
@@ -4107,9 +4167,9 @@ function wizPdfPersonalityHTML() {
 async function wizPdfClassHTML() {
   if (!wiz.catalog.classes.length) wiz.catalog.classes = await api('GET', '/catalog/classes');
   return `<div class="wiz-option-grid">${wiz.catalog.classes.map(c => {
-    const info = CLASS_DESC[c.name] ?? { role:'', desc:'' };
+    const info = classInfoEs(c.name);
     return `<div class="wiz-option-card ${wiz.data.class_id===c.class_id?'selected':''}" onclick="wizSelectClass('${c.class_id}',this)">
-      <div class="oc-name">${CLASS_NAME_ES[c.name] ?? c.name}</div>
+      <div class="oc-name">${classNameEs(c.name)}</div>
       <div class="oc-badges"><span class="oc-badge">d${c.hit_die}</span>${c.spellcasting_ability?`<span class="oc-badge purple">${STAT_NAMES[c.spellcasting_ability]} magia</span>`:''}</div>
       <div class="oc-desc">${info.desc || ''}</div>
     </div>`;
@@ -4119,13 +4179,13 @@ async function wizPdfClassHTML() {
 function wizPdfClassReviewHTML() {
   const c = selectedWizardClass();
   if (!c) return '<p style="color:var(--muted)">Selecciona una clase primero.</p>';
-  const info = CLASS_DESC[c.name] ?? { role:'', desc:'' };
+  const info = classInfoEs(c.name);
   return `<div class="review-block">
     <div class="card-title">Tu selección</div>
     <div class="review-card">
-      <h2>${CLASS_NAME_ES[c.name] ?? c.name}</h2>
+      <h2>${classNameEs(c.name)}</h2>
       <div class="oc-badges"><span class="oc-badge">PG d${c.hit_die}</span>${c.spellcasting_ability?`<span class="oc-badge">Magia ${STAT_NAMES[c.spellcasting_ability]}</span>`:''}</div>
-      <p>${info.desc || 'La clase define tu rol principal, habilidades y progresion.'}</p>
+      <p>${info.desc || 'La clase define tu rol principal, habilidades y progresión.'}</p>
     </div>
   </div>`;
 }
@@ -4174,7 +4234,7 @@ function wizPdfSubclassReviewHTML() {
     <div class="review-card">
       <h2>${sc.name}</h2>
       <div class="oc-badges">
-        <span class="oc-badge">${CLASS_NAME_ES[c?.name] ?? c?.name ?? 'Clase'}</span>
+        <span class="oc-badge">${c?.name ? classNameEs(c.name) : 'Clase'}</span>
         <span class="oc-badge">Nivel ${sc.unlock_level ?? c?.subclass_level ?? 1}</span>
       </div>
       <p>${sc.description || 'Esta especialización define rasgos tempranos y el enfoque narrativo de tu clase.'}</p>
@@ -4367,11 +4427,11 @@ async function wizPdfEquipmentHTML() {
   try { await ensureItemCatalog(); } catch(e) { wiz.catalog.items = []; }
   const groups = equipmentGroupsForClass(c);
   if (!groups.length) return '<div class="detail-empty">Esta clase no tiene equipamiento configurado.</div>';
-  const info = CLASS_DESC[c.name] ?? { role:'', desc:'' };
+  const info = classInfoEs(c.name);
   return `
     <div class="equipment-flow">
       <div class="review-card class-summary-card">
-        <h2>${CLASS_NAME_ES[c.name] ?? c.name}</h2>
+        <h2>${classNameEs(c.name)}</h2>
         <div class="oc-badges">
           ${info.role ? `<span class="oc-badge">${info.role}</span>` : ''}
           ${c.spellcasting_ability ? `<span class="oc-badge">Magia, ${STAT_NAMES[c.spellcasting_ability]}</span>` : `<span class="oc-badge">Dado de golpe d${c.hit_die}</span>`}
@@ -4494,7 +4554,7 @@ async function openEditModal(id) {
     const clsRaw  = cls?.class?.name  ?? '?';
     const raceRaw = anyChar.race?.name ?? '?';
     document.getElementById('edit-subtitle').textContent =
-      `${anyChar.name} · ${CLASS_NAME_ES[clsRaw] ?? clsRaw} Nv.${level} · ${RACE_NAME_ES[raceRaw] ?? raceRaw}`;
+      `${anyChar.name} · ${classNameEs(clsRaw)} Nv.${level} · ${raceNameEs(raceRaw)}`;
     document.getElementById('edit-name').value = anyChar.name ?? '';
     document.getElementById('edit-align').value = anyChar.alignment ?? 'true_neutral';
     document.getElementById('edit-level').value = String(level);
@@ -4699,9 +4759,9 @@ function hydrateCharacterDetail(c, h) {
   const clsNameRaw = cls?.class?.name ?? cls?.class_id ?? 'Clase';
   const raceNameRaw = c.race?.name ?? 'Raza';
   const bgNameRaw = c.background?.name ?? 'Trasfondo';
-  const clsName = CLASS_NAME_ES[clsNameRaw] ?? clsNameRaw;
-  const raceName = RACE_NAME_ES[raceNameRaw] ?? raceNameRaw;
-  const bgName = BG_NAME_ES[bgNameRaw] ?? bgNameRaw;
+  const clsName = classNameEs(clsNameRaw);
+  const raceName = raceNameEs(raceNameRaw);
+  const bgName = backgroundNameEs(bgNameRaw);
   const level = h.total_level ?? cls?.class_level ?? 1;
   const xp = c.xp ?? 0;
   const curLevelXp = DETAIL_XP[level] ?? 0;
@@ -5051,7 +5111,7 @@ function renderDetailEquipmentChooser(cls) {
       <div class="equipment-intro">
         <h2>Elige las opciones de equipamiento</h2>
         <p>Equipamiento de clase</p>
-        <span>Este personaje aún no tiene equipamiento de ${CLASS_NAME_ES[cls?.name] ?? cls?.name ?? 'clase'} asignado.</span>
+        <span>Este personaje aún no tiene equipamiento de ${cls?.name ? classNameEs(cls.name) : 'clase'} asignado.</span>
       </div>
       ${groups.map(group => detailEquipmentGroupHTML(group)).join('')}
       <button class="primary-btn" ${equipmentCompleteForClass(cls, detailEquipmentChoices) ? '' : 'disabled aria-disabled="true"'} onclick="applyDetailEquipment()">Guardar equipamiento</button>
@@ -6000,7 +6060,7 @@ function updateMiniHydrated(char, computed) {
   const cls = char.character_classes?.[0];
   const clsN = cls?.class?.name ?? cls?.class_id ?? '';
   document.getElementById('mini-class').textContent = cls
-    ? `${CLASS_NAME_ES[clsN] ?? clsN} Nv.${cls.class_level}` : '—';
+    ? `${classNameEs(clsN)} Nv.${cls.class_level}` : '—';
   const cur = char.current_hp ?? 0;
   const max = computed?.max_hp ?? 1;
   const pct = max>0 ? Math.max(0,Math.min(100,(cur/max)*100)) : 100;
@@ -6015,7 +6075,7 @@ function updateMini(char){
   const cls = char.character_classes?.[0];
   const clsN2 = cls?.class?.name ?? cls?.class_id ?? '';
   document.getElementById('mini-class').textContent = cls
-    ? `${CLASS_NAME_ES[clsN2] ?? clsN2} Nv.${cls.class_level}` : '—';
+    ? `${classNameEs(clsN2)} Nv.${cls.class_level}` : '—';
   const cur = char.current_hp ?? 0;
   const hitDie = cls?.class?.hit_die ?? 8;
   const conMod = Math.floor(((char.base_con ?? 10) - 10) / 2);
