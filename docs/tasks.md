@@ -640,6 +640,13 @@
 - **Notas 2026-05-14:** Implementado como Fase 4. Extraídas interfaces, constantes y funciones de label/ammo/clasificación/chips/descripción/imagen. No se tocaron renderizadores grandes ni CSS.
 - **Status:** `[x]`
 
+### T-082: Restaurar prioridad de descripciones explícitas de inventario
+- **Spec:** US-127 / US-145 / US-148
+- **Action:** Corregir `itemDescription()` tras la extracción de Fase 4 para que `item.description` y `item.properties.description` siempre ganen sobre descripciones generadas.
+- **Done when:** Los items con descripción explícita muestran esa descripción en cards/drawer aunque sean packs o aunque el helper modular no haya cargado todavía.
+- **Notas 2026-05-15:** Implementado en `src/client/inventoryHelpers.ts` y en el wrapper fallback de `ui.html`. Verificado con typecheck/build y prueba directa de `itemDescription()`.
+- **Status:** `[x]`
+
 ### T-080: Extraer utilidades puras legacy a módulo cliente
 - **Spec:** US-148
 - **Action:** Mover helpers puros de `ui.html` a `src/client/legacy-utils.ts`, exponerlos temporalmente como `window.DND_UTILS` y mantener wrappers globales en `ui.html`.

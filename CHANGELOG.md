@@ -2,6 +2,34 @@
 
 Registro retroactivo del proyecto. El código actual es la fuente principal de verdad; las fechas previas se basan en marcas de archivo y documentación disponible, por lo que algunas entradas se indican como estimadas.
 
+## [2026-05-15] - Fix descripciones explícitas de inventario tras Fase 4
+
+### Cambios
+- Se corrigió `src/client/inventoryHelpers.ts` para que `itemDescription()` vuelva a priorizar `item.description` y `item.properties.description` antes de generar descripciones automáticas.
+- Se endureció el wrapper `itemDescription()` en `ui.html` para conservar descripciones explícitas aunque `window.DND_ITEM_HELPERS` todavía no esté disponible.
+- Se restauró la regla documentada de US-127/US-145: las descripciones guardadas en BD/catalogo son fuente principal.
+
+### Archivos modificados
+- `src/client/inventoryHelpers.ts`
+- `ui.html`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+- `docs/tasks.md`
+- `docs/requirements.md`
+- `docs/behavioral_design.md`
+
+### Validación
+- `npm run typecheck`
+- `npm run typecheck:web`
+- `npm run build:web`
+- `npx ts-node --transpile-only ... itemDescription(...)`
+
+### Fuente / certeza
+- Basado en reporte directo del usuario: las descripciones de inventario desaparecieron tras la extracción de helpers.
+- Confirmado por prueba directa de `itemDescription()` con un item tipo pack que trae `description` explícita.
+
+---
+
 ## [2026-05-14] - Fase 4 de modularización frontend: helpers de inventario/item display (US-148)
 
 ### Cambios

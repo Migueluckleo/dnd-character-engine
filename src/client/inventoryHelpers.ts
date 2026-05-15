@@ -617,14 +617,15 @@ export function itemDescription(item: CatalogItem | null | undefined): string {
   if (!item) return 'Objeto de equipo inicial.';
   const props = item.properties ?? {};
 
+  if (item.description) return item.description;
+  if (props.description) return String(props.description);
+
   if (item.item_type === 'pack') {
     const contents = packContentsPreview(item);
     return contents.length
       ? `Incluye: ${contents.join(', ')}.`
       : 'Paquete de aventurero que se desglosa en objetos y cantidades al agregarse.';
   }
-  if (item.description) return item.description;
-  if (props.description) return String(props.description);
 
   if (item.item_type === 'weapon') {
     const range = props.range_normal

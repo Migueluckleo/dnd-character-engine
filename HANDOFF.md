@@ -10,6 +10,24 @@
 - La documentación viva principal está en `docs/requirements.md`, `docs/plan.md`, `docs/tasks.md`, `.claude.md`, `CHANGELOG.md` y este archivo.
 - Regla obligatoria de continuidad: todo cambio de código, configuración, workflow, UI, documentación o tooling debe registrarse antes de cerrar la tarea. Mínimo actualizar `CHANGELOG.md` y `HANDOFF.md`; si cambia comportamiento, UX o alcance de producto, actualizar también `docs/requirements.md`, `docs/tasks.md` y `docs/behavioral_design.md`.
 
+## Últimos cambios realizados (2026-05-15) — Fix descripciones explícitas de inventario tras Fase 4
+
+### Qué se corrigió
+- `src/client/inventoryHelpers.ts` ahora prioriza `item.description` y `item.properties.description` antes de cualquier descripción generada, incluso para items tipo `pack`.
+- El wrapper `itemDescription()` en `ui.html` ahora conserva descripciones explícitas como fallback si `window.DND_ITEM_HELPERS` no está cargado todavía.
+- Esto restaura el contrato de inventario: las descripciones de BD/catalogo no deben perderse por helpers generados.
+
+### Validación realizada
+- `npm run typecheck`
+- `npm run typecheck:web`
+- `npm run build:web`
+- Prueba directa con `itemDescription({ item_type: 'pack', description: '...' })`
+
+### Pendientes inmediatos
+- Correr `npm run prepublish:check` después de esta documentación.
+- Actualizar Graphify después del fix.
+- QA visual en navegador real sigue pendiente porque el navegador integrado bloquea `localhost`/`127.0.0.1` con `ERR_BLOCKED_BY_CLIENT`.
+
 ## Últimos cambios realizados (2026-05-14) — Fase 4 de modularización frontend: helpers de inventario/item display
 
 ### Qué se implementó

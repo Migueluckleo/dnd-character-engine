@@ -3687,7 +3687,14 @@ function gameIconPath(item) { return window.DND_ITEM_HELPERS?.gameIconPath(item)
 function itemImageHtml(item, altText) { return window.DND_ITEM_HELPERS?.itemImageHtml(item, altText) ?? ''; }
 
 
-function itemDescription(item) { return window.DND_ITEM_HELPERS?.itemDescription(item) ?? 'Objeto de equipo inicial.'; }
+function itemDescription(item) {
+  if (window.DND_ITEM_HELPERS?.itemDescription) return window.DND_ITEM_HELPERS.itemDescription(item);
+  if (!item) return 'Objeto de equipo inicial.';
+  const props = item.properties || {};
+  if (item.description) return item.description;
+  if (props.description) return String(props.description);
+  return 'Objeto de equipo inicial.';
+}
 
 function wizFlow() {
   const flow = [

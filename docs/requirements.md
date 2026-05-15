@@ -1889,4 +1889,6 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 |----|--------|-------|
 | US-148 | En progreso | Fase 3 created `src/client/legacy-utils.ts` for pure legacy helpers and exposes them through `window.DND_UTILS` while `ui.html` keeps compatibility wrappers. No redesign or CSS changes were made. |
 
+**Inventory description regression note (2026-05-15):** After the Phase 4 helper extraction, `itemDescription()` must continue to prefer explicit catalog descriptions (`item.description` and `item.properties.description`) before generated text. This priority applies to every item type, including packs, and `ui.html` must preserve that fallback if `window.DND_ITEM_HELPERS` is unavailable.
+
 *End of requirements.md — Total User Stories: US-01 through US-148.*

@@ -340,7 +340,7 @@
 - La razón de producto es explícita: el usuario prefiere imágenes únicas o una identidad visual específica por ítem, no íconos vectoriales genéricos.
 - Implementación parcial posterior: `ui.html` usa assets locales en `src/images/items` para mapear ítems exactos y subtipos de armas/magic items sin volver al sistema SVG.
 - Extensión posterior: Game-icons vía Iconify se usa como fallback dirigido para ítems sin imagen local, con color por rareza de objeto mágico.
-- `itemDescription()` debe seguir priorizando el campo `item.description` de BD sobre descripciones generadas en código.
+- `itemDescription()` debe seguir priorizando el campo `item.description` de BD y `item.properties.description` sobre descripciones generadas en código, para todos los tipos de ítem, incluidos packs.
 - Pendiente de validación: revisar visualmente en navegador mochila, catálogo y pantalla de cantidad; confirmar carga externa de Iconify en producción.
 
 ---
@@ -517,6 +517,7 @@
 
 | Fecha | Cambio | US relacionada |
 |---|---|---|
+| 2026-05-15 | Fix inventario — restaurada prioridad de descripciones explícitas tras extracción Fase 4 | US-127 / US-145 / US-148 |
 | 2026-05-14 | US-148 Fase 4 — helpers de inventario/item display extraídos a `src/client/inventoryHelpers.ts`; 29 wrappers en `ui.html` | US-148 |
 | 2026-05-15 | US-148 creada — modularización frontend incremental sin rediseño; Fase 3 extrae utilidades legacy | US-148 |
 | 2026-05-15 | US-147 extendida — mock API de preview extraído a `src/client/preview.ts` durante Fase 2 | US-147 |
