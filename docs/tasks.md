@@ -673,6 +673,7 @@
 - **Action:** Agregar fallbacks inline suficientes para que nombres, tipos, atributos e iconos no vuelvan a inglés ni desaparezcan si `DND_ITEM_HELPERS` carga después del primer render.
 - **Done when:** El drawer de descripción muestra `Cota de Mallas`, `Armadura pesada`, `Descripción` e icono fallback rojo aun antes de que el módulo modular esté listo; cuando llega `dnd-client-ready`, los paneles visibles se refrescan.
 - **Notas 2026-05-15:** Implementado en `ui.html` con fallbacks ES para labels/chips/arte y `refreshItemDisplaysAfterHelpersReady()`. Verificado con typecheck frontend, build Vite y búsqueda en `_site/ui.html`.
+- **Notas 2026-05-15:** Reforzado con normalización compartida de nombres/IDs (`chain_mail`, `equipment:chain_mail`, nombres con espacios), mapas inline mínimos de imágenes locales/filtros y fallback SVG local rojo sin depender de Iconify.
 - **Status:** `[x]`
 
 ### T-087: Crear registro canónico de Figma Sources y contratos companion

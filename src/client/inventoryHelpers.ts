@@ -200,7 +200,7 @@ export const ITEM_NAME_ES: Record<string, string> = {
   'Ring of Warmth':'Anillo de Calor','Ring of X-Ray Vision':'Anillo de Visión Penetrante',
   'Robe of Useful Items':'Túnica de Objetos Útiles','Rope of Climbing':'Cuerda Trepadora',
   'Stone of Good Luck (Luckstone)':'Piedra de la Buena Suerte','Wand of Magic Missiles':'Varita de Misiles Mágicos',
-  'Wand of Secrets':'Varita de los Secretos',
+  'Wand of Secrets':'Varita de los Secretos','Helm of Dread':'Yelmo del Pavor',
 };
 
 // ─── Damage type translations ─────────────────────────────────────────────────
@@ -317,9 +317,9 @@ export const ITEM_RARITY_THEME: Record<string, RarityTheme> = {
   legendary: { color: '#E2A241', bg: '#FFF2D9', label: 'Legendario' },
   artifact:  { color: '#D75B74', bg: '#FFE9EE', label: 'Artefacto' },
 };
-export const ITEM_DEFAULT_THEME: RarityTheme = { color: '#EED3B1', bg: '#4D2C1C', label: '' };
 export const ITEM_ICON_BRAND_COLOR = '#720000';
 export const ITEM_ICON_BRAND_BG = 'rgba(114,0,0,.10)';
+export const ITEM_DEFAULT_THEME: RarityTheme = { color: ITEM_ICON_BRAND_COLOR, bg: ITEM_ICON_BRAND_BG, label: '' };
 
 // ─── Inventory filter labels ──────────────────────────────────────────────────
 export const INVENTORY_FILTER_LABELS: Record<string, string> = {
@@ -337,11 +337,43 @@ export const INVENTORY_FILTER_LABELS: Record<string, string> = {
 // Item label / type helpers
 // ═══════════════════════════════════════════════════════════════════════════════
 
+/** Normalizes display names and item IDs to one lookup key. */
+export function itemLookupKey(value: unknown): string {
+  return String(value ?? '')
+    .replace(/^equipment:/i, '')
+    .replace(/\s*\(\d+\)\s*$/, '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+}
+
+function itemMapValue<T>(map: Record<string, T>, value: unknown): T | undefined {
+  const raw = String(value ?? '').trim();
+  if (!raw) return undefined;
+  const clean = raw.replace(/^equipment:/i, '').replace(/\s*\(\d+\)\s*$/, '').trim();
+  if (map[raw] !== undefined) return map[raw];
+  if (map[clean] !== undefined) return map[clean];
+  const key = itemLookupKey(clean);
+  return Object.entries(map).find(([name]) => itemLookupKey(name) === key)?.[1];
+}
+
+function readableItemFallback(value: unknown): string {
+  const clean = String(value ?? '')
+    .replace(/^equipment:/i, '')
+    .replace(/\s*\(\d+\)\s*$/, '')
+    .replace(/[_-]+/g, ' ')
+    .trim();
+  return clean || 'Objeto';
+}
+
 /** Returns the Spanish display label for an item name, stripping quantity suffixes. */
 export function itemLabel(name: unknown): string {
   const raw = String(name ?? '');
   const cleanName = raw.replace(/\s*\(\d+\)\s*$/, '');
-  return ITEM_NAME_ES[raw] ?? ITEM_NAME_ES[cleanName] ?? cleanName;
+  return itemMapValue(ITEM_NAME_ES, raw) ?? itemMapValue(ITEM_NAME_ES, cleanName) ?? readableItemFallback(cleanName);
 }
 
 /** Spanish label for an armor category key. */
@@ -750,7 +782,7 @@ export function itemDrawerRule(item: CatalogItem | null | undefined, chips: stri
 
 /** Normalises a string for fuzzy image key matching. */
 export function itemImageKey(value: unknown): string {
-  return String(value ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  return String(value ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[_-]+/g, ' ');
 }
 
 /** Picks a file from a list deterministically by hashing the seed string. */
@@ -771,14 +803,15 @@ export function itemImageAssetUrl(filename: string): string {
 
 /** Returns a local image path for the item, or '' if none is configured. */
 export function itemImagePath(item: CatalogItem | null | undefined): string {
-  if (!item?.name) return '';
-  const exact = ITEM_IMAGE_BY_NAME[item.name];
+  const seedName = item?.name ?? item?.item_id ?? '';
+  if (!seedName) return '';
+  const exact = itemMapValue(ITEM_IMAGE_BY_NAME, item?.name) ?? itemMapValue(ITEM_IMAGE_BY_NAME, item?.item_id);
   if (exact) return itemImageAssetUrl(exact);
-  const props = item.properties ?? {};
-  const haystack = itemImageKey(`${item.name} ${props.weapon_type ?? ''} ${item.item_type ?? ''}`);
+  const props = item?.properties ?? {};
+  const haystack = itemImageKey(`${seedName} ${item?.item_id ?? ''} ${props.weapon_type ?? ''} ${item?.item_type ?? ''}`);
   const match = ITEM_IMAGE_BY_KIND.find(group => group.keys.some(key => haystack.includes(key)));
   if (!match) return '';
-  return itemImageAssetUrl(pickItemImage(match.files, item.name));
+  return itemImageAssetUrl(pickItemImage(match.files, seedName));
 }
 
 /** Normalised rarity key for an item (e.g. 'common', 'rare', 'very_rare'). */
@@ -812,6 +845,24 @@ export function gameIconSlug(item: CatalogItem | null | undefined): string {
 }
 
 /** Returns a local SVG data URL for critical fallback icons that must work offline. */
+export function fallbackItemIconSvg(item: CatalogItem | null | undefined): string {
+  const type = item?.item_type;
+  const armor = item?.armor_category;
+  const name = itemLookupKey(`${item?.name ?? ''} ${item?.item_id ?? ''}`);
+  const stroke = `stroke="${ITEM_ICON_BRAND_COLOR}" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"`;
+  let body = `<path d="M14 50 50 14M42 10l12 12M10 42l12 12" ${stroke}/>`;
+  if (type === 'armor') {
+    body = armor === 'shield' || name.includes('shield')
+      ? `<path d="M32 8 13 16v14c0 13 8 23 19 28 11-5 19-15 19-28V16L32 8Z" ${stroke}/>`
+      : `<path d="M20 14h24l8 12-6 6v22H18V32l-6-6 8-12Z" ${stroke}/><path d="M25 14c2 5 5 8 7 8s5-3 7-8" ${stroke}/>`;
+  } else if (name.includes('ring')) {
+    body = `<circle cx="32" cy="37" r="17" ${stroke}/><path d="M22 20h20l-5 10H27l-5-10Z" ${stroke}/><path d="M27 20l5-8 5 8" ${stroke}/>`;
+  } else if (type === 'potion' || name.includes('potion')) {
+    body = `<path d="M25 9h14M29 9v12L18 38c-5 8 1 18 10 18h8c9 0 15-10 10-18L35 21V9" ${stroke}/><path d="M23 41h18" ${stroke}/>`;
+  }
+  return `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">${body}</svg>`)}`;
+}
+
 export function localGameIconPath(slug: string, color: string): string {
   if (slug !== 'ring') return '';
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="37" r="17" stroke="${color}" stroke-width="5"/><path d="M22 20h20l-5 10H27l-5-10Z" stroke="${color}" stroke-width="5" stroke-linejoin="round"/><path d="M27 20l5-8 5 8" stroke="${color}" stroke-width="5" stroke-linejoin="round"/></svg>`;
@@ -831,8 +882,8 @@ export function itemImageHtml(item: CatalogItem | null | undefined, altText?: st
   if (!item) return '';
   const theme = itemArtTheme(item);
   const localPath = itemImagePath(item);
-  const path = localPath ? encodeURI(localPath) : gameIconPath(item);
-  const fallbackPath = localPath ? escapeText(gameIconPath(item)) : '';
+  const fallbackPath = fallbackItemIconSvg(item);
+  const path = localPath ? encodeURI(localPath) : fallbackPath;
   const sourceClass = localPath ? 'local' : 'library';
   const artColor = localPath ? theme.color : ITEM_ICON_BRAND_COLOR;
   const artBg = localPath ? theme.bg : ITEM_ICON_BRAND_BG;
@@ -840,7 +891,7 @@ export function itemImageHtml(item: CatalogItem | null | undefined, altText?: st
   const label = rarity && theme.label ? `<span>${escapeText(theme.label)}</span>` : '';
   const alt = escapeText(altText ?? itemLabel(item.name));
   const onError = fallbackPath
-    ? `this.onerror=null;this.src='${fallbackPath}';this.closest('.item-art')?.classList.remove('local');this.closest('.item-art')?.classList.add('library');this.closest('.item-art')?.style.setProperty('--item-art-color','${ITEM_ICON_BRAND_COLOR}');this.closest('.item-art')?.style.setProperty('--item-art-bg','${ITEM_ICON_BRAND_BG}')`
+    ? `this.onerror=null;this.src='${escapeText(fallbackPath)}';this.closest('.item-art')?.classList.remove('local');this.closest('.item-art')?.classList.add('library');this.closest('.item-art')?.style.setProperty('--item-art-color','${ITEM_ICON_BRAND_COLOR}');this.closest('.item-art')?.style.setProperty('--item-art-bg','${ITEM_ICON_BRAND_BG}')`
     : `this.closest('.item-art')?.classList.add('image-missing')`;
   return `<figure class="item-art ${sourceClass}" style="--item-art-color:${artColor};--item-art-bg:${artBg}" title="${escapeText(theme.label || 'Objeto')}"><img src="${escapeText(path)}" alt="${alt}" loading="lazy" onerror="${onError}">${label}</figure>`;
 }
@@ -863,6 +914,7 @@ export const inventoryHelpers = {
   ITEM_ICON_BRAND_BG,
   INVENTORY_FILTER_LABELS,
   // label / type
+  itemLookupKey,
   itemLabel,
   armorCategoryLabel,
   weaponFamily,
@@ -902,6 +954,7 @@ export const inventoryHelpers = {
   itemArtTheme,
   gameIconSlug,
   localGameIconPath,
+  fallbackItemIconSvg,
   gameIconPath,
   itemImageHtml,
 };

@@ -1,5 +1,25 @@
 # HANDOFF
 
+## Últimos cambios realizados (2026-05-15) — Blindaje de inventario ante helpers tardíos
+
+### Qué se corrigió
+- La regresión venía de una arquitectura frágil: `ui.html` podía renderizar inventario antes de que `window.DND_ITEM_HELPERS` estuviera disponible, y algunos fallbacks inline no normalizaban IDs (`chain_mail`, `equipment:chain_mail`) ni tenían mapas de imagen/filtro suficientes.
+- `src/client/inventoryHelpers.ts` ahora usa `itemLookupKey()` para resolver nombres exactos, IDs snake_case y refs `equipment:*` contra el mismo mapa en español.
+- `ui.html` replica ese fallback para el primer render, con nombres críticos, filtros de inventario y mapas mínimos de imágenes locales.
+- El drawer de `Descripción` ya no cae a iconos externos amarillos: si no hay imagen local disponible, usa un SVG local en rojo brand `#720000`.
+- Se agregó `Helm of Dread` como `Yelmo del Pavor` para cubrir el demo/preview.
+
+### Validación realizada
+- `npm run typecheck:web`
+- `npm run build:web`
+- Preview local en `http://127.0.0.1:5175/ui.html?preview=1`: inventario muestra nombres en español y el drawer de `Cota de Mallas` conserva tipo, descripción e icono rojo sin `api.iconify.design`.
+
+### Pendientes inmediatos
+- Revisar por qué en el in-app browser `DND_ITEM_HELPERS` no queda visible como global aunque `main.ts` marca `data-client-entry="vite"`; los fallbacks ya contienen la regresión, pero conviene encontrar la causa raíz del evento/global.
+- QA visual fina con Figma para confirmar si el drawer debe preferir imagen local siempre que exista o si el icono rojo local es aceptable para ciertos objetos.
+
+---
+
 ## Últimos cambios realizados (2026-05-15) — Brain Graph dashboard completo
 
 ### Qué se implementó

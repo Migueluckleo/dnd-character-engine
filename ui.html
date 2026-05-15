@@ -3417,6 +3417,7 @@ const ITEM_NAME_ES_FALLBACK = {
   'Warhammer':'Martillo de Guerra','Whip':'Látigo','Blowgun':'Cerbatana','Hand Crossbow':'Ballesta de Mano',
   'Heavy Crossbow':'Ballesta Pesada','Longbow':'Arco Largo','Net':'Red',
   'Backpack':'Mochila','Potion of Healing':'Poción de Curación','Signet Ring':'Anillo de Sello',
+  'Helm of Dread':'Yelmo del Pavor',
 };
 
 // ITEM_NAME_ES moved to src/client/inventoryHelpers.ts (Phase 4)
@@ -3427,11 +3428,41 @@ const ITEM_NAME_ES = liveItemHelperMap('ITEM_NAME_ES', ITEM_NAME_ES_FALLBACK);
 const DAMAGE_ES = liveItemHelperMap('DAMAGE_ES');
 
 // itemLabel / ammunitionBundleSize / inventoryDisplayQuantity moved to inventoryHelpers.ts (Phase 4)
+function itemLookupKey(value) {
+  if (window.DND_ITEM_HELPERS?.itemLookupKey) return window.DND_ITEM_HELPERS.itemLookupKey(value);
+  return String(value ?? '')
+    .replace(/^equipment:/i, '')
+    .replace(/\s*\(\d+\)\s*$/, '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+}
+function itemMapValue(map, value) {
+  const raw = String(value ?? '').trim();
+  if (!raw) return undefined;
+  const clean = raw.replace(/^equipment:/i, '').replace(/\s*\(\d+\)\s*$/, '').trim();
+  if (map[raw] !== undefined) return map[raw];
+  if (map[clean] !== undefined) return map[clean];
+  const key = itemLookupKey(clean);
+  const match = Object.entries(map).find(([name]) => itemLookupKey(name) === key);
+  return match?.[1];
+}
+function readableItemFallback(value) {
+  const clean = String(value ?? '')
+    .replace(/^equipment:/i, '')
+    .replace(/\s*\(\d+\)\s*$/, '')
+    .replace(/[_-]+/g, ' ')
+    .trim();
+  return clean || 'Objeto';
+}
 function itemLabel(name) {
   if (window.DND_ITEM_HELPERS?.itemLabel) return window.DND_ITEM_HELPERS.itemLabel(name);
   const raw = String(name || '');
   const cleanName = raw.replace(/\s*\(\d+\)\s*$/, '');
-  return ITEM_NAME_ES[raw] ?? ITEM_NAME_ES[cleanName] ?? cleanName;
+  return itemMapValue(ITEM_NAME_ES, raw) ?? itemMapValue(ITEM_NAME_ES, cleanName) ?? readableItemFallback(cleanName);
 }
 function ammunitionBundleSize(itemOrName) { return window.DND_ITEM_HELPERS?.ammunitionBundleSize(itemOrName) ?? 0; }
 function inventoryDisplayQuantity(inv, item) { return window.DND_ITEM_HELPERS?.inventoryDisplayQuantity(inv, item) ?? (inv.quantity ?? 1); }
@@ -3795,20 +3826,51 @@ function itemChips(item) {
 }
 
 const ITEM_IMAGE_BASE = window.DND_ITEM_HELPERS?.ITEM_IMAGE_BASE ?? 'src/images/items/';
-const ITEM_IMAGE_BY_NAME = liveItemHelperMap('ITEM_IMAGE_BY_NAME');
+const ITEM_IMAGE_BY_NAME_FALLBACK = {
+  'Backpack': 'mochila 1.png',
+  'Chain Mail': 'cota de malla 1.png',
+  'Dagger': 'daga 1.png',
+  'Leather Armor': 'Armadura de cuero 1.png',
+  'Longsword': 'Espada Larga 1.png',
+  'Potion of Healing': 'poción curativa 1.png',
+  'Pouch': 'bolsa 1.png',
+  'Shield': 'Escudo 1.png',
+  'Shortbow': 'arco corto 1.png',
+};
+const ITEM_IMAGE_BY_NAME = liveItemHelperMap('ITEM_IMAGE_BY_NAME', ITEM_IMAGE_BY_NAME_FALLBACK);
 
-const ITEM_IMAGE_BY_KIND = window.DND_ITEM_HELPERS?.ITEM_IMAGE_BY_KIND ?? [];
+const ITEM_IMAGE_BY_KIND_FALLBACK = [
+  { keys: ['longsword', 'long sword', 'sword'], files: ['Espada Larga 1.png'] },
+  { keys: ['shortbow', 'bow'], files: ['arco corto 1.png'] },
+  { keys: ['dagger'], files: ['daga 1.png'] },
+  { keys: ['shield'], files: ['Escudo 1.png'] },
+  { keys: ['armor', 'mail', 'plate', 'leather armor'], files: ['cota de malla 1.png', 'Armadura de cuero 1.png'] },
+  { keys: ['potion'], files: ['poción curativa 1.png'] },
+  { keys: ['backpack', 'pack'], files: ['mochila 1.png'] },
+  { keys: ['pouch', 'bag'], files: ['bolsa 1.png'] },
+];
+const ITEM_IMAGE_BY_KIND = window.DND_ITEM_HELPERS?.ITEM_IMAGE_BY_KIND ?? ITEM_IMAGE_BY_KIND_FALLBACK;
 
 const GAME_ICON_BY_KIND = window.DND_ITEM_HELPERS?.GAME_ICON_BY_KIND ?? [];
 
 const ITEM_RARITY_THEME = liveItemHelperMap('ITEM_RARITY_THEME');
-const ITEM_DEFAULT_THEME = window.DND_ITEM_HELPERS?.ITEM_DEFAULT_THEME ?? { color: '#EED3B1', bg: '#4D2C1C', label: '' };
+const ITEM_DEFAULT_THEME = window.DND_ITEM_HELPERS?.ITEM_DEFAULT_THEME ?? { color: '#720000', bg: 'rgba(114,0,0,.10)', label: '' };
 
-function itemImageKey(value) { return window.DND_ITEM_HELPERS?.itemImageKey(value) ?? String(value ?? '').toLowerCase(); }
+function itemImageKey(value) { return window.DND_ITEM_HELPERS?.itemImageKey(value) ?? String(value ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[_-]+/g, ' '); }
 function pickItemImage(files, seed) { return window.DND_ITEM_HELPERS?.pickItemImage(files, seed) ?? (Array.isArray(files) ? files[0] ?? '' : files ?? ''); }
-function itemImagePath(item) { return window.DND_ITEM_HELPERS?.itemImagePath(item) ?? ''; }
+function itemImageAssetUrl(filename) { return window.DND_ITEM_HELPERS?.itemImageAssetUrl?.(filename) ?? `${ITEM_IMAGE_BASE}${filename}`; }
+function itemImagePath(item) {
+  if (window.DND_ITEM_HELPERS?.itemImagePath) return window.DND_ITEM_HELPERS.itemImagePath(item);
+  const seedName = item?.name ?? item?.item_id ?? '';
+  if (!seedName) return '';
+  const exact = itemMapValue(ITEM_IMAGE_BY_NAME, item?.name) ?? itemMapValue(ITEM_IMAGE_BY_NAME, item?.item_id);
+  if (exact) return itemImageAssetUrl(exact);
+  const haystack = itemImageKey(`${seedName} ${item?.item_id ?? ''} ${item?.properties?.weapon_type ?? ''} ${item?.item_type ?? ''}`);
+  const match = ITEM_IMAGE_BY_KIND.find(group => group.keys.some(key => haystack.includes(key)));
+  return match ? itemImageAssetUrl(pickItemImage(match.files, seedName)) : '';
+}
 function itemRarity(item) { return window.DND_ITEM_HELPERS?.itemRarity(item) ?? ''; }
-function itemArtTheme(item) { return window.DND_ITEM_HELPERS?.itemArtTheme(item) ?? { color: '#EED3B1', bg: '#4D2C1C', label: '' }; }
+function itemArtTheme(item) { return window.DND_ITEM_HELPERS?.itemArtTheme(item) ?? { color: '#720000', bg: 'rgba(114,0,0,.10)', label: '' }; }
 function gameIconSlug(item) { return window.DND_ITEM_HELPERS?.gameIconSlug(item) ?? 'swap-bag'; }
 function gameIconPath(item) { return window.DND_ITEM_HELPERS?.gameIconPath(item) ?? ''; }
 function fallbackItemIconSvg(item) {
@@ -3832,7 +3894,12 @@ function itemImageHtml(item, altText) {
   if (window.DND_ITEM_HELPERS?.itemImageHtml) return window.DND_ITEM_HELPERS.itemImageHtml(item, altText);
   if (!item) return '';
   const alt = escapeText(altText ?? itemLabel(item.name));
-  return `<figure class="item-art library" style="--item-art-color:#720000;--item-art-bg:rgba(114,0,0,.10)" title="Objeto"><img src="${fallbackItemIconSvg(item)}" alt="${alt}" loading="lazy"></figure>`;
+  const localPath = itemImagePath(item);
+  const sourceClass = localPath ? 'local' : 'library';
+  const path = localPath ? encodeURI(localPath) : fallbackItemIconSvg(item);
+  const fallbackPath = fallbackItemIconSvg(item);
+  const onError = `this.onerror=null;this.src='${escapeText(fallbackPath)}';this.closest('.item-art')?.classList.remove('local');this.closest('.item-art')?.classList.add('library')`;
+  return `<figure class="item-art ${sourceClass}" style="--item-art-color:#720000;--item-art-bg:rgba(114,0,0,.10)" title="Objeto"><img src="${escapeText(path)}" alt="${alt}" loading="lazy" onerror="${onError}"></figure>`;
 }
 
 
@@ -5375,7 +5442,17 @@ function closeItemDescriptionDrawer() {
 
 function inventoryItemCategory(item) { return window.DND_ITEM_HELPERS?.inventoryItemCategory(item) ?? 'gear'; }
 
-const INVENTORY_FILTER_LABELS = window.DND_ITEM_HELPERS?.INVENTORY_FILTER_LABELS ?? {};
+const INVENTORY_FILTER_LABELS_FALLBACK = {
+  weapon: 'Armas',
+  armor: 'Armaduras',
+  consumable: 'Consumibles',
+  ammunition: 'Municiones',
+  gear: 'Baratija',
+  curiosity: 'Curiosidad',
+  clothing: 'Ropa',
+  tool: 'Arte',
+};
+const INVENTORY_FILTER_LABELS = liveItemHelperMap('INVENTORY_FILTER_LABELS', INVENTORY_FILTER_LABELS_FALLBACK);
 
 async function openInventoryAddObject() {
   await ensureItemCatalog();

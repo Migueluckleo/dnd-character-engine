@@ -344,6 +344,7 @@
 - Tras Fase 4, los mapas de inventario consumidos por `ui.html` deben resolverse en vivo desde `window.DND_ITEM_HELPERS`; no deben capturar `{}` durante el parseo inicial del script inline.
 - Las imágenes locales de inventario deben resolverse como assets de Vite mediante el módulo cliente, no como rutas crudas a `src/images/items`, para que producción y local compartan el mismo arte.
 - La normalización visual de inventario exige español con acentos en daño/tipos (`Ácido`, `Frío`, `Relámpago`, `Munición`, `Poción`, `Objeto mágico`) y fallback visual estable si Iconify no carga.
+- El UI debe normalizar nombres e IDs antes de traducir: `Chain Mail`, `chain_mail` y `equipment:chain_mail` deben resolver a `Cota de Mallas`; si el helper modular aún no cargó, el fallback inline mantiene filtros, nombres y arte crítico sin mostrar inglés ni espacios vacíos.
 - Pendiente de validación: revisar visualmente en navegador mochila, catálogo y pantalla de cantidad; confirmar carga externa de Iconify en producción.
 
 ---
@@ -521,6 +522,7 @@
 | Fecha | Cambio | US relacionada |
 |---|---|---|
 | 2026-05-15 | Wizard creación — primer pase Figma: labels ES robustos para preview/API, header back especializado y cards de raza localizadas | US-146 |
+| 2026-05-15 | Fix inventario — normalización compartida para nombres/IDs y fallback inline de imágenes/filtros cuando helpers Vite cargan tarde | US-145 / US-146 / US-148 |
 | 2026-05-15 | UI atoms — normalizado color de texto e iconos en botones primary/mini; tabs/chips quedan fuera del normalizador CTA | US-146 |
 | 2026-05-15 | Proceso Figma — contratos de componentes y cards enriquecidos con source, node, variants, mapping, reglas y anti-patrones | US-146 |
 | 2026-05-15 | Proceso Figma — creado registro canónico de sources, tokens, contratos y QA visual | US-146 |

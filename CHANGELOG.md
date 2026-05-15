@@ -2,6 +2,29 @@
 
 Registro retroactivo del proyecto. El código actual es la fuente principal de verdad; las fechas previas se basan en marcas de archivo y documentación disponible, por lo que algunas entradas se indican como estimadas.
 
+## [2026-05-15] - Blindaje de inventario ante helpers tardíos
+
+### Cambios
+- Se agregó normalización compartida de nombres/IDs de inventario (`Chain Mail`, `chain_mail`, `equipment:chain_mail`) para evitar que el UI vuelva a mostrar nombres crudos en inglés o snake_case.
+- `src/client/inventoryHelpers.ts` ahora traduce por lookup normalizado y agrega `Helm of Dread` / `terrible_helm` como `Yelmo del Pavor`.
+- Los fallbacks visuales de inventario dejaron de depender de Iconify externo para el drawer: si no hay imagen local disponible, se renderiza un SVG local rojo brand `#720000`.
+- `ui.html` recibió fallbacks inline completos para nombres críticos, filtros de inventario, imágenes locales conocidas y arte rojo, de modo que el primer render no queda vacío si `window.DND_ITEM_HELPERS` carga tarde.
+- El tema por defecto de ítem cambió de dorado/café a rojo brand para evitar iconos amarillentos.
+
+### Validación
+- `npm run typecheck:web`
+- `npm run build:web`
+- Revisión en preview local `http://127.0.0.1:5175/ui.html?preview=1`: inventario muestra `Cota de Mallas`, `Armadura pesada`, descripción en español e icono fallback rojo sin URLs externas.
+
+### Archivos modificados
+- `src/client/inventoryHelpers.ts`
+- `ui.html`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+- `docs/requirements.md`
+- `docs/tasks.md`
+- `docs/behavioral_design.md`
+
 ## [2026-05-15] - Brain Graph: dashboard completo con diseño de referencia
 
 ### Cambios
