@@ -612,6 +612,7 @@ let hpAdjustDraft = null;
 let activeRequests = 0;
 let currentProfile = null;
 let authMode = 'login';
+let lastItemDescriptionDrawerId = null;
 
 function authToken() {
   if (PREVIEW_MODE) return 'preview-local-token';
@@ -3341,15 +3342,38 @@ function liveItemHelperMap(key, fallback = {}) {
   });
 }
 
+const ITEM_NAME_ES_FALLBACK = {
+  'Padded Armor':'Armadura Acolchada','Leather Armor':'Armadura de Cuero','Studded Leather':'Cuero Tachonado',
+  'Hide Armor':'Armadura de Pieles','Chain Shirt':'Camisote de Mallas','Scale Mail':'Cota de Escamas',
+  'Breastplate':'Peto','Half Plate Armor':'Media Armadura de Placas','Ring Mail':'Cota de Anillas',
+  'Chain Mail':'Cota de Mallas','Splint Armor':'Armadura de Tablillas','Plate Armor':'Armadura de Placas',
+  'Shield':'Escudo',
+  'Club':'Porra','Dagger':'Daga','Greatclub':'Gran Porra','Handaxe':'Hacha de Mano','Javelin':'Jabalina',
+  'Light Hammer':'Martillo Ligero','Mace':'Maza','Quarterstaff':'Bastón','Sickle':'Hoz','Spear':'Lanza',
+  'Light Crossbow':'Ballesta Ligera','Dart':'Dardo','Shortbow':'Arco Corto','Sling':'Honda',
+  'Battleaxe':'Hacha de Batalla','Flail':'Mayal','Glaive':'Guja','Greataxe':'Gran Hacha',
+  'Greatsword':'Gran Espada','Halberd':'Alabarda','Lance':'Lanza de Caballería','Longsword':'Espada Larga',
+  'Maul':'Maza Grande','Morningstar':'Estrella de la Mañana','Pike':'Pica','Rapier':'Estoque',
+  'Scimitar':'Cimitarra','Shortsword':'Espada Corta','Trident':'Tridente','War Pick':'Pico de Guerra',
+  'Warhammer':'Martillo de Guerra','Whip':'Látigo','Blowgun':'Cerbatana','Hand Crossbow':'Ballesta de Mano',
+  'Heavy Crossbow':'Ballesta Pesada','Longbow':'Arco Largo','Net':'Red',
+  'Backpack':'Mochila','Potion of Healing':'Poción de Curación','Signet Ring':'Anillo de Sello',
+};
+
 // ITEM_NAME_ES moved to src/client/inventoryHelpers.ts (Phase 4)
 // Accessed at runtime via a live proxy because Vite modules load after this inline script is parsed.
-const ITEM_NAME_ES = liveItemHelperMap('ITEM_NAME_ES');
+const ITEM_NAME_ES = liveItemHelperMap('ITEM_NAME_ES', ITEM_NAME_ES_FALLBACK);
 
 // DAMAGE_ES moved to src/client/inventoryHelpers.ts (Phase 4)
 const DAMAGE_ES = liveItemHelperMap('DAMAGE_ES');
 
 // itemLabel / ammunitionBundleSize / inventoryDisplayQuantity moved to inventoryHelpers.ts (Phase 4)
-function itemLabel(name) { return window.DND_ITEM_HELPERS?.itemLabel(name) ?? String(name || '').replace(/\s*\(\d+\)\s*$/, ''); }
+function itemLabel(name) {
+  if (window.DND_ITEM_HELPERS?.itemLabel) return window.DND_ITEM_HELPERS.itemLabel(name);
+  const raw = String(name || '');
+  const cleanName = raw.replace(/\s*\(\d+\)\s*$/, '');
+  return ITEM_NAME_ES[raw] ?? ITEM_NAME_ES[cleanName] ?? cleanName;
+}
 function ammunitionBundleSize(itemOrName) { return window.DND_ITEM_HELPERS?.ammunitionBundleSize(itemOrName) ?? 0; }
 function inventoryDisplayQuantity(inv, item) { return window.DND_ITEM_HELPERS?.inventoryDisplayQuantity(inv, item) ?? (inv.quantity ?? 1); }
 
@@ -3434,9 +3458,23 @@ function equipmentCompleteForClass(cls, choices) {
 }
 
 // armorCategoryLabel / weaponFamily / weaponTraining moved to inventoryHelpers.ts (Phase 4)
-function armorCategoryLabel(category) { return window.DND_ITEM_HELPERS?.armorCategoryLabel(category) ?? String(category ?? ''); }
-function weaponFamily(item) { return window.DND_ITEM_HELPERS?.weaponFamily(item) ?? 'Cuerpo a cuerpo'; }
-function weaponTraining(item) { return window.DND_ITEM_HELPERS?.weaponTraining(item) ?? 'Marcial'; }
+function armorCategoryLabel(category) {
+  if (window.DND_ITEM_HELPERS?.armorCategoryLabel) return window.DND_ITEM_HELPERS.armorCategoryLabel(category);
+  const map = { light:'Ligera', medium:'Media', heavy:'Pesada', shield:'Escudo' };
+  return map[String(category ?? '')] ?? String(category ?? '');
+}
+function weaponFamily(item) {
+  if (window.DND_ITEM_HELPERS?.weaponFamily) return window.DND_ITEM_HELPERS.weaponFamily(item);
+  const props = item?.properties || {};
+  if (props.ammunition || (props.range_normal && !props.thrown)) return 'A distancia';
+  if (props.thrown) return 'Cuerpo a cuerpo / arrojadiza';
+  return 'Cuerpo a cuerpo';
+}
+function weaponTraining(item) {
+  if (window.DND_ITEM_HELPERS?.weaponTraining) return window.DND_ITEM_HELPERS.weaponTraining(item);
+  const simple = new Set(['Club','Dagger','Greatclub','Handaxe','Javelin','Light Hammer','Mace','Quarterstaff','Sickle','Spear','Dart','Light Crossbow','Shortbow','Sling']);
+  return simple.has(item?.name ?? '') ? 'Simple' : 'Marcial';
+}
 
 const CLASS_WEAPON_PROFICIENCIES = {
   barbarian: ['simple_weapons', 'martial_weapons'],
@@ -3675,8 +3713,27 @@ function renderAttackBonusBreakdown(inv, roll) {
 // ammoWeaponLabel / propertyLabel / itemRuleChips / itemChips moved to inventoryHelpers.ts (Phase 4)
 function ammoWeaponLabel(type) { return window.DND_ITEM_HELPERS?.ammoWeaponLabel(type) ?? 'armas compatibles'; }
 function propertyLabel(key, value) { return window.DND_ITEM_HELPERS?.propertyLabel(key, value) ?? ''; }
-function itemRuleChips(item) { return window.DND_ITEM_HELPERS?.itemRuleChips(item) ?? []; }
-function itemChips(item) { return window.DND_ITEM_HELPERS?.itemChips(item) ?? ''; }
+function fallbackDamageLabel(type) { return DAMAGE_ES[type] ?? type ?? ''; }
+function itemRuleChips(item) {
+  if (window.DND_ITEM_HELPERS?.itemRuleChips) return window.DND_ITEM_HELPERS.itemRuleChips(item);
+  if (!item) return [];
+  const chips = [];
+  if (item.item_type === 'weapon') {
+    chips.push(`Arma ${weaponTraining(item).toLowerCase()}`, weaponFamily(item));
+    if (item.damage_dice) chips.push(`Daño ${item.damage_dice} ${fallbackDamageLabel(item.damage_type)}`.trim());
+  }
+  if (item.item_type === 'armor') {
+    chips.push(item.armor_category === 'shield' ? 'Escudo' : `Armadura ${armorCategoryLabel(item.armor_category).toLowerCase()}`);
+    if (item.ac_base) chips.push(item.armor_category === 'shield' ? `CA +${item.ac_base}` : `CA ${item.ac_base}${item.armor_category === 'heavy' ? '' : ' + DES'}`);
+  }
+  if (item.weight) chips.push(`Peso ${item.weight} lb`);
+  if (item.cost_gp !== undefined) chips.push(`Valor ${item.cost_gp} PO`);
+  return [...new Set(chips.filter(Boolean))];
+}
+function itemChips(item) {
+  if (window.DND_ITEM_HELPERS?.itemChips) return window.DND_ITEM_HELPERS.itemChips(item);
+  return itemRuleChips(item).slice(0, 7).map(chip => `<span class="equip-chip">${escapeText(chip)}</span>`).join('');
+}
 
 const ITEM_IMAGE_BASE = window.DND_ITEM_HELPERS?.ITEM_IMAGE_BASE ?? 'src/images/items/';
 const ITEM_IMAGE_BY_NAME = liveItemHelperMap('ITEM_IMAGE_BY_NAME');
@@ -3695,7 +3752,29 @@ function itemRarity(item) { return window.DND_ITEM_HELPERS?.itemRarity(item) ?? 
 function itemArtTheme(item) { return window.DND_ITEM_HELPERS?.itemArtTheme(item) ?? { color: '#EED3B1', bg: '#4D2C1C', label: '' }; }
 function gameIconSlug(item) { return window.DND_ITEM_HELPERS?.gameIconSlug(item) ?? 'swap-bag'; }
 function gameIconPath(item) { return window.DND_ITEM_HELPERS?.gameIconPath(item) ?? ''; }
-function itemImageHtml(item, altText) { return window.DND_ITEM_HELPERS?.itemImageHtml(item, altText) ?? ''; }
+function fallbackItemIconSvg(item) {
+  const color = '#720000';
+  const type = item?.item_type;
+  const armor = item?.armor_category;
+  const stroke = `stroke="${color}" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"`;
+  let body = `<path d="M14 50 50 14M42 10l12 12M10 42l12 12" ${stroke}/>`;
+  if (type === 'armor') {
+    body = armor === 'shield'
+      ? `<path d="M32 8 13 16v14c0 13 8 23 19 28 11-5 19-15 19-28V16L32 8Z" ${stroke}/>`
+      : `<path d="M20 14h24l8 12-6 6v22H18V32l-6-6 8-12Z" ${stroke}/><path d="M25 14c2 5 5 8 7 8s5-3 7-8" ${stroke}/>`;
+  } else if (String(item?.name || '').toLowerCase().includes('ring')) {
+    body = `<circle cx="32" cy="37" r="17" ${stroke}/><path d="M22 20h20l-5 10H27l-5-10Z" ${stroke}/><path d="M27 20l5-8 5 8" ${stroke}/>`;
+  } else if (type === 'potion') {
+    body = `<path d="M25 9h14M29 9v12L18 38c-5 8 1 18 10 18h8c9 0 15-10 10-18L35 21V9" ${stroke}/><path d="M23 41h18" ${stroke}/>`;
+  }
+  return `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">${body}</svg>`)}`;
+}
+function itemImageHtml(item, altText) {
+  if (window.DND_ITEM_HELPERS?.itemImageHtml) return window.DND_ITEM_HELPERS.itemImageHtml(item, altText);
+  if (!item) return '';
+  const alt = escapeText(altText ?? itemLabel(item.name));
+  return `<figure class="item-art library" style="--item-art-color:#720000;--item-art-bg:rgba(114,0,0,.10)" title="Objeto"><img src="${fallbackItemIconSvg(item)}" alt="${alt}" loading="lazy"></figure>`;
+}
 
 
 function itemDescription(item) {
@@ -4350,7 +4429,18 @@ function wizSelectEquipment(groupId, optionId) {
   });
 }
 
-function itemTypeLabel(item) { return window.DND_ITEM_HELPERS?.itemTypeLabel(item) ?? item?.item_type ?? 'Equipo'; }
+function itemTypeLabel(item) {
+  if (window.DND_ITEM_HELPERS?.itemTypeLabel) return window.DND_ITEM_HELPERS.itemTypeLabel(item);
+  if (!item) return 'Equipo';
+  const map = {
+    weapon:'Arma', armor:'Armadura', pack:'Equipo', gear:'Equipo', tool:'Herramienta',
+    ammunition:'Munición', clothing:'Vestimenta', focus:'Foco', instrument:'Instrumento',
+    potion:'Poción', magic_item:'Objeto mágico',
+  };
+  if (item.item_type === 'weapon' && item.damage_dice) return `Arma ${weaponTraining(item).toLowerCase()} · ${weaponFamily(item)}`;
+  if (item.item_type === 'armor') return item.armor_category === 'shield' ? 'Escudo' : `Armadura ${armorCategoryLabel(item.armor_category).toLowerCase()}`;
+  return map[item.item_type ?? ''] ?? item.item_type ?? 'Equipo';
+}
 
 function packContentsPreview(item) { return window.DND_ITEM_HELPERS?.packContentsPreview(item) ?? []; }
 
@@ -5111,7 +5201,19 @@ function renderInventoryItemCard(inv, options = {}) {
     </article>`;
 }
 
-function inventoryCardRows(item) { return window.DND_ITEM_HELPERS?.inventoryCardRows(item) ?? []; }
+function inventoryCardRows(item) {
+  if (window.DND_ITEM_HELPERS?.inventoryCardRows) return window.DND_ITEM_HELPERS.inventoryCardRows(item);
+  const damageParts = [];
+  if (item?.damage_dice) damageParts.push(`${item.damage_dice} ${fallbackDamageLabel(item.damage_type)}`.trim());
+  const attrParts = itemRuleChips(item).filter(chip => !chip.startsWith('Daño ') && !chip.startsWith('Peso ') && !chip.startsWith('Valor ')).slice(0, 5);
+  const row1 = [];
+  if (damageParts.length) row1.push(['Daño', [...new Set(damageParts)].join(', ')]);
+  if (attrParts.length) row1.push(['Atributo', attrParts.join(', ')]);
+  const row2 = [];
+  if (item?.cost_gp !== undefined && item?.cost_gp !== null) row2.push(['Precio', `${Number(item.cost_gp).toLocaleString('es-MX')} PO`]);
+  if (item?.weight) row2.push(['Peso', `${item.weight} lb`]);
+  return [row1, row2].filter(row => row.length);
+}
 
 function toggleInventoryCard(event, button) {
   event?.stopPropagation?.();
@@ -5157,6 +5259,7 @@ function itemDrawerRule(item, chips = []) { return window.DND_ITEM_HELPERS?.item
 
 function openItemDescriptionDrawer(encodedItemId) {
   const itemId = decodeURIComponent(String(encodedItemId ?? ''));
+  lastItemDescriptionDrawerId = itemId;
   const inv = [...(characterData?.inventory_items || []), ...detailInventoryCache]
     .find(row => row.item_id === itemId || row.item?.name === itemId);
   const item = inv?.item || itemByName(itemId) || itemByRef(itemId);
@@ -5196,13 +5299,14 @@ function openItemDescriptionDrawer(encodedItemId) {
         </div>
       </section>
       <section class="item-description-body">
-        <h3>Description</h3>
+        <h3>Descripción</h3>
         <p>${escapeText(itemDescription(item))}</p>
       </section>
     </div>`;
 }
 
 function closeItemDescriptionDrawer() {
+  lastItemDescriptionDrawerId = null;
   const drawer = document.getElementById('item-description-drawer');
   drawer.classList.remove('open');
   drawer.setAttribute('aria-hidden', 'true');
@@ -6557,12 +6661,29 @@ function startAuthOnce() {
   initAuth();
 }
 
+function refreshItemDisplaysAfterHelpersReady() {
+  if (!window.DND_ITEM_HELPERS) return;
+  const activeDetailTab = document.querySelector('.detail-tabs button.active')?.id?.replace('detail-tab-', '');
+  if (activeDetailTab === 'inventory' && characterData) {
+    refreshDetailInventoryPanel();
+  }
+  const drawer = document.getElementById('item-description-drawer');
+  if (drawer?.classList.contains('open') && lastItemDescriptionDrawerId) {
+    openItemDescriptionDrawer(encodeURIComponent(lastItemDescriptionDrawerId));
+  }
+  if (pendingInventoryAddItemId) {
+    openInventoryQuantityScreen(pendingInventoryAddItemId);
+  }
+}
+
 if (PREVIEW_MODE && !window.DND_CLIENT_READY) {
   window.addEventListener('dnd-client-ready', startAuthOnce, { once: true });
+  window.addEventListener('dnd-client-ready', refreshItemDisplaysAfterHelpersReady, { once: true });
   setTimeout(startAuthOnce, 1500);
 } else {
   startAuthOnce();
   window.addEventListener('dnd-client-ready', startAuthOnce, { once: true });
+  window.addEventListener('dnd-client-ready', refreshItemDisplaysAfterHelpersReady, { once: true });
 }
 </script>
 </body>

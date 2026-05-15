@@ -668,6 +668,13 @@
 - **Notas 2026-05-15:** Implementado en `src/client/inventoryHelpers.ts` con `ITEM_ICON_BRAND_COLOR` y `ITEM_ICON_BRAND_BG`. Verificado con typecheck frontend y build Vite.
 - **Status:** `[x]`
 
+### T-086: Blindar inventario contra carga tardía de helpers Vite
+- **Spec:** US-145 / US-146 / US-148
+- **Action:** Agregar fallbacks inline suficientes para que nombres, tipos, atributos e iconos no vuelvan a inglés ni desaparezcan si `DND_ITEM_HELPERS` carga después del primer render.
+- **Done when:** El drawer de descripción muestra `Cota de Mallas`, `Armadura pesada`, `Descripción` e icono fallback rojo aun antes de que el módulo modular esté listo; cuando llega `dnd-client-ready`, los paneles visibles se refrescan.
+- **Notas 2026-05-15:** Implementado en `ui.html` con fallbacks ES para labels/chips/arte y `refreshItemDisplaysAfterHelpersReady()`. Verificado con typecheck frontend, build Vite y búsqueda en `_site/ui.html`.
+- **Status:** `[x]`
+
 ### T-080: Extraer utilidades puras legacy a módulo cliente
 - **Spec:** US-148
 - **Action:** Mover helpers puros de `ui.html` a `src/client/legacy-utils.ts`, exponerlos temporalmente como `window.DND_UTILS` y mantener wrappers globales en `ui.html`.

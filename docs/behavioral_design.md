@@ -520,6 +520,7 @@
 
 | Fecha | Cambio | US relacionada |
 |---|---|---|
+| 2026-05-15 | Fix inventario — fallbacks ES e icono rojo si helpers Vite cargan tarde | US-145 / US-146 / US-148 |
 | 2026-05-15 | Ajuste visual — iconos fallback de inventario alineados al rojo brand `#720000` | US-145 / US-146 / US-148 |
 | 2026-05-15 | Fix sesión — refresh con token existente vuelve a iniciar auth sin depender sólo del evento Vite | US-147 / US-148 |
 | 2026-05-15 | Fix inventario — restauradas normalización en español e imágenes locales tras extracción Fase 4 | US-127 / US-145 / US-148 |

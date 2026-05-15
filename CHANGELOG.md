@@ -2,6 +2,37 @@
 
 Registro retroactivo del proyecto. El código actual es la fuente principal de verdad; las fechas previas se basan en marcas de archivo y documentación disponible, por lo que algunas entradas se indican como estimadas.
 
+## [2026-05-15] - Fix normalización defensiva de inventario cuando Vite carga tarde
+
+### Cambios
+- Se reforzaron los wrappers inline de `ui.html` para que nombres, tipos, atributos, chips e iconos de inventario tengan fallbacks en español si `window.DND_ITEM_HELPERS` aún no terminó de cargar.
+- `itemLabel()` ya no cae directamente al nombre crudo en inglés; usa un mapa fallback de armaduras, armas y objetos comunes.
+- `itemTypeLabel()`, `armorCategoryLabel()`, `weaponFamily()`, `weaponTraining()`, `itemRuleChips()` e `inventoryCardRows()` tienen salida defensiva en español.
+- `itemImageHtml()` ya no devuelve vacío cuando el helper modular no está listo; renderiza un SVG fallback rojo brand por categoría.
+- Cuando llega `dnd-client-ready`, la app vuelve a renderizar el inventario abierto, el drawer de descripción y la pantalla de cantidad si estaban visibles.
+- El título interno del cuerpo del drawer cambió de `Description` a `Descripción`.
+
+### Archivos modificados
+- `ui.html`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+- `docs/tasks.md`
+- `docs/requirements.md`
+- `docs/behavioral_design.md`
+
+### Validación
+- `npm run typecheck:web`
+- `npm run build:web`
+- Build Vite confirmado con `Chain Mail` → `Cota de Mallas`, SVG fallback rojo y `Descripción` en `_site/ui.html`.
+- `npm run prepublish:check`
+- `/Users/migueleo/.local/bin/graphify update .`
+
+### Fuente / certeza
+- Basado en reporte directo del usuario: el drawer volvía a mostrar `Chain Mail`, `armor`, `Description` y sin icono tras los ajustes de carga/refactor.
+- Causa corregida: wrappers demasiado delgados dependían de `window.DND_ITEM_HELPERS`; si el módulo cargaba tarde, la UI renderizaba valores crudos.
+
+---
+
 ## [2026-05-15] - Ajuste visual de iconos fallback de inventario al rojo brand
 
 ### Cambios

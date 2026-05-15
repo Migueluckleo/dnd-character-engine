@@ -1897,4 +1897,6 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 
 **Inventory icon color note (2026-05-15):** Fallback inventory icons from Game-icons/Iconify and local SVG fallbacks must use the brand red `#720000`, matching dividers and headings. Rarity may remain textual, but it must not recolor fallback item icons into yellow/gold or other rarity colors. Real local item images should not be recolored.
 
+**Inventory helper readiness note (2026-05-15):** Inventory UI must never expose raw English item names, item types, attribute keys or blank art because `window.DND_ITEM_HELPERS` loads late. `ui.html` must keep defensive Spanish fallbacks for critical inventory labels and render a local red fallback icon until the modular helpers become available. When the Vite ready event arrives, visible inventory surfaces should re-render from the canonical helper module.
+
 *End of requirements.md — Total User Stories: US-01 through US-148.*

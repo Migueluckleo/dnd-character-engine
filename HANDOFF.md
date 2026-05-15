@@ -10,6 +10,25 @@
 - La documentación viva principal está en `docs/requirements.md`, `docs/plan.md`, `docs/tasks.md`, `.claude.md`, `CHANGELOG.md` y este archivo.
 - Regla obligatoria de continuidad: todo cambio de código, configuración, workflow, UI, documentación o tooling debe registrarse antes de cerrar la tarea. Mínimo actualizar `CHANGELOG.md` y `HANDOFF.md`; si cambia comportamiento, UX o alcance de producto, actualizar también `docs/requirements.md`, `docs/tasks.md` y `docs/behavioral_design.md`.
 
+## Últimos cambios realizados (2026-05-15) — Normalización defensiva de inventario si Vite carga tarde
+
+### Qué se corrigió
+- `ui.html` ya no renderiza nombres/tipos/atributos crudos en inglés si `window.DND_ITEM_HELPERS` no está disponible al momento de pintar inventario.
+- Se agregaron fallbacks inline en español para nombres de armaduras/armas comunes, tipos de item, categorías de armadura, familias de arma, chips, filas de atributos y arte.
+- `itemImageHtml()` ahora siempre devuelve un bloque visual: si el helper modular falta, usa SVG rojo brand local por categoría.
+- Cuando `dnd-client-ready` llega después del primer render, se refrescan inventario abierto, drawer de descripción y pantalla de cantidad.
+- El cuerpo del drawer usa `Descripción`, no `Description`.
+
+### Validación realizada
+- `npm run typecheck:web`
+- `npm run build:web`
+- Confirmado en `_site/ui.html`: `Chain Mail` tiene fallback `Cota de Mallas`, el drawer usa `Descripción` y existe SVG fallback rojo.
+- `npm run prepublish:check` (typecheck backend/frontend, 126 tests y security check)
+- `/Users/migueleo/.local/bin/graphify update .`
+
+### Pendientes inmediatos
+- Validar en iPhone/Safari producción tras push, con refresh duro si Safari conserva un HTML/JS viejo.
+
 ## Últimos cambios realizados (2026-05-15) — Iconos fallback de inventario en rojo brand
 
 ### Qué se corrigió
