@@ -3330,12 +3330,23 @@ const EQUIPMENT_PRESETS = {
   ],
 };
 
+function liveItemHelperMap(key, fallback = {}) {
+  return new Proxy(fallback, {
+    get(target, prop) {
+      return window.DND_ITEM_HELPERS?.[key]?.[prop] ?? target[prop];
+    },
+    has(target, prop) {
+      return prop in (window.DND_ITEM_HELPERS?.[key] ?? target);
+    },
+  });
+}
+
 // ITEM_NAME_ES moved to src/client/inventoryHelpers.ts (Phase 4)
-// Accessed at runtime via window.DND_ITEM_HELPERS.ITEM_NAME_ES
-const ITEM_NAME_ES = window.DND_ITEM_HELPERS?.ITEM_NAME_ES ?? {};
+// Accessed at runtime via a live proxy because Vite modules load after this inline script is parsed.
+const ITEM_NAME_ES = liveItemHelperMap('ITEM_NAME_ES');
 
 // DAMAGE_ES moved to src/client/inventoryHelpers.ts (Phase 4)
-const DAMAGE_ES = window.DND_ITEM_HELPERS?.DAMAGE_ES ?? {};
+const DAMAGE_ES = liveItemHelperMap('DAMAGE_ES');
 
 // itemLabel / ammunitionBundleSize / inventoryDisplayQuantity moved to inventoryHelpers.ts (Phase 4)
 function itemLabel(name) { return window.DND_ITEM_HELPERS?.itemLabel(name) ?? String(name || '').replace(/\s*\(\d+\)\s*$/, ''); }
@@ -3668,13 +3679,13 @@ function itemRuleChips(item) { return window.DND_ITEM_HELPERS?.itemRuleChips(ite
 function itemChips(item) { return window.DND_ITEM_HELPERS?.itemChips(item) ?? ''; }
 
 const ITEM_IMAGE_BASE = window.DND_ITEM_HELPERS?.ITEM_IMAGE_BASE ?? 'src/images/items/';
-const ITEM_IMAGE_BY_NAME = window.DND_ITEM_HELPERS?.ITEM_IMAGE_BY_NAME ?? {};
+const ITEM_IMAGE_BY_NAME = liveItemHelperMap('ITEM_IMAGE_BY_NAME');
 
 const ITEM_IMAGE_BY_KIND = window.DND_ITEM_HELPERS?.ITEM_IMAGE_BY_KIND ?? [];
 
 const GAME_ICON_BY_KIND = window.DND_ITEM_HELPERS?.GAME_ICON_BY_KIND ?? [];
 
-const ITEM_RARITY_THEME = window.DND_ITEM_HELPERS?.ITEM_RARITY_THEME ?? {};
+const ITEM_RARITY_THEME = liveItemHelperMap('ITEM_RARITY_THEME');
 const ITEM_DEFAULT_THEME = window.DND_ITEM_HELPERS?.ITEM_DEFAULT_THEME ?? { color: '#EED3B1', bg: '#4D2C1C', label: '' };
 
 function itemImageKey(value) { return window.DND_ITEM_HELPERS?.itemImageKey(value) ?? String(value ?? '').toLowerCase(); }

@@ -2,12 +2,16 @@
 
 Registro retroactivo del proyecto. El código actual es la fuente principal de verdad; las fechas previas se basan en marcas de archivo y documentación disponible, por lo que algunas entradas se indican como estimadas.
 
-## [2026-05-15] - Fix descripciones explícitas de inventario tras Fase 4
+## [2026-05-15] - Fix inventario tras Fase 4: descripciones, español e imágenes
 
 ### Cambios
 - Se corrigió `src/client/inventoryHelpers.ts` para que `itemDescription()` vuelva a priorizar `item.description` y `item.properties.description` antes de generar descripciones automáticas.
 - Se endureció el wrapper `itemDescription()` en `ui.html` para conservar descripciones explícitas aunque `window.DND_ITEM_HELPERS` todavía no esté disponible.
 - Se restauró la regla documentada de US-127/US-145: las descripciones guardadas en BD/catalogo son fuente principal.
+- Se corrigieron labels de inventario que habían quedado sin acentos (`Ácido`, `Frío`, `Relámpago`, `Munición`, `Poción`, `Objeto mágico`).
+- Se reemplazaron mapas capturados demasiado temprano en `ui.html` por proxies vivos hacia `window.DND_ITEM_HELPERS`, evitando que constantes como `DAMAGE_ES`, `ITEM_NAME_ES` o `ITEM_RARITY_THEME` queden vacías antes de que cargue Vite.
+- Se resolvieron las imágenes locales de inventario con `import.meta.glob()` para que Vite las incluya en producción; si una imagen local falla, el arte cae a un icono de respaldo en vez de desaparecer.
+- Se agregó un respaldo SVG local para iconos críticos de anillo, reduciendo la dependencia visual de Iconify cuando no hay red.
 
 ### Archivos modificados
 - `src/client/inventoryHelpers.ts`
@@ -22,11 +26,15 @@ Registro retroactivo del proyecto. El código actual es la fuente principal de v
 - `npm run typecheck`
 - `npm run typecheck:web`
 - `npm run build:web`
-- `npx ts-node --transpile-only ... itemDescription(...)`
+- `npm run prepublish:check`
+- `/Users/migueleo/.local/bin/graphify update .`
+- Build Vite confirmado con assets de `src/images/items` emitidos en `_site/assets`.
 
 ### Fuente / certeza
 - Basado en reporte directo del usuario: las descripciones de inventario desaparecieron tras la extracción de helpers.
 - Confirmado por prueba directa de `itemDescription()` con un item tipo pack que trae `description` explícita.
+- Basado en reporte directo del usuario: nombres/características/atributos dejaron de normalizarse en español y no renderizaban imágenes como escudo/anillos.
+- QA visual en navegador integrado sigue bloqueada por `ERR_BLOCKED_BY_CLIENT` al abrir `localhost`/`127.0.0.1`.
 
 ---
 

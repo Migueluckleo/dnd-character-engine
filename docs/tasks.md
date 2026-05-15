@@ -647,6 +647,13 @@
 - **Notas 2026-05-15:** Implementado en `src/client/inventoryHelpers.ts` y en el wrapper fallback de `ui.html`. Verificado con typecheck/build y prueba directa de `itemDescription()`.
 - **Status:** `[x]`
 
+### T-083: Restaurar normalización en español e imágenes de inventario tras Fase 4
+- **Spec:** US-127 / US-145 / US-148
+- **Action:** Corregir los mapas de helpers que quedaban vacíos antes de cargar Vite, normalizar labels de daño/tipo de item en español y resolver imágenes locales de inventario como assets del build.
+- **Done when:** Nombres/características/atributos vuelven a renderizarse en español, imágenes locales como escudo se empaquetan en `_site/assets`, y los iconos críticos como anillos tienen respaldo local si Iconify no responde.
+- **Notas 2026-05-15:** Implementado con proxies vivos en `ui.html`, `import.meta.glob()` en `src/client/inventoryHelpers.ts`, acentos corregidos y fallback SVG local para anillos. Verificado con `npm run prepublish:check` y build Vite.
+- **Status:** `[x]`
+
 ### T-080: Extraer utilidades puras legacy a módulo cliente
 - **Spec:** US-148
 - **Action:** Mover helpers puros de `ui.html` a `src/client/legacy-utils.ts`, exponerlos temporalmente como `window.DND_UTILS` y mantener wrappers globales en `ui.html`.

@@ -206,11 +206,16 @@ export const ITEM_NAME_ES: Record<string, string> = {
 // ─── Damage type translations ─────────────────────────────────────────────────
 export const DAMAGE_ES: Record<string, string> = {
   bludgeoning:'Contundente', piercing:'Perforante', slashing:'Cortante', fire:'Fuego', radiant:'Radiante',
-  poison:'Veneno', acid:'Acido', cold:'Frio', lightning:'Relampago', thunder:'Trueno', force:'Fuerza',
+  poison:'Veneno', acid:'Ácido', cold:'Frío', lightning:'Relámpago', thunder:'Trueno', force:'Fuerza',
 };
 
 // ─── Item image assets ────────────────────────────────────────────────────────
 export const ITEM_IMAGE_BASE = 'src/images/items/';
+const ITEM_IMAGE_ASSET_URLS = import.meta.glob('../images/items/*', {
+  eager: true,
+  import: 'default',
+  query: '?url',
+}) as Record<string, string>;
 
 export const ITEM_IMAGE_BY_NAME: Record<string, string> = {
   'Backpack': 'mochila 1.png',
@@ -386,8 +391,8 @@ export function itemTypeLabel(item: CatalogItem | null | undefined): string {
   if (!item) return 'Equipo';
   const map: Record<string, string> = {
     weapon:'Arma', armor:'Armadura', pack:'Equipo', gear:'Equipo', tool:'Herramienta',
-    ammunition:'Municion', clothing:'Vestimenta', focus:'Foco', instrument:'Instrumento',
-    potion:'Pocion', magic_item:'Objeto magico',
+    ammunition:'Munición', clothing:'Vestimenta', focus:'Foco', instrument:'Instrumento',
+    potion:'Poción', magic_item:'Objeto mágico',
   };
   if (item.item_type === 'weapon' && item.damage_dice) {
     return `Arma ${weaponTraining(item).toLowerCase()} · ${weaponFamily(item)}`;
@@ -399,11 +404,11 @@ export function itemTypeLabel(item: CatalogItem | null | undefined): string {
   }
   if (item.item_type === 'ammunition') {
     const ammoType = item.properties?.weapon_type ?? '';
-    if (ammoType === 'bow') return 'Municion para arco';
-    if (ammoType === 'crossbow') return 'Municion para ballesta';
-    if (ammoType === 'sling') return 'Municion para honda';
-    if (ammoType === 'blowgun') return 'Municion para cerbatana';
-    return 'Municion';
+    if (ammoType === 'bow') return 'Munición para arco';
+    if (ammoType === 'crossbow') return 'Munición para ballesta';
+    if (ammoType === 'sling') return 'Munición para honda';
+    if (ammoType === 'blowgun') return 'Munición para cerbatana';
+    return 'Munición';
   }
   return map[item.item_type ?? ''] ?? item.item_type ?? 'Equipo';
 }
@@ -755,16 +760,23 @@ export function pickItemImage(files: string | string[], seed: unknown): string {
   return files[hash % files.length];
 }
 
+/** Resolves an item image filename through Vite so production builds include it. */
+export function itemImageAssetUrl(filename: string): string {
+  const match = Object.entries(ITEM_IMAGE_ASSET_URLS)
+    .find(([path]) => path.endsWith(`/${filename}`));
+  return match?.[1] ?? `${ITEM_IMAGE_BASE}${filename}`;
+}
+
 /** Returns a local image path for the item, or '' if none is configured. */
 export function itemImagePath(item: CatalogItem | null | undefined): string {
   if (!item?.name) return '';
   const exact = ITEM_IMAGE_BY_NAME[item.name];
-  if (exact) return `${ITEM_IMAGE_BASE}${exact}`;
+  if (exact) return itemImageAssetUrl(exact);
   const props = item.properties ?? {};
   const haystack = itemImageKey(`${item.name} ${props.weapon_type ?? ''} ${item.item_type ?? ''}`);
   const match = ITEM_IMAGE_BY_KIND.find(group => group.keys.some(key => haystack.includes(key)));
   if (!match) return '';
-  return `${ITEM_IMAGE_BASE}${pickItemImage(match.files, item.name)}`;
+  return itemImageAssetUrl(pickItemImage(match.files, item.name));
 }
 
 /** Normalised rarity key for an item (e.g. 'common', 'rare', 'very_rare'). */
@@ -797,11 +809,20 @@ export function gameIconSlug(item: CatalogItem | null | undefined): string {
   return 'swap-bag';
 }
 
+/** Returns a local SVG data URL for critical fallback icons that must work offline. */
+export function localGameIconPath(slug: string, color: string): string {
+  if (slug !== 'ring') return '';
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="37" r="17" stroke="${color}" stroke-width="5"/><path d="M22 20h20l-5 10H27l-5-10Z" stroke="${color}" stroke-width="5" stroke-linejoin="round"/><path d="M27 20l5-8 5 8" stroke="${color}" stroke-width="5" stroke-linejoin="round"/></svg>`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+
 /** Returns the Iconify API URL for an item's game-icon with rarity colour. */
 export function gameIconPath(item: CatalogItem | null | undefined): string {
   const theme = itemArtTheme(item);
   const color = encodeURIComponent(theme.color);
-  return `https://api.iconify.design/game-icons:${gameIconSlug(item)}.svg?color=${color}`;
+  const slug = gameIconSlug(item);
+  return localGameIconPath(slug, theme.color)
+    || `https://api.iconify.design/game-icons:${slug}.svg?color=${color}`;
 }
 
 /** Returns a complete <figure> HTML string for an item's art image. */
@@ -810,11 +831,15 @@ export function itemImageHtml(item: CatalogItem | null | undefined, altText?: st
   const theme = itemArtTheme(item);
   const localPath = itemImagePath(item);
   const path = localPath ? encodeURI(localPath) : gameIconPath(item);
+  const fallbackPath = localPath ? escapeText(gameIconPath(item)) : '';
   const sourceClass = localPath ? 'local' : 'library';
   const rarity = itemRarity(item);
   const label = rarity && theme.label ? `<span>${escapeText(theme.label)}</span>` : '';
   const alt = escapeText(altText ?? itemLabel(item.name));
-  return `<figure class="item-art ${sourceClass}" style="--item-art-color:${theme.color};--item-art-bg:${theme.bg}" title="${escapeText(theme.label || 'Objeto')}"><img src="${escapeText(path)}" alt="${alt}" loading="lazy" onerror="this.closest('.item-art')?.remove()">${label}</figure>`;
+  const onError = fallbackPath
+    ? `this.onerror=null;this.src='${fallbackPath}';this.closest('.item-art')?.classList.remove('local');this.closest('.item-art')?.classList.add('library')`
+    : `this.closest('.item-art')?.classList.add('image-missing')`;
+  return `<figure class="item-art ${sourceClass}" style="--item-art-color:${theme.color};--item-art-bg:${theme.bg}" title="${escapeText(theme.label || 'Objeto')}"><img src="${escapeText(path)}" alt="${alt}" loading="lazy" onerror="${onError}">${label}</figure>`;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -866,10 +891,12 @@ export const inventoryHelpers = {
   // image
   itemImageKey,
   pickItemImage,
+  itemImageAssetUrl,
   itemImagePath,
   itemRarity,
   itemArtTheme,
   gameIconSlug,
+  localGameIconPath,
   gameIconPath,
   itemImageHtml,
 };

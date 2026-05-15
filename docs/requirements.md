@@ -1810,10 +1810,12 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 - The selected approach must support unique item images or another user-approved visual system.
 - Item rarity, source and item type must remain visible as clean textual attributes without decorative emojis in tags.
 - Item descriptions must continue to prefer the database `description` field when available.
+- Local inventory images must be resolved through the frontend build pipeline so production renders the same item art as local development; category/icon fallback must not remove the visual block if an image fails.
+- Spanish inventory labels and rule attributes must preserve normalized names and accents, including damage types, ammunition, potions and magic items.
 
 | US | Estado | Notas |
 |----|--------|-------|
-| US-145 | En progreso / implementación parcial con assets locales + Game-icons | A temporary implementation with 34 inline SVG symbols was added and then rolled back on 2026-05-09 by product decision. Current `ui.html` uses local image assets from `src/images/items` first, then Game-icons via Iconify as category/subtype fallback, with rarity-based colors. Pending: validate visual QA in browser and external Iconify loading in production. |
+| US-145 | En progreso / implementación parcial con assets locales + Game-icons | A temporary implementation with 34 inline SVG symbols was added and then rolled back on 2026-05-09 by product decision. Current `src/client/inventoryHelpers.ts` resolves local image assets from `src/images/items` through Vite first, then Game-icons/Iconify or local critical SVG fallbacks, with rarity-based colors. Pending: validate visual QA in browser and external Iconify loading in production. |
 
 ### US-146: New Style Template UI from Figma
 
@@ -1889,6 +1891,6 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 |----|--------|-------|
 | US-148 | En progreso | Fase 3 created `src/client/legacy-utils.ts` for pure legacy helpers and exposes them through `window.DND_UTILS` while `ui.html` keeps compatibility wrappers. No redesign or CSS changes were made. |
 
-**Inventory description regression note (2026-05-15):** After the Phase 4 helper extraction, `itemDescription()` must continue to prefer explicit catalog descriptions (`item.description` and `item.properties.description`) before generated text. This priority applies to every item type, including packs, and `ui.html` must preserve that fallback if `window.DND_ITEM_HELPERS` is unavailable.
+**Inventory regression note (2026-05-15):** After the Phase 4 helper extraction, `itemDescription()` must continue to prefer explicit catalog descriptions (`item.description` and `item.properties.description`) before generated text. This priority applies to every item type, including packs, and `ui.html` must preserve that fallback if `window.DND_ITEM_HELPERS` is unavailable. Inventory helper maps consumed by `ui.html` must stay live after Vite loads, not capture empty early values, so Spanish labels, rarity themes and local image maps keep working. Item images must be bundled through Vite asset resolution instead of relying on raw `src/images/items/...` paths.
 
 *End of requirements.md — Total User Stories: US-01 through US-148.*

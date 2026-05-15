@@ -10,22 +10,26 @@
 - La documentación viva principal está en `docs/requirements.md`, `docs/plan.md`, `docs/tasks.md`, `.claude.md`, `CHANGELOG.md` y este archivo.
 - Regla obligatoria de continuidad: todo cambio de código, configuración, workflow, UI, documentación o tooling debe registrarse antes de cerrar la tarea. Mínimo actualizar `CHANGELOG.md` y `HANDOFF.md`; si cambia comportamiento, UX o alcance de producto, actualizar también `docs/requirements.md`, `docs/tasks.md` y `docs/behavioral_design.md`.
 
-## Últimos cambios realizados (2026-05-15) — Fix descripciones explícitas de inventario tras Fase 4
+## Últimos cambios realizados (2026-05-15) — Fix inventario tras Fase 4: descripciones, español e imágenes
 
 ### Qué se corrigió
 - `src/client/inventoryHelpers.ts` ahora prioriza `item.description` y `item.properties.description` antes de cualquier descripción generada, incluso para items tipo `pack`.
 - El wrapper `itemDescription()` en `ui.html` ahora conserva descripciones explícitas como fallback si `window.DND_ITEM_HELPERS` no está cargado todavía.
 - Esto restaura el contrato de inventario: las descripciones de BD/catalogo no deben perderse por helpers generados.
+- `ui.html` usa proxies vivos para mapas de helpers (`ITEM_NAME_ES`, `DAMAGE_ES`, `ITEM_IMAGE_BY_NAME`, `ITEM_RARITY_THEME`) porque el script inline se parsea antes de que Vite exponga `window.DND_ITEM_HELPERS`.
+- Se normalizaron labels en español con acentos para daño/tipo de item: `Ácido`, `Frío`, `Relámpago`, `Munición`, `Poción`, `Objeto mágico`.
+- Las imágenes locales de inventario se resuelven con `import.meta.glob()` para que Vite las copie al build; el arte ya no depende de rutas crudas `src/images/items/...` en producción.
+- Si una imagen local falla, el componente conserva el espacio visual y cae a icono de respaldo. Los anillos tienen un SVG local offline para no depender de Iconify.
 
 ### Validación realizada
 - `npm run typecheck`
 - `npm run typecheck:web`
 - `npm run build:web`
-- Prueba directa con `itemDescription({ item_type: 'pack', description: '...' })`
+- `npm run prepublish:check` (typecheck backend/frontend, 126 tests y security check)
+- Build Vite confirmado con assets de `src/images/items` emitidos en `_site/assets`.
+- `/Users/migueleo/.local/bin/graphify update .`
 
 ### Pendientes inmediatos
-- Correr `npm run prepublish:check` después de esta documentación.
-- Actualizar Graphify después del fix.
 - QA visual en navegador real sigue pendiente porque el navegador integrado bloquea `localhost`/`127.0.0.1` con `ERR_BLOCKED_BY_CLIENT`.
 
 ## Últimos cambios realizados (2026-05-14) — Fase 4 de modularización frontend: helpers de inventario/item display
