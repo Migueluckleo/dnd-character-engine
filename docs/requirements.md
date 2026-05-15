@@ -1866,11 +1866,27 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 - Preview mode must not call the production API for characters, inventory, auth, spells, skills, or catalog data. It must use in-memory demo data suitable for UI validation.
 - The preview must reuse the same `ui.html`, `style.css`, assets and components as production so visual changes are representative of the deployed app.
 - The preview data must include at least one opened-character-ready demo with sheet stats, inventory, conjuros, habilidades, PG/PG temporales and item interactions sufficient to validate major UI surfaces.
-- The project must include a local command to serve the preview without requiring `git push`; current command: `npm run preview`, then open `http://127.0.0.1:5500/preview.html`.
+- The project must include a local command to serve the preview without requiring `git push`; current flow: `npm run build:web`, `npm run preview`, then open `http://127.0.0.1:4173/preview.html`.
 - Any missing mock endpoint or data shape must fail as preview-only and be documented/extended, not silently call production.
 
 | US | Estado | Notas |
 |----|--------|-------|
-| US-147 | Implementada / pendiente de validación visual en navegador local | Current `preview.html` redirects to `ui.html?preview=1`; `ui.html` defines `PREVIEW_MODE`, local profile, in-memory mock API and demo data; `package.json` adds `npm run preview`. Pending: local visual QA because automated in-app browser may block file/localhost navigation. |
+| US-147 | Implementada / pendiente de validación visual en navegador local | Current `preview.html` redirects to `ui.html?preview=1`; `ui.html` defines `PREVIEW_MODE` and delegates mock API calls to `src/client/preview.ts` through `window.DND_PREVIEW_API`. After the Vite setup, preview should be checked via `npm run build:web` + `npm run preview` at `http://127.0.0.1:4173/preview.html`. |
 
-*End of requirements.md — Total User Stories: US-01 through US-147.*
+### US-148: Incremental Frontend Modularization Without Redesign
+
+**Goal:** Continue splitting the legacy `ui.html` client into TypeScript modules while preserving the current UI, visual design, routing, preview mode and API behavior.
+
+**Acceptance criteria:**
+- Frontend extraction must be incremental: move isolated utilities/data/modules first, keep wrappers in `ui.html` where needed, and avoid broad render rewrites in the same change.
+- Extracted modules must be loaded through Vite from `src/client/main.ts`.
+- Existing global calls in `ui.html` must continue to work until their owning renderers are migrated.
+- Pure helpers must live outside `ui.html` once extracted; new pure frontend helpers should go into `src/client/legacy-utils.ts` or a more specific module instead of growing the inline script.
+- Each extraction phase must pass `npm run typecheck`, `npm run typecheck:web`, `npm run build:web` and the final `npm run prepublish:check` before push.
+- Every extraction phase must update `CHANGELOG.md` and `HANDOFF.md`; if behavior, UX or scope changes, update requirements/tasks/behavioral docs too.
+
+| US | Estado | Notas |
+|----|--------|-------|
+| US-148 | En progreso | Fase 3 created `src/client/legacy-utils.ts` for pure legacy helpers and exposes them through `window.DND_UTILS` while `ui.html` keeps compatibility wrappers. No redesign or CSS changes were made. |
+
+*End of requirements.md — Total User Stories: US-01 through US-148.*

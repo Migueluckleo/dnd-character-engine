@@ -5,6 +5,7 @@ This project may have a local knowledge graph at graphify-out/ with god nodes, c
 When the user types `/graphify`, invoke the `skill` tool with `skill: "graphify"` before doing anything else.
 
 Rules:
+- Every code, config, workflow, UI, or documentation change must be recorded in the living docs before the task is considered complete. At minimum update `CHANGELOG.md` and `HANDOFF.md`; when behavior/product requirements change, also update `docs/requirements.md`, `docs/tasks.md`, and `docs/behavioral_design.md`.
 - IF graphify-out/GRAPH_REPORT.md EXISTS, read it before reading any source files, running grep/glob searches, or answering codebase questions. The graph is your primary map of the codebase.
 - IF graphify-out/wiki/index.md EXISTS, navigate it instead of reading raw files
 - For cross-module "how does X relate to Y" questions, prefer `graphify query "<question>"`, `graphify path "<A>" "<B>"`, or `graphify explain "<concept>"` over grep — these traverse the graph's EXTRACTED + INFERRED edges instead of scanning files

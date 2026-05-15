@@ -496,7 +496,20 @@
 - US147.2: El modo preview usa un perfil local falso y omite el login real.
 - US147.3: El modo preview usa datos demo en memoria para personajes, inventario, conjuros, habilidades, PG y catálogos necesarios; no debe consultar ni modificar datos de producción.
 - US147.4: La preview reutiliza los mismos componentes, CSS y assets de producción para que los cambios visuales sean representativos.
-- US147.5: El comando `npm run preview` levanta un servidor local para revisar `http://127.0.0.1:5500/preview.html` antes de hacer `git push`.
+- US147.5: El flujo `npm run build:web` + `npm run preview` levanta un servidor local para revisar `http://127.0.0.1:4173/preview.html` antes de hacer `git push`.
+- US147.6: El mock API de preview debe mantenerse en `src/client/preview.ts`; `ui.html` solo debe activar `PREVIEW_MODE` y delegar la respuesta demo al módulo cliente.
+
+### US-148 — Modularización frontend incremental sin rediseño
+*Como mantenedor del producto, quiero dividir `ui.html` por fases pequeñas para reducir riesgo técnico sin cambiar la experiencia actual.*
+
+**Estado:** 🟡 En progreso
+
+**Criterios de aceptación:**
+- US148.1: Cada extracción debe conservar la UI y comportamiento existente.
+- US148.2: Los módulos extraídos deben cargarse desde `src/client/main.ts` con Vite.
+- US148.3: `ui.html` puede mantener wrappers temporales para no reescribir renderizadores grandes en el mismo corte.
+- US148.4: Nuevos helpers puros del frontend deben vivir en módulos de `src/client`, no crecer dentro del script inline.
+- US148.5: Cada fase debe actualizar documentación viva antes de cerrarse.
 
 ---
 
@@ -504,6 +517,9 @@
 
 | Fecha | Cambio | US relacionada |
 |---|---|---|
+| 2026-05-14 | US-148 Fase 4 — helpers de inventario/item display extraídos a `src/client/inventoryHelpers.ts`; 29 wrappers en `ui.html` | US-148 |
+| 2026-05-15 | US-148 creada — modularización frontend incremental sin rediseño; Fase 3 extrae utilidades legacy | US-148 |
+| 2026-05-15 | US-147 extendida — mock API de preview extraído a `src/client/preview.ts` durante Fase 2 | US-147 |
 | 2026-05-13 | US-147 creada — preview local sin login con mock API en memoria | US-147 |
 | 2026-05-12 | US-146 extendida — `Mochila` homologada al spec `--module-inventory` y `--dndCharacterEngine-character-backpack` | US-127 / US-146 |
 | 2026-05-12 | US-146 extendida — átomos globales `primary-btn`, `primary-btn-mini` e `input-control` obligatorios para botones e inputs | US-146 |

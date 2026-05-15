@@ -8,6 +8,60 @@
 - UI standalone en `ui.html` que consume `http://localhost:3000` y usa `style.css`.
 - El wizard de creación está orientado a mobile-first y ahora debe seguir el Figma `DnD Character Engine`, sección `Creación de personaje` (`2196:11249`). Ese Figma supersede el look anterior de `docs/Create Character.pdf` / `DM-Dnd-App--Copy-` para estilo, header, progreso, cards y orden visual.
 - La documentación viva principal está en `docs/requirements.md`, `docs/plan.md`, `docs/tasks.md`, `.claude.md`, `CHANGELOG.md` y este archivo.
+- Regla obligatoria de continuidad: todo cambio de código, configuración, workflow, UI, documentación o tooling debe registrarse antes de cerrar la tarea. Mínimo actualizar `CHANGELOG.md` y `HANDOFF.md`; si cambia comportamiento, UX o alcance de producto, actualizar también `docs/requirements.md`, `docs/tasks.md` y `docs/behavioral_design.md`.
+
+## Últimos cambios realizados (2026-05-14) — Fase 4 de modularización frontend: helpers de inventario/item display
+
+### Qué se implementó
+- Creado `src/client/inventoryHelpers.ts`: módulo TypeScript con 29 helpers puros (interfaces, constantes y funciones) extraídos del script inline de `ui.html`.
+- El módulo se expone como `window.DND_ITEM_HELPERS` y se carga desde `src/client/main.ts`.
+- `ui.html` ahora delega cada función a `window.DND_ITEM_HELPERS` mediante wrappers de una línea; los fallbacks en los wrappers garantizan que la página no rompe si el módulo Vite tarda en cargar.
+
+### Por qué
+- Reduce el script inline de `ui.html` en ~4 500 caracteres de lógica de presentación.
+- Coloca los helpers bajo typecheck estricto y en un módulo testeable de forma aislada (US-148 AC 148.2, 148.4).
+
+### Validación realizada
+- `npx tsc --noEmit` → 0 errores de tipo
+- `npx jest` → 126/126 tests passing
+
+### Pendientes de validar
+- Ejecutar `graphify update .` localmente tras clonar (no disponible en entorno CI).
+- QA visual en navegador real para confirmar que las cards de inventario, el drawer de descripción y el filtro de categorías siguen funcionando igual.
+
+## Últimos cambios realizados (2026-05-15) — Fase 3 de modularización frontend: utilidades legacy
+- Se creó `src/client/legacy-utils.ts` como módulo TypeScript para helpers puros del frontend legacy.
+- El módulo expone `window.DND_UTILS` con `escapeText`, `fmt`, `delay`, `sidesToDieClass`, `parseDiceFormula` y `rollDiceFormula`.
+- `src/client/main.ts` importa `./legacy-utils` antes de `./preview`.
+- `ui.html` mantiene wrappers globales mínimos para que las llamadas existentes sigan funcionando sin reescribir renderizadores grandes.
+- No se cambió el diseño, `style.css`, endpoints reales, login real ni contrato de producción.
+
+### Validación realizada
+- `npm run typecheck`
+- `npm run typecheck:web`
+- `npm run build:web`
+
+### Pendientes inmediatos
+- Correr `npm run prepublish:check` después de esta documentación.
+- Reintentar QA visual local cuando el navegador integrado permita abrir `localhost`/`127.0.0.1`.
+- Siguiente extracción sugerida: mover helpers de inventario/item display a un módulo dedicado, manteniendo wrappers en `ui.html` hasta que los renderizadores puedan migrarse.
+
+## Últimos cambios realizados (2026-05-15) — Fase 2 de modularización frontend: preview API
+- Se extrajo el mock API de preview desde `ui.html` hacia `src/client/preview.ts`.
+- `src/client/main.ts` importa `./preview`, marca `window.DND_CLIENT_READY = true` y emite `dnd-client-ready` cuando el módulo cliente ya cargó.
+- `ui.html` mantiene la UI legacy, pero en `PREVIEW_MODE` llama a `window.DND_PREVIEW_API.request(...)`.
+- El arranque final de `ui.html` espera `DND_CLIENT_READY` si el módulo Vite aún no está listo.
+- No se cambió el diseño, `style.css`, endpoints reales, login real ni contrato de producción.
+- `.gitignore` ignora el stub vacío `Prisma Seeds & Catalog Data.md`, generado por navegación Obsidian/Graphify, para que no entre accidentalmente en commits.
+
+### Validación realizada
+- `npm run typecheck:web`
+- `npm run build:web`
+
+### Pendientes inmediatos
+- Correr `npm run prepublish:check` después de esta documentación.
+- Reintentar validación visual local en navegador normal o cuando el navegador integrado deje de bloquear `localhost`/`127.0.0.1`; el intento actual falló con `ERR_BLOCKED_BY_CLIENT`.
+- Siguiente extracción sugerida de Fase 2: mover utilidades puras pequeñas desde `ui.html` a módulos TypeScript con pruebas de humo, antes de tocar renderizadores grandes.
 
 ## Últimos cambios realizados (2026-05-13) — Wizard de creación alineado al Figma actual (US-112 / US-113 / US-115 / US-122 / US-135 / US-146)
 - Se usó Figma `DnD Character Engine`, node `2196:11249`, como fuente visual activa para el flujo `Creación de personaje`.
@@ -25,8 +79,8 @@
 - Se agregó `preview.html`, que redirige a `ui.html?preview=1`.
 - `ui.html` ahora soporta `PREVIEW_MODE`. Cuando está activo, usa un perfil local falso (`Vista de prueba`) y un mock API en memoria con personaje, inventario, conjuros, habilidades, PG, catálogo básico y acciones comunes.
 - El modo preview no llama a la API real, no usa login, no lee personajes reales y no modifica producción. Sirve para revisar cambios de UI localmente antes de hacer `git push`.
-- Se agregó `npm run preview` para levantar un servidor estático local en `http://127.0.0.1:5500`.
-- Flujo recomendado: ejecutar `npm run preview` y abrir `http://127.0.0.1:5500/preview.html`.
+- Tras la Fase 1 de Vite, `npm run preview` sirve el build de producción local en `http://127.0.0.1:4173`.
+- Flujo recomendado: ejecutar `npm run build:web`, luego `npm run preview` y abrir `http://127.0.0.1:4173/preview.html`.
 
 ### Archivos modificados
 - `ui.html`
@@ -622,6 +676,23 @@
 - US-140: flujo Figma "Resolución de historia" con selector de habilidad, ventaja/desventaja automática y resultado final. Implementada, pendiente de validación visual en navegador.
 - US-141: localización completa ES de 257 items y 410 conjuros SRD. Implementada, pendiente de validación visual en navegador.
 
+## Últimos cambios realizados (2026-05-15) — Fase 1 de modularización frontend con Vite
+
+- Se agregó Vite como infraestructura frontend sin cambiar el diseño actual.
+- `ui.html` sigue siendo la pantalla principal, pero ahora carga `src/client/main.ts` como entrypoint TypeScript mínimo.
+- Se creó `tsconfig.client.json` para separar typecheck frontend del backend.
+- `tsconfig.json` excluye `src/client` para que el build del servidor no requiera DOM.
+- `vite.config.ts` construye el frontend en `_site/` para GitHub Pages y copia `config.public.js`, `.nojekyll` y `CNAME`.
+- GitHub Pages ahora ejecuta `npm ci` y `npm run build:web` en lugar de copiar archivos estáticos manualmente.
+- Scripts relevantes:
+  - `npm run dev:web`: servidor Vite local.
+  - `npm run build:web`: build estático del frontend.
+  - `npm run preview`: preview Vite de `_site`.
+  - `npm run preview:static`: servidor Python para `_site`.
+  - `npm run typecheck:web`: typecheck del entrypoint cliente.
+- Validación realizada: `npm run build:web`, `npm run prepublish:check`, `graphify update .`.
+- Nota: `config.public.js` sigue como script clásico intencionalmente; Vite advierte que no puede bundlearlo, pero debe cargarse antes del código existente.
+
 ## Decisiones técnicas tomadas
 
 - El código actual es la fuente principal de verdad; la documentación debe reflejarlo, no sustituirlo.
@@ -637,7 +708,7 @@
 - Los valores derivados se calculan en hidratación o servicios, no se duplican como estado persistido.
 - La tirada inicial de PG sí se persiste como dato fuente (`Character.level_1_hp_roll`) porque es necesaria para recalcular max HP cuando cambia Constitución o nivel.
 - La API permite CORS amplio para que `ui.html` funcione desde `file://`.
-- La UI actual es standalone; no hay framework frontend ni bundler.
+- La UI actual sigue siendo standalone en `ui.html`, pero ya existe infraestructura Vite/TypeScript para migrarla por fases sin rediseño.
 - El estilo visual mobile-first del wizard se centraliza en `style.css`.
 - La navegación inferior móvil representa destinos de producto, no pestañas internas de personaje. El detalle de personaje se maneja como microflujo independiente y oculta el bottom nav.
 - Las imágenes de personaje se guardan en `Character.image_data` después de redimensionar/comprimir en navegador; `localStorage` (`dnd-character-image:{characterId}`) queda como cache local.

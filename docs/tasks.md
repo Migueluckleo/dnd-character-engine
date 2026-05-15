@@ -620,8 +620,31 @@
 ### T-078: Crear preview local sin login
 - **Spec:** US-147
 - **Action:** Agregar un entrypoint `preview.html`, un modo `PREVIEW_MODE` en `ui.html`, un mock API en memoria con datos demo y un comando local para servir la app sin push ni login.
-- **Done when:** `npm run preview` levanta `http://127.0.0.1:5500/preview.html`; el usuario ve Home/personaje/inventario/conjuros/habilidades con datos demo; no se llama a la API real ni se reemplaza producción.
+- **Done when:** `npm run build:web` + `npm run preview` levantan `http://127.0.0.1:4173/preview.html`; el usuario ve Home/personaje/inventario/conjuros/habilidades con datos demo; no se llama a la API real ni se reemplaza producción.
 - **Notas 2026-05-13:** Implementado con `ui.html?preview=1`, perfil local `Vista de prueba`, mock API en memoria y catálogo demo mínimo. Pendiente QA visual local en navegador normal.
+- **Notas 2026-05-15:** Tras integrar Vite, el preview local se valida desde el build Vite (`npm run build:web` + `npm run preview`) en vez del servidor Python directo sobre archivos fuente.
+- **Notas 2026-05-15:** Fase 2 extrajo el mock API de preview a `src/client/preview.ts`; `ui.html` conserva el modo preview pero delega las llamadas a `window.DND_PREVIEW_API.request(...)`.
+- **Status:** `[x]`
+
+### T-079: Extraer mock API de preview a módulo cliente
+- **Spec:** US-147
+- **Action:** Mover datos demo, store en memoria y router falso de preview desde `ui.html` a `src/client/preview.ts`, cargado por el entrypoint Vite.
+- **Done when:** `ui.html` ya no contiene el mock completo, `PREVIEW_MODE` usa `window.DND_PREVIEW_API`, y `npm run typecheck:web` + `npm run build:web` pasan.
+- **Notas 2026-05-15:** Implementado como primer corte de Fase 2. El módulo se mantiene con `// @ts-nocheck` porque es una extracción legacy; tiparlo de forma estricta queda para una extracción posterior.
+- **Status:** `[x]`
+
+### T-081: Extraer helpers de inventario/item display a módulo cliente
+- **Spec:** US-148
+- **Action:** Crear `src/client/inventoryHelpers.ts` con todas las funciones puras de inventario/item display extraídas de `ui.html`. Exponer como `window.DND_ITEM_HELPERS`. Reemplazar implementaciones en `ui.html` con wrappers de una línea que deleguen al módulo. Importar desde `src/client/main.ts`.
+- **Done when:** 29 helpers viven en el módulo TypeScript; `npx tsc --noEmit` y `npx jest` pasan sin errores.
+- **Notas 2026-05-14:** Implementado como Fase 4. Extraídas interfaces, constantes y funciones de label/ammo/clasificación/chips/descripción/imagen. No se tocaron renderizadores grandes ni CSS.
+- **Status:** `[x]`
+
+### T-080: Extraer utilidades puras legacy a módulo cliente
+- **Spec:** US-148
+- **Action:** Mover helpers puros de `ui.html` a `src/client/legacy-utils.ts`, exponerlos temporalmente como `window.DND_UTILS` y mantener wrappers globales en `ui.html`.
+- **Done when:** `escapeText`, `fmt`, `delay`, parsing/tirada de dados y clases de dados viven en módulo TypeScript; `npm run typecheck`, `npm run typecheck:web` y `npm run build:web` pasan.
+- **Notas 2026-05-15:** Implementado como Fase 3. No se tocaron renderizadores grandes ni CSS.
 - **Status:** `[x]`
 
 ---

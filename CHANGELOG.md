@@ -2,6 +2,157 @@
 
 Registro retroactivo del proyecto. El código actual es la fuente principal de verdad; las fechas previas se basan en marcas de archivo y documentación disponible, por lo que algunas entradas se indican como estimadas.
 
+## [2026-05-14] - Fase 4 de modularización frontend: helpers de inventario/item display (US-148)
+
+### Cambios
+- Se creó `src/client/inventoryHelpers.ts` con todos los helpers puros de inventario/item display extraídos de `ui.html`.
+- El módulo exporta interfaces (`ItemProperties`, `CatalogItem`, `InventoryEntry`, `RarityTheme`, `DrawerRule`), constantes (`ITEM_NAME_ES`, `DAMAGE_ES`, `ITEM_IMAGE_BASE`, `ITEM_IMAGE_BY_NAME`, `ITEM_IMAGE_BY_KIND`, `GAME_ICON_BY_KIND`, `ITEM_RARITY_THEME`, `ITEM_DEFAULT_THEME`, `INVENTORY_FILTER_LABELS`) y 29 funciones puras tipadas.
+- El módulo expone `window.DND_ITEM_HELPERS` para que `ui.html` pueda delegarle en tiempo de ejecución.
+- `src/client/main.ts` importa `./inventoryHelpers` como tercer módulo cliente.
+- `ui.html` reemplaza todas las implementaciones inline de esos helpers por wrappers de una línea que delegan a `window.DND_ITEM_HELPERS`, conservando fallbacks seguros para el caso en que el módulo no haya cargado aún.
+- No se cambió diseño, `style.css`, endpoints ni comportamiento observable.
+
+### Archivos modificados
+- `src/client/inventoryHelpers.ts` — creado (módulo nuevo)
+- `src/client/main.ts` — agrega `import './inventoryHelpers'`
+- `ui.html` — 29 bloques reemplazados por wrappers de una línea
+- `CHANGELOG.md`, `HANDOFF.md`, `docs/tasks.md`, `docs/behavioral_design.md`
+
+### Historias de usuario relacionadas
+- US-148: Modularización frontend incremental sin rediseño
+
+### Fuente / certeza
+- Confirmado: `npx tsc --noEmit` → 0 errores
+- Confirmado: `npx jest` → 126/126 tests passing
+- Pendiente: `graphify update .` (no disponible en entorno CI — ejecutar localmente)
+
+## [2026-05-15] - Fase 3 de modularización frontend: utilidades legacy
+
+### Cambios
+- Se creó `src/client/legacy-utils.ts` para alojar utilidades puras compartidas del cliente legacy.
+- Se movieron a módulo funciones de escape de texto, formato de modificadores, delay, parsing de fórmulas de dados, tiradas de dados y mapeo de caras a clases CSS.
+- `src/client/main.ts` ahora carga `legacy-utils` antes de `preview`.
+- `ui.html` conserva wrappers globales mínimos para mantener compatibilidad con las llamadas existentes mientras se reduce el código inline.
+- La extracción no cambia diseño, estilos, endpoints reales ni comportamiento previsto de preview.
+
+### Archivos modificados
+- `src/client/legacy-utils.ts`
+- `src/client/main.ts`
+- `ui.html`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+- `README.md`
+- `SETUP.md`
+- `docs/tasks.md`
+- `docs/requirements.md`
+- `docs/behavioral_design.md`
+
+### Validación
+- `npm run typecheck`
+- `npm run typecheck:web`
+- `npm run build:web`
+
+### Fuente / certeza
+- Basado en solicitud directa del usuario para continuar con Fase 3.
+- Confirmado por typecheck backend/frontend y build Vite.
+
+---
+
+## [2026-05-15] - Fase 2 de modularización frontend: preview API
+
+### Cambios
+- Se extrajo el mock API de preview desde `ui.html` hacia `src/client/preview.ts`.
+- `src/client/main.ts` ahora carga el módulo de preview antes de emitir `dnd-client-ready`.
+- `ui.html` conserva la UI y el flujo actual, pero delega las llamadas de `PREVIEW_MODE` a `window.DND_PREVIEW_API.request(...)`.
+- El arranque de la UI espera `DND_CLIENT_READY` cuando el módulo Vite aún no terminó de inicializar.
+- Se redujo el tamaño de `ui.html` sin cambiar diseño, estilos ni endpoints reales.
+- Se agregó el stub vacío `Prisma Seeds & Catalog Data.md` al `.gitignore` para evitar que un link generado por Obsidian/Graphify entre accidentalmente en un `git add .`.
+
+### Archivos modificados
+- `.gitignore`
+- `src/client/preview.ts`
+- `src/client/main.ts`
+- `ui.html`
+- `README.md`
+- `SETUP.md`
+- `docs/requirements.md`
+- `docs/tasks.md`
+- `docs/behavioral_design.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Validación
+- `npm run typecheck:web`
+- `npm run build:web`
+- Pendiente: validación visual en navegador integrado, bloqueada por `ERR_BLOCKED_BY_CLIENT` al abrir `localhost`/`127.0.0.1`.
+
+### Fuente / certeza
+- Basado en solicitud directa del usuario para iniciar Fase 2.
+- Confirmado por build Vite y typecheck frontend.
+
+---
+
+## [2026-05-15] - Regla obligatoria de documentación por cambio
+
+### Cambios
+- Se formalizó que todo cambio de código, configuración, workflow, UI, documentación o tooling debe quedar registrado antes de cerrar la tarea.
+- Se estableció `CHANGELOG.md` + `HANDOFF.md` como documentación mínima obligatoria para cualquier cambio.
+- Se aclaró que `docs/requirements.md`, `docs/tasks.md` y `docs/behavioral_design.md` también deben actualizarse cuando cambien comportamiento, UX, criterios de aceptación o alcance de producto.
+- Se añadió la instrucción en `AGENTS.md`, `CLAUDE.md` y `HANDOFF.md` para que futuros agentes la respeten.
+
+### Archivos modificados
+- `AGENTS.md`
+- `CLAUDE.md`
+- `HANDOFF.md`
+- `CHANGELOG.md`
+
+### Historias de usuario relacionadas
+- N/A — regla de proceso y continuidad del proyecto.
+
+### Fuente / certeza
+- Basado en instrucción directa del usuario.
+- Confirmado por actualización de guías de agente y documentación viva.
+
+---
+
+## [2026-05-15] - Fase 1 de modularización frontend con Vite
+
+### Cambios
+- Se agregó Vite como bundler/desarrollo frontend sin rediseñar la UI existente.
+- Se creó `src/client/main.ts` como entrypoint TypeScript mínimo para futuras extracciones desde `ui.html`.
+- Se separó la configuración TypeScript del frontend en `tsconfig.client.json`, dejando `src/client` fuera del build backend.
+- Se agregó `vite.config.ts` para construir el sitio estático en `_site/` y conservar archivos públicos como `config.public.js`, `.nojekyll` y `CNAME`.
+- Se actualizaron scripts NPM: `dev:web`, `build:web`, `preview`, `preview:static` y `typecheck:web`.
+- Se actualizó GitHub Pages para ejecutar `npm ci` y `npm run build:web` antes de publicar.
+- Se mantuvo `ui.html` y `style.css` como fuente visual actual; la extracción por módulos queda para fases posteriores.
+- Se actualizó Graphify local después del cambio estructural y se regeneraron etiquetas/wiki locales.
+
+### Archivos modificados
+- `.github/workflows/pages.yml`
+- `package.json`
+- `package-lock.json`
+- `tsconfig.json`
+- `tsconfig.client.json`
+- `vite.config.ts`
+- `src/client/main.ts`
+- `ui.html`
+- `README.md`
+- `SETUP.md`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+### Validación
+- `npm run build:web`
+- `npm run prepublish:check`
+- `graphify update .`
+
+### Fuente / certeza
+- Confirmado por código actual
+- Basado en solicitud directa del usuario para iniciar Fase 1
+- Pendiente de extracción real de módulos desde `ui.html`
+
+---
+
 ## [2026-05-13] - Wizard de creación alineado al Figma actual
 
 ### Cambios

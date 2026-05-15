@@ -12,7 +12,7 @@ Todo trabajo sigue este orden sin excepción:
 2. **Planificación** — si la tarea es compleja, documentar el approach en `docs/plan.md`.
 3. **Seguimiento** — cada tarea se registra en `docs/tasks.md` con estado (pendiente / en curso / hecho).
 4. **Implementación** — solo escribir código cuando la US y el criterio de aceptación están aprobados.
-5. **Documentación** — al terminar, actualizar los cuatro archivos vivos (ver sección 3).
+5. **Documentación** — al terminar, registrar todos los cambios en los documentos vivos (ver sección 3). Si no queda documentado, la tarea no está terminada.
 
 ---
 
@@ -31,9 +31,18 @@ Todo trabajo sigue este orden sin excepción:
 
 ---
 
-## 3. Documentos vivos — actualizar en CADA deployment o integración
+## 3. Documentos vivos — actualizar en CADA cambio
 
-Estos cuatro archivos deben estar siempre al día. **Si implementas algo y no los actualizas, la tarea no está terminada.**
+Estos archivos deben estar siempre al día. **Cualquier cambio de código, configuración, workflow, UI, documentación o tooling debe quedar registrado antes de considerar completa la tarea.**
+
+Mínimo obligatorio:
+- `CHANGELOG.md`
+- `HANDOFF.md`
+
+Además, cuando cambien comportamiento, requerimientos, UX, criterios de aceptación o alcance de producto:
+- `docs/requirements.md`
+- `docs/tasks.md`
+- `docs/behavioral_design.md`
 
 ### 3a. `CHANGELOG.md`
 Agrega una entrada al inicio del archivo con este formato exacto:
@@ -127,7 +136,7 @@ La fuente de verdad es siempre `docs/behavioral_design.md`.
 | Backend | Node.js + TypeScript + Express |
 | ORM | Prisma + PostgreSQL |
 | Motor de reglas | `src/engine/` — servicios puros, sin side effects |
-| UI | `ui.html` + `style.css` — standalone, mobile-first |
+| UI | `ui.html` + `style.css` con infraestructura Vite/TypeScript gradual |
 | Deploy | Render (backend) + GitHub Pages o Render Static (frontend) |
 | Tests | Jest + `tests/` |
 
@@ -145,6 +154,12 @@ npx jest
 # Dev server
 npm run dev
 
+# Frontend dev server
+npm run dev:web
+
+# Frontend static build
+npm run build:web
+
 # Generar behavioral design .docx
 python3 scripts/build_behavioral_design.py
 
@@ -157,7 +172,7 @@ npx prisma migrate deploy
 ## 8. Reglas de oro
 
 1. **No implementes sin US.** Si no hay US, créala primero en `docs/behavioral_design.md`.
-2. **No termines sin documentar.** CHANGELOG + HANDOFF + behavioral_design = tarea completa.
+2. **No termines sin documentar.** Todo cambio debe quedar registrado. CHANGELOG + HANDOFF son mínimos; requirements/tasks/behavioral_design aplican cuando cambia producto o comportamiento.
 3. **No rompas el motor de reglas.** Cualquier cambio en `src/engine/` requiere tests que pasen.
 4. **No hardcodees reglas de DnD** en la UI. Todo cálculo va al backend.
 5. **El .docx se genera, no se edita.** La fuente de verdad es el .md.
@@ -171,6 +186,7 @@ npx prisma migrate deploy
 This project may have a local knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
 
 Rules:
+- Every code, config, workflow, UI, or documentation change must be recorded in the living docs before the task is considered complete. At minimum update `CHANGELOG.md` and `HANDOFF.md`; when behavior/product requirements change, also update `docs/requirements.md`, `docs/tasks.md`, and `docs/behavioral_design.md`.
 - IF graphify-out/GRAPH_REPORT.md EXISTS, read it before reading any source files, running grep/glob searches, or answering codebase questions. The graph is your primary map of the codebase.
 - IF graphify-out/wiki/index.md EXISTS, navigate it instead of reading raw files
 - For cross-module "how does X relate to Y" questions, prefer `graphify query "<question>"`, `graphify path "<A>" "<B>"`, or `graphify explain "<concept>"` over grep — these traverse the graph's EXTRACTED + INFERRED edges instead of scanning files
