@@ -6550,10 +6550,19 @@ const dice3D = (() => {
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 installUiAtomObserver();
-if (window.DND_CLIENT_READY) {
+let didInitAuth = false;
+function startAuthOnce() {
+  if (didInitAuth) return;
+  didInitAuth = true;
   initAuth();
+}
+
+if (PREVIEW_MODE && !window.DND_CLIENT_READY) {
+  window.addEventListener('dnd-client-ready', startAuthOnce, { once: true });
+  setTimeout(startAuthOnce, 1500);
 } else {
-  window.addEventListener('dnd-client-ready', () => initAuth(), { once: true });
+  startAuthOnce();
+  window.addEventListener('dnd-client-ready', startAuthOnce, { once: true });
 }
 </script>
 </body>

@@ -318,6 +318,8 @@ export const ITEM_RARITY_THEME: Record<string, RarityTheme> = {
   artifact:  { color: '#D75B74', bg: '#FFE9EE', label: 'Artefacto' },
 };
 export const ITEM_DEFAULT_THEME: RarityTheme = { color: '#EED3B1', bg: '#4D2C1C', label: '' };
+export const ITEM_ICON_BRAND_COLOR = '#720000';
+export const ITEM_ICON_BRAND_BG = 'rgba(114,0,0,.10)';
 
 // ─── Inventory filter labels ──────────────────────────────────────────────────
 export const INVENTORY_FILTER_LABELS: Record<string, string> = {
@@ -816,12 +818,11 @@ export function localGameIconPath(slug: string, color: string): string {
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
 
-/** Returns the Iconify API URL for an item's game-icon with rarity colour. */
+/** Returns the Iconify API URL for an item's game-icon with the brand colour. */
 export function gameIconPath(item: CatalogItem | null | undefined): string {
-  const theme = itemArtTheme(item);
-  const color = encodeURIComponent(theme.color);
   const slug = gameIconSlug(item);
-  return localGameIconPath(slug, theme.color)
+  const color = encodeURIComponent(ITEM_ICON_BRAND_COLOR);
+  return localGameIconPath(slug, ITEM_ICON_BRAND_COLOR)
     || `https://api.iconify.design/game-icons:${slug}.svg?color=${color}`;
 }
 
@@ -833,13 +834,15 @@ export function itemImageHtml(item: CatalogItem | null | undefined, altText?: st
   const path = localPath ? encodeURI(localPath) : gameIconPath(item);
   const fallbackPath = localPath ? escapeText(gameIconPath(item)) : '';
   const sourceClass = localPath ? 'local' : 'library';
+  const artColor = localPath ? theme.color : ITEM_ICON_BRAND_COLOR;
+  const artBg = localPath ? theme.bg : ITEM_ICON_BRAND_BG;
   const rarity = itemRarity(item);
   const label = rarity && theme.label ? `<span>${escapeText(theme.label)}</span>` : '';
   const alt = escapeText(altText ?? itemLabel(item.name));
   const onError = fallbackPath
-    ? `this.onerror=null;this.src='${fallbackPath}';this.closest('.item-art')?.classList.remove('local');this.closest('.item-art')?.classList.add('library')`
+    ? `this.onerror=null;this.src='${fallbackPath}';this.closest('.item-art')?.classList.remove('local');this.closest('.item-art')?.classList.add('library');this.closest('.item-art')?.style.setProperty('--item-art-color','${ITEM_ICON_BRAND_COLOR}');this.closest('.item-art')?.style.setProperty('--item-art-bg','${ITEM_ICON_BRAND_BG}')`
     : `this.closest('.item-art')?.classList.add('image-missing')`;
-  return `<figure class="item-art ${sourceClass}" style="--item-art-color:${theme.color};--item-art-bg:${theme.bg}" title="${escapeText(theme.label || 'Objeto')}"><img src="${escapeText(path)}" alt="${alt}" loading="lazy" onerror="${onError}">${label}</figure>`;
+  return `<figure class="item-art ${sourceClass}" style="--item-art-color:${artColor};--item-art-bg:${artBg}" title="${escapeText(theme.label || 'Objeto')}"><img src="${escapeText(path)}" alt="${alt}" loading="lazy" onerror="${onError}">${label}</figure>`;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -856,6 +859,8 @@ export const inventoryHelpers = {
   GAME_ICON_BY_KIND,
   ITEM_RARITY_THEME,
   ITEM_DEFAULT_THEME,
+  ITEM_ICON_BRAND_COLOR,
+  ITEM_ICON_BRAND_BG,
   INVENTORY_FILTER_LABELS,
   // label / type
   itemLabel,

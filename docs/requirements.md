@@ -1893,4 +1893,8 @@ At the start of combat, each participant rolls a Dexterity check (`1d20 + dexter
 
 **Inventory regression note (2026-05-15):** After the Phase 4 helper extraction, `itemDescription()` must continue to prefer explicit catalog descriptions (`item.description` and `item.properties.description`) before generated text. This priority applies to every item type, including packs, and `ui.html` must preserve that fallback if `window.DND_ITEM_HELPERS` is unavailable. Inventory helper maps consumed by `ui.html` must stay live after Vite loads, not capture empty early values, so Spanish labels, rarity themes and local image maps keep working. Item images must be bundled through Vite asset resolution instead of relying on raw `src/images/items/...` paths.
 
+**Auth refresh regression note (2026-05-15):** Production `ui.html` must start `initAuth()` from the inline script without depending exclusively on the Vite module readiness event. Extracted modules may enhance helpers after load, but a refresh with a valid token must not remain on the default local roster chrome or require logout/login to recover characters. Preview mode may wait for `DND_CLIENT_READY` because its mock API is module-owned, but must include a fallback so it cannot hang indefinitely.
+
+**Inventory icon color note (2026-05-15):** Fallback inventory icons from Game-icons/Iconify and local SVG fallbacks must use the brand red `#720000`, matching dividers and headings. Rarity may remain textual, but it must not recolor fallback item icons into yellow/gold or other rarity colors. Real local item images should not be recolored.
+
 *End of requirements.md — Total User Stories: US-01 through US-148.*

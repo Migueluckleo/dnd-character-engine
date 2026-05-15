@@ -654,6 +654,20 @@
 - **Notas 2026-05-15:** Implementado con proxies vivos en `ui.html`, `import.meta.glob()` en `src/client/inventoryHelpers.ts`, acentos corregidos y fallback SVG local para anillos. Verificado con `npm run prepublish:check` y build Vite.
 - **Status:** `[x]`
 
+### T-084: Restaurar inicio de sesión robusto al refrescar después del refactor Vite
+- **Spec:** US-147 / US-148
+- **Action:** Ajustar el init de `ui.html` para que producción ejecute `initAuth()` sin depender exclusivamente de `dnd-client-ready`, manteniendo guard contra doble arranque.
+- **Done when:** Un refresh con token existente vuelve a recuperar perfil/personajes sin requerir logout/login, y preview local sigue esperando el mock API de Vite.
+- **Notas 2026-05-15:** Implementado con `startAuthOnce()`: producción arranca de inmediato y escucha el evento Vite sólo como respaldo; preview espera `DND_CLIENT_READY` con timeout. Verificado con typecheck frontend y build Vite.
+- **Status:** `[x]`
+
+### T-085: Alinear iconos fallback de inventario al rojo brand
+- **Spec:** US-145 / US-146 / US-148
+- **Action:** Cambiar el color de Game-icons/Iconify y fallbacks SVG locales para usar `#720000` en lugar de amarillo/rareza.
+- **Done when:** Armas, escudos, anillos y demás iconos fallback renderizan en rojo brand sin recolorear imágenes locales reales.
+- **Notas 2026-05-15:** Implementado en `src/client/inventoryHelpers.ts` con `ITEM_ICON_BRAND_COLOR` y `ITEM_ICON_BRAND_BG`. Verificado con typecheck frontend y build Vite.
+- **Status:** `[x]`
+
 ### T-080: Extraer utilidades puras legacy a módulo cliente
 - **Spec:** US-148
 - **Action:** Mover helpers puros de `ui.html` a `src/client/legacy-utils.ts`, exponerlos temporalmente como `window.DND_UTILS` y mantener wrappers globales en `ui.html`.

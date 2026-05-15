@@ -2,6 +2,60 @@
 
 Registro retroactivo del proyecto. El código actual es la fuente principal de verdad; las fechas previas se basan en marcas de archivo y documentación disponible, por lo que algunas entradas se indican como estimadas.
 
+## [2026-05-15] - Ajuste visual de iconos fallback de inventario al rojo brand
+
+### Cambios
+- Se cambió el color de los iconos fallback de inventario a `#720000`, el rojo brand usado en titulares/dividers.
+- `gameIconPath()` ya no usa el color por rareza para pintar iconos de Game-icons/Iconify.
+- El SVG local de anillo y los fallbacks cuando falla una imagen local también usan el rojo brand.
+- Las imágenes locales reales de objetos no se modifican.
+
+### Archivos modificados
+- `src/client/inventoryHelpers.ts`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+- `docs/tasks.md`
+- `docs/requirements.md`
+- `docs/behavioral_design.md`
+
+### Validación
+- `npm run typecheck:web`
+- `npm run build:web`
+- `npm run prepublish:check`
+- `/Users/migueleo/.local/bin/graphify update .`
+
+### Fuente / certeza
+- Basado en solicitud directa del usuario: los iconos de armas, escudos y anillos se veían amarillentos y debían usar el rojo brand.
+
+---
+
+## [2026-05-15] - Fix refresh de sesión tras refactor Vite
+
+### Cambios
+- Se corrigió el arranque de `ui.html` para que producción ejecute `initAuth()` de inmediato y no dependa exclusivamente del evento `dnd-client-ready` emitido por el módulo Vite.
+- Se agregó un guard `startAuthOnce()` para evitar doble inicialización cuando el evento de Vite llega después.
+- En preview local se conserva la espera por `DND_CLIENT_READY`, con timeout de respaldo, porque el mock API sí vive en módulos Vite.
+
+### Archivos modificados
+- `ui.html`
+- `CHANGELOG.md`
+- `HANDOFF.md`
+- `docs/tasks.md`
+- `docs/requirements.md`
+- `docs/behavioral_design.md`
+
+### Validación
+- `npm run typecheck:web`
+- `npm run build:web`
+- `npm run prepublish:check`
+- `/Users/migueleo/.local/bin/graphify update .`
+
+### Fuente / certeza
+- Basado en reporte directo del usuario: al refrescar en `migueleo.com`, a veces quedaba la pantalla inicial con `Perfil local` y roster vacío hasta hacer logout/login.
+- Causa probable: condición de arranque introducida por el refactor, donde la autenticación quedó bloqueada esperando un evento de módulo Vite que puede retrasarse o no observarse en refresh móvil.
+
+---
+
 ## [2026-05-15] - Fix inventario tras Fase 4: descripciones, español e imágenes
 
 ### Cambios

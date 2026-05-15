@@ -520,6 +520,8 @@
 
 | Fecha | Cambio | US relacionada |
 |---|---|---|
+| 2026-05-15 | Ajuste visual — iconos fallback de inventario alineados al rojo brand `#720000` | US-145 / US-146 / US-148 |
+| 2026-05-15 | Fix sesión — refresh con token existente vuelve a iniciar auth sin depender sólo del evento Vite | US-147 / US-148 |
 | 2026-05-15 | Fix inventario — restauradas normalización en español e imágenes locales tras extracción Fase 4 | US-127 / US-145 / US-148 |
 | 2026-05-15 | Fix inventario — restaurada prioridad de descripciones explícitas tras extracción Fase 4 | US-127 / US-145 / US-148 |
 | 2026-05-14 | US-148 Fase 4 — helpers de inventario/item display extraídos a `src/client/inventoryHelpers.ts`; 29 wrappers en `ui.html` | US-148 |

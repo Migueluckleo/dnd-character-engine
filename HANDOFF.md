@@ -10,6 +10,43 @@
 - La documentación viva principal está en `docs/requirements.md`, `docs/plan.md`, `docs/tasks.md`, `.claude.md`, `CHANGELOG.md` y este archivo.
 - Regla obligatoria de continuidad: todo cambio de código, configuración, workflow, UI, documentación o tooling debe registrarse antes de cerrar la tarea. Mínimo actualizar `CHANGELOG.md` y `HANDOFF.md`; si cambia comportamiento, UX o alcance de producto, actualizar también `docs/requirements.md`, `docs/tasks.md` y `docs/behavioral_design.md`.
 
+## Últimos cambios realizados (2026-05-15) — Iconos fallback de inventario en rojo brand
+
+### Qué se corrigió
+- Los iconos fallback de inventario ahora usan `#720000`, el rojo brand de titulares/dividers.
+- `gameIconPath()` y el SVG local de anillo ya no heredan colores amarillentos o de rareza.
+- Si una imagen local de item falla y cae a icono fallback, también cambia las variables visuales del arte a rojo brand.
+- Las imágenes locales reales permanecen sin recolorear.
+
+### Validación realizada
+- `npm run typecheck:web`
+- `npm run build:web`
+- `npm run prepublish:check` (typecheck backend/frontend, 126 tests y security check)
+- `/Users/migueleo/.local/bin/graphify update .`
+
+### Pendientes inmediatos
+- Validar visualmente en móvil real que armas, escudos, anillos y otros fallbacks se lean rojos y no amarillos.
+
+## Últimos cambios realizados (2026-05-15) — Fix refresh de sesión tras refactor Vite
+
+### Qué se corrigió
+- `ui.html` ya no depende exclusivamente del evento `dnd-client-ready` para iniciar autenticación en producción.
+- Se agregó `startAuthOnce()` para correr `initAuth()` una sola vez aunque el módulo Vite emita el evento después.
+- Preview local conserva la espera por `DND_CLIENT_READY` porque su mock API está en `src/client/preview.ts`, con timeout de respaldo para no quedarse congelado.
+
+### Por qué
+- En refresh móvil, especialmente Safari/iOS, la app podía quedarse en el HTML inicial (`Bienvenido, jugador`, `Perfil local`, roster vacío) si el evento del módulo Vite no era observado a tiempo.
+- Antes del refactor, `initAuth()` corría directamente desde el script inline; este cambio restaura ese comportamiento para producción.
+
+### Validación realizada
+- `npm run typecheck:web`
+- `npm run build:web`
+- `npm run prepublish:check` (typecheck backend/frontend, 126 tests y security check)
+- `/Users/migueleo/.local/bin/graphify update .`
+
+### Pendientes inmediatos
+- Validar en Safari/iPhone real haciendo varios refresh seguidos en `migueleo.com`.
+
 ## Últimos cambios realizados (2026-05-15) — Fix inventario tras Fase 4: descripciones, español e imágenes
 
 ### Qué se corrigió
